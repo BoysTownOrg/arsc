@@ -1,0 +1,34 @@
+REGEDIT4
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\BTNRH]
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\BTNRH\ARSC]
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\BTNRH\ARSC\CardInfo]
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\BTNRH\ARSC\CardInfo\CardType0]
+"Name"="Default"
+"bits"=dword:00000010      ; 16
+"left"=dword:00000000
+"nbps"=dword:00000002
+"ncad"=dword:00000002
+"ncda"=dword:00000002
+"gdsr"=dword:00000000
+"ad1_mv_fs"=dword:00000A64 ;  2660
+"ad2_mv_fs"=dword:00000A64 ;  2660
+"da1_mv_fs"=dword:00000A00 ;  2560
+"da2_mv_fs"=dword:00000A00 ;  2560
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\BTNRH\ARSC\CardInfo\CardType1]
+"Name"="Analog 1 (1) ASIO"
+"bits"=dword:00000018      ; 24
+"left"=dword:00000008
+"nbps"=dword:00000002
+"ncad"=dword:00000002
+"ncda"=dword:00000002
+"gdsr"=dword:00000000
+"ad1_mv_fs"=dword:000011FA ;  4602
+"ad2_mv_fs"=dword:000011FA ;  4602
+"da1_mv_fs"=dword:0000168F ;  5775
+"da2_mv_fs"=dword:0000168F ;  5775
+

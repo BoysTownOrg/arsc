@@ -1,0 +1,129 @@
+REGEDIT4
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\BTNRH]
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\BTNRH\ARSC]
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\BTNRH\ARSC\CardInfo]
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\BTNRH\ARSC\CardInfo\CardType0]
+"Name"="Default"
+"bits"=dword:00000010     ; 16
+"left"=dword:00000000
+"nbps"=dword:00000002
+"ncad"=dword:00000002
+"ncda"=dword:00000002
+"gdsr"=dword:00000000
+"ad_mv_fs"=dword:00000A64 ;  2660
+"da_mv_fs"=dword:00000A00 ;  2560
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\BTNRH\ARSC\CardInfo\CardType1]
+"Name"="M-Audio Delta"
+"bits"=dword:00000018     ; 24
+"left"=dword:00000008
+"nbps"=dword:00000004
+"ncad"=dword:00000002
+"ncda"=dword:00000002
+"gdsr"=dword:00000000
+"ad_mv_fs"=dword:00000722 ;  1826
+"da_mv_fs"=dword:000006E7 ;  1767
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\BTNRH\ARSC\CardInfo\CardType2]
+"Name"="CardDeluxe Analog"
+"bits"=dword:00000018     ; 24
+"left"=dword:00000008
+"nbps"=dword:00000004
+"ncad"=dword:00000002
+"ncda"=dword:00000002
+"gdsr"=dword:00000000
+"ad_mv_fs"=dword:000027D8 ; 10200
+"da_mv_fs"=dword:0000130B ;  4875
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\BTNRH\ARSC\CardInfo\CardType3]
+"Name"="Indigo io"
+"bits"=dword:00000018     ; 24
+"left"=dword:00000008
+"nbps"=dword:00000004
+"ncad"=dword:00000002
+"ncda"=dword:00000002
+"gdsr"=dword:00000000
+"ad_mv_fs"=dword:00000935 ;  2357
+"da_mv_fs"=dword:0000088E ;  2190
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\BTNRH\ARSC\CardInfo\CardType4]
+"Name"="Gina24"
+"bits"=dword:00000018     ; 24
+"left"=dword:00000008
+"nbps"=dword:00000004
+"ncad"=dword:00000002
+"ncda"=dword:00000008
+"gdsr"=dword:00000000
+"ad_mv_fs"=dword:00002882 ; 10370
+"da_mv_fs"=dword:0000280A ; 10250
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\BTNRH\ARSC\CardInfo\CardType5]
+"Name"="Gina3G"
+"bits"=dword:00000018     ; 24
+"left"=dword:00000008
+"nbps"=dword:00000004
+"ncad"=dword:00000002
+"ncda"=dword:00000006
+"gdsr"=dword:00000000
+"ad_mv_fs"=dword:FFFFE009 ; -8183
+"da_mv_fs"=dword:00001EA9 ;  7849
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\BTNRH\ARSC\CardInfo\CardType6]
+"Name"="Layla3G"
+"bits"=dword:00000018     ; 24
+"left"=dword:00000008
+"nbps"=dword:00000004
+"ncad"=dword:00000008
+"ncda"=dword:00000008
+"gdsr"=dword:00000000
+"ad_mv_fs"=dword:000010C4 ;  4292
+"da_mv_fs"=dword:00001F3B ;  7995
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\BTNRH\ARSC\CardInfo\CardType7]
+"Name"="LynxTWO-B"
+"bits"=dword:00000018     ; 24
+"left"=dword:00000008
+"nbps"=dword:00000004
+"ncad"=dword:00000002
+"ncda"=dword:00000006
+"gdsr"=dword:00000000
+"ad_mv_fs"=dword:00002B34 ; 11060
+"da_mv_fs"=dword:00002B01 ; 11009
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\BTNRH\ARSC\CardInfo\CardType8]
+"Name"="MOTU UltraLite mk3"
+"bits"=dword:00000018     ; 24
+"left"=dword:00000008
+"nbps"=dword:00000004
+"ncad"=dword:00000006
+"ncda"=dword:00000008
+"gdsr"=dword:00000000
+"ad_mv_fs"=dword:00002710 ; 10000
+"da_mv_fs"=dword:00002710 ; 10000
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\BTNRH\ARSC\CardInfo\CardType9]
+"Name"="Juli@"
+"bits"=dword:00000018     ; 24
+"left"=dword:00000008
+"nbps"=dword:00000004
+"ncad"=dword:00000002
+"ncda"=dword:00000002
+"gdsr"=dword:00000000
+"ad_mv_fs"=dword:0000285A ; 10330
+"da_mv_fs"=dword:00001552 ;  5458
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\BTNRH\ARSC\CardInfo\CardType10]
+"Name"="5-Waveterminal"
+"bits"=dword:00000018     ; 24
+"left"=dword:00000008
+"nbps"=dword:00000004
+"ncad"=dword:00000002
+"ncda"=dword:00000006
+"gdsr"=dword:00000000
+"ad_mv_fs"=dword:000025B7 ;  9655
+"da_mv_fs"=dword:000010FF ;  4351
+

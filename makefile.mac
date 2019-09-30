@@ -1,0 +1,104 @@
+# makefile for ARSC on Mac
+
+CC = gcc
+AR = ar
+CFLAGS = -O2 -Wall -DALSA -DANSI_C 
+LFLAGS= -framework CoreServices  -framework CoreAudio \
+	-framework AudioUnit -framework AudioToolbox
+LIBS = $(LFLAGS) -lm
+EFILES = tstfm tstlat tstout tstsio wrtnfo devlst arsc_chk
+OFILES = arsc_api.o arsc_xfer.o arsc_mac.o sio_arsc.o
+AFILES = libarsc.a libsio.a 
+BINDIR=$(ROOT)/usr/local/bin
+LIBDIR=$(ROOT)/usr/local/lib
+INCDIR=$(ROOT)/usr/local/include
+
+all: $(EFILES) $(AFILES)
+
+arsc_chk : arsc_chk.o $(OFILES)
+	$(CC) -o $@ $^ $(LIBS)
+
+devlst : devlst.o $(OFILES)
+	$(CC) -o $@ $^ $(LIBS)
+
+tstfm : tstfm.o $(OFILES)
+	$(CC) -o $@ $^ $(LIBS)
+
+tstlat : tstlat.o $(OFILES)
+	$(CC) -o $@ $^ $(LIBS)
+
+tstout : tstout.o $(OFILES)
+	$(CC) -o $@ $^ $(LIBS)
+
+tstsio : tstsio.o siodll.o $(OFILES)
+	$(CC) -o $@ $^ $(LIBS)
+
+wrtnfo : wrtnfo.o $(OFILES)
+	$(CC) -o $@ $^ $(LIBS)
+
+libarsc.a : $(OFILES)
+	$(AR) rs libarsc.a $(OFILES)
+
+libsio.a : sio_arsc.o $(OFILES)
+	$(AR) rs libsio.a sio_arsc.o $(OFILES)
+
+clean:
+	rm -f *.bak *.o  *.a *.log *~ tst *.a
+	rm -f $(MKFILES) *.exe 
+
+rc : wrtnfo
+	./wrtnfo
+	mv -i arscrc /usr/local/etc
+
+install: arsc_chk tstlat libarsc.a libsio.a 
+	mkdir -p $(BINDIR) $(LIBDIR) $(INCDIR)
+	install arsc_chk  $(BINDIR)
+	install tstlat    $(BINDIR)
+	install arsclib.h $(INCDIR)
+	install libarsc.a $(LIBDIR)
+	install libsio.a  $(LIBDIR)
+
+arscsc.zip: $(EFILES)
+	zip arscsc *.mgw *.lnx *.mac *.arm
+	zip arscsc *.c *.h *.def *.pdf *.plt
+	zip arscsc *.txt *.reg configure configure.bat
+	zip arscsc arsc_asio/*.txt arsc_asio/arsc*.*
+	zip arscsc arsc_cpp/*.cc arsc_cpp/Makefile
+	zip arscsc arsc_cs/*.* _*
+	zip arscsc arsc_mex/*.c arsc_mex/*.m arsc_mex/*.bat
+	zip arscsc arsc_mex/Makefile arsc_mex/_README.txt
+	zip arscsc arsc_VS9/*.sln arsc_VS9/*.vcproj arsc_VS9/*.txt
+
+arscmex.zip: 
+	zip -j arscmex arsc_mex/*.c arsc_mex/*.m arsc_mex/README.txt
+	zip -j arscmex arsc_mex/arsc_mex.mexw32 arsc_mex/arsc_mex.mexglx
+
+arscdll.zip: 
+	zip -j arscdll arsc_VS9/Release/arsc_dll/arsc.dll
+	zip -j arscdll arsc_VS9/Release/arsc_dll/arsc.lib
+	zip -j arscdll arsclib.h
+
+sio_arsc.zip: 
+	zip -j sio_arsc tstsio.c
+	zip -j sio_arsc arsc_VS9/Release/tstsio.exe
+	zip -j sio_arsc arsc_VS9/Release/siodll/sio.dll
+	zip -j arscdll siodll.h
+
+dist: arscsc.zip arscmex.zip arscdll.zip sio_arsc.zip
+	mv -f $^ ../dist
+
+# C file dependencies
+# (makedep will replace everything after this line) 
+
+arsc_alsa.o : arscdev.h
+arsc_api.o: arsc_common.h version.h
+arsc_asio.o : arscdev.h
+arsc_helper.o: arsc_common.h version.h
+arsc_win.o: arsc_common.h cardinfo.h arsclib.h arscdev.h
+arsc_xfer.o: arsc_common.h
+sio_arsc.o : sio.h arsclib.h
+siodll.o : sio.h siodll.h
+tstfm.o : arsclib.h
+tstlat.o : arsclib.h
+tstout.o : arsclib.h
+tstsio.o : siodll.h

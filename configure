@@ -1,0 +1,12 @@
+# configure ARSC source code for Linux or Mac
+if (test `uname` == "Darwin"); then
+    echo "Configure ARSC for Mac.";
+    rm -f Makefile
+    cp -f makefile.mac Makefile
+    echo "Type 'make', then 'make install'."
+else
+    echo "Configure ARSC for Linux.";
+    rm -f Makefile
+    cp -f makefile.lnx Makefile
+    echo "Type 'make', then 'make install'."
+fi
