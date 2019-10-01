@@ -197,10 +197,10 @@ sync_avg(int id, float *x, float *y, double at,
     double sc;
     int nchn = 2;
     int i, j, n, cur, cnt, prv, err, nseg, *ix[2], *iy[2], *jx, *jy;
-    SINT4 *siz; 
+    int32_t *siz; 
     void **inn, **out; 
     static int nbuf = 2; 			/* double buffer */
-    static SINT4 fmt[2] = {ARSC_DATA_I4, 0};	/* SINT4,non-interleaved */
+    static int32_t fmt[2] = {ARSC_DATA_I4, 0};	/* int32_t,non-interleaved */
 
     n = npnt;
     memset(y, 0, n * sizeof(float));	/* zero response */
@@ -222,7 +222,7 @@ sync_avg(int id, float *x, float *y, double at,
     nseg = nswp + nskp + 1;
     inn = (void **) calloc(nseg * nchn, sizeof(void *));
     out = (void **) calloc(nseg * nchn, sizeof(void *));
-    siz = (SINT4 *) calloc(nseg, sizeof(SINT4));
+    siz = (int32_t *) calloc(nseg, sizeof(int32_t));
     for (i = 0; i < nseg; i++) {
 	out[i * nchn + co] = (i < (nswp + nskp)) ? ix[0] : NULL;
 	inn[i * nchn + ci] = iy[i % nbuf];
@@ -663,7 +663,7 @@ device_output()
     double vfs;
     float *s, *z;
     int i, j, np, cseg, err;
-    SINT4 siz[4];
+    int32_t siz[4];
     void *out[8];
     static double ft = 1000;
     static double rd = 0.010;
@@ -673,7 +673,7 @@ device_output()
     static int nseg = 4;
     static int nswp = 1;
     static int lseg = 1;
-    static SINT4 fmt[2] = {ARSC_DATA_F4, 0};
+    static int32_t fmt[2] = {ARSC_DATA_F4, 0};
 
     vfs = ci[ict].da_vfs[0];
     np = round((td + rd) * rate);

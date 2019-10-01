@@ -12,21 +12,21 @@
 #define NBNK	    2		/* max banks */
 #define limit(mn,aa,mx) (((aa)<(mn))?(mn):((aa)>(mx))?(mx):(aa))
 
-SINT4     _arsc_get_cardtype(SINT4);
+int32_t     _arsc_get_cardtype(int32_t);
 void     _arsc_set_cardinfo(CARDINFO, int);
 CARDINFO _arsc_get_cardinfo(int);
 
 /**************************************************************************/
 
 typedef struct {
-    SINT4 accept;
-    SINT4 avmode[MAXNDC];
-    SINT4 resp_i[MAXNDC];
-    SINT4 stim_i[MAXNDC];
-    SINT4 *bank_b;
-    SINT4 *resp_a[MAXNDC];
-    SINT4 *resp_b[MAXNDC];
-    SINT4 *stim_b[MAXNDC];
+    int32_t accept;
+    int32_t avmode[MAXNDC];
+    int32_t resp_i[MAXNDC];
+    int32_t stim_i[MAXNDC];
+    int32_t *bank_b;
+    int32_t *resp_a[MAXNDC];
+    int32_t *resp_b[MAXNDC];
+    int32_t *stim_b[MAXNDC];
 } BIO;
 
 BIO bio_;
@@ -35,7 +35,7 @@ BIO bio_;
 
 static double mxsmp[2] = {0, 0};
 static double rate_set = 0;
-static SINT4 iodev = -1;
+static int32_t iodev = -1;
 static int bnktot = 0;
 static int cho[2] = {0, 0};
 static int debug = 0;
@@ -49,11 +49,11 @@ static void
 bank_put(int bo, int is, int ns, int doit, int os)
 {
     int     c, i, j, d, n;
-    SINT4   *s, z = 0;
-    SINT4   *lbuf;
+    int32_t   *s, z = 0;
+    int32_t   *lbuf;
 
     n = ns * ndc[1];
-    lbuf = (SINT4 *) vbanko[bo] + is * ndc[1];
+    lbuf = (int32_t *) vbanko[bo] + is * ndc[1];
     for (c = 0; c < ndc[1]; c++) {
         if (bio_.stim_b[c] && doit) {
 	    d = bio_.stim_i[c];
@@ -72,11 +72,11 @@ static void
 bank_get(int bo, int is, int ns)
 {
     int     i, n;
-    SINT4   *lbuf, *r;
+    int32_t   *lbuf, *r;
 
     n = ns * ndc[0];
     r = bio_.bank_b;
-    lbuf = (SINT4 *) vbanki[bo] + is * ndc[0];
+    lbuf = (int32_t *) vbanki[bo] + is * ndc[0];
     for (i = 0; i < n; i++)
 	r[i] = lbuf[i] >> 8;
 }
@@ -85,8 +85,8 @@ static void
 bank_avg(int ns, int os)
 {
     int c, i, j, d, n, nc;
-    SINT4 *b;
-    SINT4 *r, *a;
+    int32_t *b;
+    int32_t *r, *a;
 
     nc = ndc[0];    /* number of input channels */
     n = ns * nc;
@@ -151,7 +151,7 @@ set_stim_buff(int b)
     for (c = 0; c < ndc[1]; c++) {
 	k = c * nsbc + b;
 	bio_.stim_i[c] = obinc ? obinc[k] : 1;
-	bio_.stim_b[c] = obptr ? (SINT4 *) obptr[k] : NULL;
+	bio_.stim_b[c] = obptr ? (int32_t *) obptr[k] : NULL;
     }
 }
 
@@ -159,20 +159,20 @@ static void
 set_resp_buff(int b)
 {
     int c, k;
-    SINT4 *bp, *ap;
+    int32_t *bp, *ap;
 
     for (c = 0; c < ndc[0]; c++) {
 	k = c * nrbc + b;
 	bio_.resp_i[c] = ibinc ? ibinc[k] : 1;
-	bio_.resp_b[c] = bp = ibptr ? (SINT4 *) ibptr[k] : NULL;
-	bio_.resp_a[c] = ap = abptr ? (SINT4 *) abptr[k] : NULL;
+	bio_.resp_b[c] = bp = ibptr ? (int32_t *) ibptr[k] : NULL;
+	bio_.resp_a[c] = ap = abptr ? (int32_t *) abptr[k] : NULL;
  	bio_.avmode[c] = ap ? (bp ? 3 : 2) : (bp ? 1 : 0);
     }
     rspbuf = b;
 }
 
 static void
-put_bank(SINT4 bnk_oc)
+put_bank(int32_t bnk_oc)
 {
     int     bnko, chnk, ibnk, doit, ofst, nrem, nsmp, smpo;
 
@@ -191,7 +191,7 @@ put_bank(SINT4 bnk_oc)
 }
 
 static void
-get_bank(SINT4 bnk_ic)
+get_bank(int32_t bnk_ic)
 {
     int     bnko, chnk, ibnk, doit, ofst, nrem, nsmp, smpi;
 
@@ -230,8 +230,8 @@ reset_io(int bs)
     int b, nseg;
     static int maxbnksiz = 16384;
     static int nbps = 4;
-    static SINT4 size[2];
-    static SINT4 fmt[2] = {ARSC_DATA_I4, 1};
+    static int32_t size[2];
+    static int32_t fmt[2] = {ARSC_DATA_I4, 1};
 
     bnksiz = limit(1, bs, maxbnksiz);
     for (b = 0; b < NBNK; b++) {
@@ -243,7 +243,7 @@ reset_io(int bs)
 	    return;
 	}
     }
-    bio_.bank_b = (SINT4 *) calloc(bnksiz * ndc[0], sizeof(SINT4));
+    bio_.bank_b = (int32_t *) calloc(bnksiz * ndc[0], sizeof(int32_t));
     bnktot = (smptot + bnksiz - 1) / bnksiz;    
     size[0] = bnksiz;
     size[1] = bnksiz;
@@ -260,7 +260,7 @@ static int (*escape)() = NULL;
 static int escflg = 0;
 
 static void
-setup_io(SINT4 nstm, SINT4 ngap, int nskp, int nswp, double pregap)
+setup_io(int32_t nstm, int32_t ngap, int nskp, int nswp, double pregap)
 {
     time_t t = 0;
 
@@ -356,7 +356,7 @@ stim_fix()
     double  sc, s, m;
     float  *ob;
     int     c, b, i, j, k, dj;
-    SINT4   *sl;
+    int32_t   *sl;
 
     m = (float) mxsmp[1];
     for (c = 0; c < ndc[1]; c++) {
@@ -365,11 +365,11 @@ stim_fix()
 	    if (obptr && obptr[k]) {
 		ob = obptr[k];
 		dj = obinc[k];
-		sl = (SINT4 *) ob;
+		sl = (int32_t *) ob;
 		sc = 1 / da_vpc[c];
 		for (i = j = 0; i < nsstm; i++, j += dj) {
 		    s = ob[j] * sc + 0.5;
-		    sl[j] = (SINT4) limit(-m, s, m);
+		    sl[j] = (int32_t) limit(-m, s, m);
 		}
 	    }
 	}
@@ -381,7 +381,7 @@ stim_float()
 {
     float  *ob, sc;
     int     c, b, i, j, k, dj;
-    SINT4   *sl;
+    int32_t   *sl;
 
     for (c = 0; c < ndc[1]; c++) {
 	for (b = 0; b < nsbc; b++) {
@@ -389,7 +389,7 @@ stim_float()
 	    if (obptr && obptr[k]) {
 		ob = obptr[k];
 		dj = obinc[k];
-		sl = (SINT4 *) ob;
+		sl = (int32_t *) ob;
 		sc = da_vpc[c];
 		for (i = j = 0; i < nsstm; i++, j += dj) {
 		    ob[j] = sl[j] * sc;
@@ -404,7 +404,7 @@ resp_zero()
 {
     float  *ib;
     int     c, b, i, j, k, dj;
-    SINT4   *rl;
+    int32_t   *rl;
 
     for (c = 0; c < ndc[0]; c++) {
 	for (b = 0; b < nrbc; b++) {
@@ -412,7 +412,7 @@ resp_zero()
 	    if (abptr && abptr[k]) {
 		ib = abptr[k];
 		dj = ibinc[k];
-		rl = (SINT4 *) ib;
+		rl = (int32_t *) ib;
 		for (i = j = 0; i < nsstm; i++, j += dj) {
 		    rl[j] = 0;
 		}
@@ -429,7 +429,7 @@ resp_scale_average()
 {
     float  *ab, sc;
     int     c, b, i, j, k, dj, n;
-    SINT4   *rb;
+    int32_t   *rb;
 
     for (c = 0; c < ndc[0]; c++) {
 	for (b = 0; b < nrbc; b++) {
@@ -438,7 +438,7 @@ resp_scale_average()
 	    if (abptr && abptr[k]) {
 		ab = abptr[k];
 		dj = ibinc[k];
-		rb = (SINT4 *) ab;
+		rb = (int32_t *) ab;
 		sc = (n > 0) ? (float) (ad_vpc[c] / n) : 0;
 		for (i = j = 0; i < nsstm; i++, j += dj) {
 		    ab[j] = rb[j] * sc;
@@ -453,7 +453,7 @@ resp_scale_input()
 {
     float  *ib, sc;
     int     c, b, i, j, k, dj;
-    SINT4   *rb;
+    int32_t   *rb;
 
     for (c = 0; c < ndc[0]; c++) {
 	for (b = 0; b < nrbc; b++) {
@@ -461,7 +461,7 @@ resp_scale_input()
 	    if (ibptr && ibptr[k]) {
 		ib = ibptr[k];
 		dj = ibinc[k];
-		rb = (SINT4 *) ib;
+		rb = (int32_t *) ib;
 		sc = ad_vpc[c];
 		for (i = j = 0; i < nsstm; i++, j += dj) {
 		    ib[j] = rb[j] * sc;

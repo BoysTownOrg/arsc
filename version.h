@@ -23,7 +23,7 @@
 > fixed bug when adj_rate called with bad device id
 > arsc_mac updates card_info
 0.48 - 6-Dec-14
-> define "SINT4" as "int" for Xcode 64-bit compiler
+> define "int32_t" as "int" for Xcode 64-bit compiler
 > clean up Xcode syntax warnings
 > add i/o code to arsc_mac.c
 0.47 - 18-Nov-14

@@ -44,7 +44,7 @@ check_registry()
 {
     char key_name[80], card_name[MAX_CT_NAME];
     int i, j;
-    SINT4 n, r, t, temp;
+    int32_t n, r, t, temp;
     CARDINFO ci;
     HKEY hKey;
     void _arsc_set_cardinfo(CARDINFO, int);
@@ -67,7 +67,7 @@ check_registry()
 	    } else {
 		continue;
 	    }
-	    n = sizeof(SINT4);
+	    n = sizeof(int32_t);
 	    t = REG_DWORD;
 	    r = RegQueryValueEx(hKey, "bits", NULL, (LPDWORD) &t, (LPBYTE) &temp, (LPDWORD) &n);
 	    if (r == 0) {
@@ -202,7 +202,7 @@ read_rc()
     // Look for alternate configuration file
     env = getenv("ARSC.CFG");
     if (env) {
-	strncpy(fn, env, 256);
+	strncpy(fn, env, 255);
     }
 
     fp = fopen(fn, "r");
@@ -215,7 +215,7 @@ read_rc()
 	    i = atoi(s + 9);
 	    ci = zci;
 	} else if (strncasecmp(s, "Name", 4) == 0) {
-	    strncpy(ci.name, s + 5, MAX_CT_NAME);
+	    strncpy(ci.name, s + 5, MAX_CT_NAME -1);
 	} else if (strncasecmp(s, "bits", 4) == 0) {
 	    ci.bits = atoi(s + 5);
 	} else if (strncasecmp(s, "left", 4) == 0) {
@@ -274,9 +274,9 @@ void CALLBACK waveOutProc(
 /* open_io - open input and ouput devices */
 
 static int
-open_io(SINT4 di)
+open_io(int32_t di)
 {
-    SINT4   d, sync_call = WAVE_ALLOWSYNC | CALLBACK_FUNCTION;
+    int32_t   d, sync_call = WAVE_ALLOWSYNC | CALLBACK_FUNCTION;
     ARDEV *a;
     struct {
 	WAVEFORMATEX  f;
@@ -391,9 +391,9 @@ open_io(SINT4 di)
 /* close_io - close input and ouput devices */
 
 static void
-close_io(SINT4 di)
+close_io(int32_t di)
 {
-    SINT4 d;
+    int32_t d;
     ARDEV *a;
 
     a = _ardev[di];
@@ -417,10 +417,10 @@ close_io(SINT4 di)
 
 /* _ar_win_num_dev - return number of devices */
 
-static SINT4
+static int32_t
 _ar_win_num_dev()
 {
-    SINT4 nd;
+    int32_t nd;
 
     if (_arsc_find & ARSC_PREF_IN) {
         nd = (int) waveInGetNumDevs();
@@ -434,7 +434,7 @@ _ar_win_num_dev()
 /* _ar_win_dev_name - return name of I/O device */
 
 static char   *
-_ar_win_dev_name(SINT4 d)
+_ar_win_dev_name(int32_t d)
 {
     WAVEINCAPS WavInCaps;
     WAVEOUTCAPS WavOutCaps;
@@ -457,10 +457,10 @@ _ar_win_dev_name(SINT4 d)
 
 /* _ar_win_list_rates - create a list of available sample rates */
 
-static SINT4
-_ar_win_list_rates(SINT4 di)
+static int32_t
+_ar_win_list_rates(int32_t di)
 {
-    SINT4    i, d, gdsr;
+    int32_t    i, d, gdsr;
     ARDEV  *a;
     struct {
 	WAVEFORMATEX  f;
@@ -513,17 +513,17 @@ _ar_win_list_rates(SINT4 di)
 /* _ar_win_close - close wave-audio device */
 
 static void
-_ar_win_close(SINT4 di)
+_ar_win_close(int32_t di)
 {
     close_io(di);
 }
 
 /* _ar_win_open - open wave-audio device */
 
-static SINT4
-_ar_win_open(SINT4 di)
+static int32_t
+_ar_win_open(int32_t di)
 {
-    SINT4 err;
+    int32_t err;
     ARDEV *a;
 
     a = _ardev[di];
@@ -542,11 +542,11 @@ _ar_win_open(SINT4 di)
 
 /* _ar_win_io_prepare - prepare device and buffers for I/O */
 
-static SINT4
-_ar_win_io_prepare(SINT4 di)
+static int32_t
+_ar_win_io_prepare(int32_t di)
 {
     int     b, no, ni, ss;
-    SINT4   *sz, d;
+    int32_t   *sz, d;
     ARDEV  *a;
     MMRESULT Result;
 
@@ -612,10 +612,10 @@ _ar_win_io_prepare(SINT4 di)
 
 /* _ar_win_xfer_seg - this segment is ready to go */
 
-static SINT4
-_ar_win_xfer_seg(SINT4 di, SINT4 b)
+static int32_t
+_ar_win_xfer_seg(int32_t di, int32_t b)
 {
-    SINT4 d;
+    int32_t d;
     ARDEV  *a;
     MMRESULT Result;
 
@@ -642,11 +642,11 @@ _ar_win_xfer_seg(SINT4 di, SINT4 b)
 
 /* _ar_win_chk_seg - check for segment completion */
 
-static SINT4
-_ar_win_chk_seg(SINT4 di, SINT4 b)
+static int32_t
+_ar_win_chk_seg(int32_t di, int32_t b)
 {
     int id, od;
-    SINT4 d;
+    int32_t d;
     ARDEV  *a;
 
     a = _ardev[di];
@@ -661,9 +661,9 @@ _ar_win_chk_seg(SINT4 di, SINT4 b)
 /* _ar_win_io_start - start I/O */
 
 static void
-_ar_win_io_start(SINT4 di)
+_ar_win_io_start(int32_t di)
 {
-    SINT4 d;
+    int32_t d;
     ARDEV  *a;
 
     a = _ardev[di];
@@ -687,9 +687,9 @@ _ar_win_io_start(SINT4 di)
 /* _ar_win_io_stop - stop I/O */
 
 static void
-_ar_win_io_stop(SINT4 di)
+_ar_win_io_stop(int32_t di)
 {
-    SINT4    b, d;
+    int32_t    b, d;
     ARDEV  *a;
 
     a = _ardev[di];
@@ -715,10 +715,10 @@ _ar_win_io_stop(SINT4 di)
 
 /* _ar_os_bind - bind WIN functions, return number of devices */
 
-SINT4
-_ar_os_bind(SINT4 ndt, SINT4 tnd)
+int32_t
+_ar_os_bind(int32_t ndt, int32_t tnd)
 {
-    SINT4 nd;
+    int32_t nd;
 
     nd = _ar_win_num_dev();
     if (nd > 0) {

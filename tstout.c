@@ -12,7 +12,7 @@ static char *ret_ptr = NULL;    // unused return value
 static int io_dev = -1;
 
 static void
-compute_tone(double f, double a, SINT4 *b, int n)
+compute_tone(double f, double a, int32_t *b, int n)
 {
     double  p;	    // amplitude and phase of stimulus tone;
     double  c;	    // number of cycles per buf
@@ -21,11 +21,11 @@ compute_tone(double f, double a, SINT4 *b, int n)
     c = floor(f * n + 0.5);
     p = 2 * M_PI * c / n;
     for (i = 0; i < n; i++)
-	b[i] = (SINT4) (a * sin(p * i) + 0.5);
+	b[i] = (int32_t) (a * sin(p * i) + 0.5);
 }
 
 static void
-ramp_ends(SINT4 *b, int n, double nr)
+ramp_ends(int32_t *b, int n, double nr)
 {
     double  s, a, p;
     int     i, j, m;
@@ -36,8 +36,8 @@ ramp_ends(SINT4 *b, int n, double nr)
 	s = sin(p * i);
 	a = s * s;
 	j = n - 1 - i;
-	b[i] = (SINT4) (a * b[i] + 0.5);
-	b[j] = (SINT4) (a * b[j] + 0.5);
+	b[i] = (int32_t) (a * b[i] + 0.5);
+	b[j] = (int32_t) (a * b[j] + 0.5);
     }
 }
 
@@ -68,7 +68,7 @@ test_tone(double f, double t)	// tone frequency and duration
 {
     double a, nr;
     int d, s, p, nsmp, noff;
-    SINT4 sz[5], fmt[2], *sl;
+    int32_t sz[5], fmt[2], *sl;
     void *out[10];
     static double r = 44100;	// sampling rate
     static int nseg = 5;	// number of segments
@@ -86,7 +86,7 @@ test_tone(double f, double t)	// tone frequency and duration
 
     nsmp = (int) floor(r * t + 0.5);
     noff = (nsmp * 3) / 2;
-    sl = (SINT4 *) calloc(nsmp * 2, sizeof(SINT4));
+    sl = (int32_t *) calloc(nsmp * 2, sizeof(int32_t));
     a = pow(2, nbps * 8 - 1) - 1;
     compute_tone(f / r, a / 2, sl, nsmp);
     nr = r / 100;
@@ -175,7 +175,7 @@ cue(int s)
  * WndProc() - Processes Windows messages
  */
 LRESULT CALLBACK
-wind_proc(HWND hWindow, UINT message, WPARAM wParam, SINT4 lParam)
+wind_proc(HWND hWindow, UINT message, WPARAM wParam, int32_t lParam)
 {
     PAINTSTRUCT   ps;
 

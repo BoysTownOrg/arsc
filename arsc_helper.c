@@ -56,9 +56,9 @@ pointers for Steve's _ar_io_prepare() function.
 
 #ifdef WRAP
 
-WIN32DLL_API SINT4 STDCALL 
+WIN32DLL_API int32_t STDCALL 
 ar_find_dev(		
-    SINT4 flags							
+    int32_t flags							
     ) {									
 
     FDBUG ( ( _arS, "ar_find_dev(): calling _ar_find_dev ( %d )\n", flags ) );
@@ -66,7 +66,7 @@ ar_find_dev(
     return _ar_find_dev ( flags );
 }
 
-WIN32DLL_API SINT4 STDCALL 
+WIN32DLL_API int32_t STDCALL 
 ar_find_dev_name(	
     char *name							
     ) {									
@@ -74,9 +74,9 @@ ar_find_dev_name(
     return _ar_find_dev_name ( name );
 }
 
-WIN32DLL_API SINT4 STDCALL 
+WIN32DLL_API int32_t STDCALL 
 ar_xruns(	    // Get xrun count
-    SINT4 dev				    // - device identifier
+    int32_t dev				    // - device identifier
     ) {
 
     return _ar_xruns( dev );
@@ -85,7 +85,7 @@ ar_xruns(	    // Get xrun count
 /*
 Get the number of devices
 */
-WIN32DLL_API SINT4 STDCALL 
+WIN32DLL_API int32_t STDCALL 
 ar_num_devs ( void ) {
     return _ar_num_devs();
 }
@@ -97,12 +97,12 @@ output, use the following functions (for readibility):
 	ar_out_open()
 Or, just pass a 0 in whichever channel type is not used.
 */
-WIN32DLL_API SINT4 STDCALL 
+WIN32DLL_API int32_t STDCALL 
 ar_io_open(	
-	SINT4 dev,						
+	int32_t dev,						
 	double rate,					
-	SINT4 in_chan,				 	
-	SINT4 out_chan				 	
+	int32_t in_chan,				 	
+	int32_t out_chan				 	
     ) {								
 
     FDBUG ( ( _arS, "ar_io_open(): dev [%d] rate [%lf] in_chan [%d] out_chan [%d]\n", dev, rate, in_chan, out_chan ) );
@@ -113,14 +113,14 @@ ar_io_open(
 /*
 Opens both input and output channels with channel offset.
 */
-WIN32DLL_API SINT4 STDCALL 
+WIN32DLL_API int32_t STDCALL 
 ar_io_open_off(	
-	SINT4 dev,						
+	int32_t dev,						
 	double rate,					
-	SINT4 in_chan,				 	
-	SINT4 out_chan,
-	SINT4 chnoff_i,				 	
-	SINT4 chnoff_o				 	
+	int32_t in_chan,				 	
+	int32_t out_chan,
+	int32_t chnoff_i,				 	
+	int32_t chnoff_o				 	
     ) {								
 
     FDBUG ( ( _arS, "ar_io_open_off(): dev [%d] rate [%lf] in_chan [%d] out_chan [%d] chnoff_i [%d] chnoff_o [%d]\n", dev, rate, in_chan, out_chan, chnoff_i, chnoff_o ) );
@@ -132,11 +132,11 @@ ar_io_open_off(
 Just calls _ar_io_open() setting input channels to zero.
 Don't even need to go to Steve's C function for this case.
 */
-WIN32DLL_API SINT4 STDCALL 
+WIN32DLL_API int32_t STDCALL 
 ar_out_open(	
-    SINT4 dev,						
+    int32_t dev,						
     double rate,					
-    SINT4 out_chan				 	
+    int32_t out_chan				 	
     ) {								
 
     return _ar_io_open ( dev, rate, 0, out_chan );
@@ -159,9 +159,9 @@ ar_in_open(
 Wipes out the DLL internal pointers, then calls the 
 close function for the chosen protocol ( WDM/ASIO )
 */
-WIN32DLL_API SINT4 STDCALL 
+WIN32DLL_API int32_t STDCALL 
 ar_io_close(	
-    SINT4 dev 						
+    int32_t dev 						
     ) {								
 
     if ( in_data_array != NULL ) {
@@ -178,27 +178,27 @@ ar_io_close(
     return _ar_io_close ( dev );
 }
 
-WIN32DLL_API SINT4 STDCALL 
+WIN32DLL_API int32_t STDCALL 
 ar_io_prep (	
-    SINT4 dev,
-    SINT4 *in_data[],					
-    SINT4 *out_data[],					
-    SINT4 size[], 				 		
-    SINT4 nseg,					 		
-    SINT4 tseg					 		
+    int32_t dev,
+    int32_t *in_data[],					
+    int32_t *out_data[],					
+    int32_t size[], 				 		
+    int32_t nseg,					 		
+    int32_t tseg					 		
     ) {									
 
     return _ar_io_prep ( dev, in_data, out_data, size, nseg, tseg );
 }
 
-WIN32DLL_API SINT4 STDCALL 
+WIN32DLL_API int32_t STDCALL 
 ar_io_prepare (	
-    SINT4 dev,
-    SINT4 *in_data[],					
-    SINT4 *out_data[],					
-    SINT4 size[], 				 		
-    SINT4 nseg,					 		
-    SINT4 nswp					 		
+    int32_t dev,
+    int32_t *in_data[],					
+    int32_t *out_data[],					
+    int32_t size[], 				 		
+    int32_t nseg,					 		
+    int32_t nswp					 		
     ) {									
 
     return _ar_io_prep ( dev, in_data, out_data, size, nseg, nswp * nseg );
@@ -208,21 +208,21 @@ ar_io_prepare (
 Just calls _ar_io_prepare() setting in_data to null.
 Don't even need to go to Steve's C function for this case.
 */
-WIN32DLL_API SINT4 STDCALL 
+WIN32DLL_API int32_t STDCALL 
 ar_out_prepare (	
-	SINT4 dev,
-	SINT4 *out_data[],					
-	SINT4 size[], 				 		
-	SINT4 nseg,					 		
-	SINT4 nswp					 		
+	int32_t dev,
+	int32_t *out_data[],					
+	int32_t size[], 				 		
+	int32_t nseg,					 		
+	int32_t nswp					 		
 	) {									
 
     return _ar_io_prep ( dev, NULL, out_data, size, nseg, nswp * nseg );
 }
 
-WIN32DLL_API SINT4 STDCALL 
+WIN32DLL_API int32_t STDCALL 
 ar_io_start(	
-    SINT4 dev 					 	
+    int32_t dev 					 	
     ) {								
 
     FDBUG ( ( _arS, "ar_io_start(): dev [%d]\n", dev ) );
@@ -230,9 +230,9 @@ ar_io_start(
     return _ar_io_start ( dev );
 }
 
-WIN32DLL_API SINT4 STDCALL 
+WIN32DLL_API int32_t STDCALL 
 ar_io_stop(	
-    SINT4 dev 					 	
+    int32_t dev 					 	
     ) {								
 
     FDBUG ( ( _arS, "ar_io_stop(): dev [%d]\n", dev ) );
@@ -240,10 +240,10 @@ ar_io_stop(
     return _ar_io_stop ( dev );
 }
 
-WIN32DLL_API SINT4 STDCALL 
+WIN32DLL_API int32_t STDCALL 
 ar_set_fmt(	
-    SINT4 dev, 					 	
-    SINT4 *fmt 					 	
+    int32_t dev, 					 	
+    int32_t *fmt 					 	
     ) {								
 
     FDBUG ( ( _arS, "ar_set_fmt(): dev [%d] nbps [%d] ntlv [%d]\n", dev, fmt[0], fmt[1] ) );
@@ -251,10 +251,10 @@ ar_set_fmt(
     return _ar_set_fmt ( dev, fmt );
 }
 
-WIN32DLL_API SINT4 STDCALL 
+WIN32DLL_API int32_t STDCALL 
 ar_get_fmt(	
-    SINT4 dev, 					 	
-    SINT4 *fmt 					 	
+    int32_t dev, 					 	
+    int32_t *fmt 					 	
     ) {								
 
     return _ar_get_fmt ( dev, fmt );
@@ -268,28 +268,28 @@ ar_get_gdsr(
     return _ar_get_gdsr ( dev );
 }
 
-WIN32DLL_API SINT4 STDCALL 
+WIN32DLL_API int32_t STDCALL 
 ar_set_xfer(		
-    SINT4 dev, 							
-    void (*in_xfer)(SINT4),				
-    void (*out_xfer)(SINT4)			 	
+    int32_t dev, 							
+    void (*in_xfer)(int32_t),				
+    void (*out_xfer)(int32_t)			 	
     ) {									
 
     return _ar_set_xfer ( dev, in_xfer, out_xfer );
 }
 
-WIN32DLL_API SINT4 STDCALL 
+WIN32DLL_API int32_t STDCALL 
 ar_io_cur_seg(	
-    SINT4 dev 							
+    int32_t dev 							
     ) {
 
     return _ar_io_cur_seg ( dev );
 }
 
-WIN32DLL_API SINT4 STDCALL 
+WIN32DLL_API int32_t STDCALL 
 ar_set_latency(	
-    SINT4 dev,
-    SINT4 nsmp							
+    int32_t dev,
+    int32_t nsmp							
     ) {
 
     return _ar_set_latency ( dev, nsmp );
@@ -306,9 +306,9 @@ Because this function resides within a windows DLL, an escape
 mechanism has been provided.  Specifically, hit the ESC key
 any time the sound engine is running to stop.
 */
-WIN32DLL_API SINT4 STDCALL 
+WIN32DLL_API int32_t STDCALL 
 ar_io_wait_seg(	
-    SINT4 dev 							
+    int32_t dev 							
     ) {									
 
     long		intCurSegment;
@@ -344,19 +344,19 @@ ar_io_wait_seg(
 
 WIN32DLL_API void STDCALL 
 ar_err_msg(	
-    SINT4 code,			// error code
+    int32_t code,			// error code
     char *msg,			// message array
-    SINT4 len			// array length
+    int32_t len			// array length
     ) {								
 
     _ar_err_msg ( code, msg, len );
 }
 
-WIN32DLL_API SINT4 STDCALL 
+WIN32DLL_API int32_t STDCALL 
 ar_dev_name(
-    SINT4 dev,			// - device identifier
+    int32_t dev,			// - device identifier
     char *name,			// name array
-    SINT4 len								
+    int32_t len								
     ) {									
 
     return _ar_dev_name ( dev, name, len );
@@ -364,7 +364,7 @@ ar_dev_name(
 
 WIN32DLL_API double STDCALL 
 ar_get_rate(
-    SINT4 dev
+    int32_t dev
     ) {					
 
     return _ar_get_rate ( dev );
@@ -372,7 +372,7 @@ ar_get_rate(
 
 WIN32DLL_API double STDCALL 
 ar_adjust_rate(
-    SINT4 dev,
+    int32_t dev,
     double rate
     ) {									
 
@@ -381,7 +381,7 @@ ar_adjust_rate(
 
 WIN32DLL_API void STDCALL 
 ar_get_sfs(
-    SINT4 dev,
+    int32_t dev,
     double *i_sfs,					
     double *o_sfs					
     ) {
@@ -391,7 +391,7 @@ ar_get_sfs(
 
 WIN32DLL_API void STDCALL 
 ar_set_sfs(
-    SINT4 dev,
+    int32_t dev,
     double *i_sfs,					
     double *o_sfs					
     ) {
@@ -399,15 +399,15 @@ ar_set_sfs(
     _ar_set_sfs ( dev, i_sfs, o_sfs );
 }
 
-WIN32DLL_API SINT4 STDCALL
-ar_get_cardinfo(SINT4 di, CARDINFO * ci)
+WIN32DLL_API int32_t STDCALL
+ar_get_cardinfo(int32_t di, CARDINFO * ci)
 {
     return (_ar_get_cardinfo(di, ci));
 }
 
 WIN32DLL_API void STDCALL 
 ar_get_vfs(
-    SINT4 dev,
+    int32_t dev,
     double *da_vfs,					
     double *ad_vfs					
     ) {
@@ -417,7 +417,7 @@ ar_get_vfs(
 
 WIN32DLL_API void STDCALL 
 ar_set_vfs(
-    SINT4 dev,
+    int32_t dev,
     double *da_vfs, 				
     double *ad_vfs					
     ) {
@@ -434,15 +434,15 @@ ar_close_all(		    // Close all devices
 
 WIN32DLL_API void STDCALL 
 ar_wind(		    // Specify a window to receive messages
-    SINT4 wind		    // - handle to window
+    int32_t wind		    // - handle to window
     ) {
 
     _ar_wind( wind );
 }			    //
 
-WIN32DLL_API SINT4 STDCALL 
+WIN32DLL_API int32_t STDCALL 
 ar_out_seg_fill(
-    SINT4 dev									// - device identifier
+    int32_t dev									// - device identifier
     ) {
 
     return _ar_out_seg_fill ( dev );

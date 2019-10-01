@@ -2,7 +2,7 @@
 
 CC = gcc
 AR = ar
-CFLAGS = -O2 -Wall -DANSI_C -fpack-struct -Dmgw
+CFLAGS = -O2 -Wall -Wno-stringop-truncation -DANSI_C -fpack-struct -Dmgw 
 WINLIB = -lwinmm -lkernel32 -luser32 -lgdi32
 LIBS = $(WINLIB) -lm 
 EFILES = tstfm tstlat tstout tstsio wrtnfo devlst arsc_chk

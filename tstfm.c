@@ -21,10 +21,10 @@ static int stop = 0;
 static int ncue = 31;
 static int nsmp = 2500;
 static int nseg = 2;
-static SINT4 *stm[2];
+static int32_t *stm[2];
 
 static void
-tone_seg(SINT4 s)
+tone_seg(int32_t s)
 {
     double a, c, d, fs, ss, dp, r, o, t, fr, mr = 0.05;
     int i, b, n;
@@ -65,7 +65,7 @@ tone_seg(SINT4 s)
 	    a = ss;
 	}
 	// fill output buffer
-	stm[b][i] = (SINT4) floor(a * sin(ph) + 0.5);
+	stm[b][i] = (int32_t) floor(a * sin(ph) + 0.5);
 	// increment time-step
 	t += d;
     }
@@ -96,7 +96,7 @@ static void
 test_tone(double f, double t)	// tone frequency and duration
 {
     int c;
-    SINT4 siz[2], fmt[2];
+    int32_t siz[2], fmt[2];
     void *out[4];
     static int nchn = 2;
     static int nswp = 0;	// 0 for streaming
@@ -108,8 +108,8 @@ test_tone(double f, double t)	// tone frequency and duration
     // set up stimulus
 
     rate = ar_get_rate(dvid);
-    stm[0] = (SINT4 *) calloc(nsmp, sizeof(SINT4));
-    stm[1] = (SINT4 *) calloc(nsmp, sizeof(SINT4));
+    stm[0] = (int32_t *) calloc(nsmp, sizeof(int32_t));
+    stm[1] = (int32_t *) calloc(nsmp, sizeof(int32_t));
     out[0] = stm[0]; out[1] = stm[0];  // stm0 on left & right
     out[2] = stm[1]; out[3] = stm[1];  // stm1 on left & right
     siz[0] = siz[1] = nsmp;
@@ -196,7 +196,7 @@ cue(int s)
  * WndProc() - Processes Windows messages
  */
 LRESULT CALLBACK
-wind_proc(HWND hWindow, UINT message, WPARAM wParam, SINT4 lParam)
+wind_proc(HWND hWindow, UINT message, WPARAM wParam, int32_t lParam)
 {
     int seg;
     PAINTSTRUCT   ps;
@@ -288,7 +288,7 @@ win_init(HINSTANCE inst)
     ShowWindow(hWnd, SW_SHOW);
     UpdateWindow(hWnd);
 
-    ar_wind((SINT4) hWnd);
+    ar_wind((int32_t) hWnd);
 
     return(TRUE);
 }
