@@ -1,10 +1,14 @@
 /* version.h */
 
-#define VER     "ARSC version 0.56, 25-Aug-19"
+#define VER     "ARSC version 0.57, 30-Sep-19"
 #define NOTICE	"Copyright 2005-2019 Boys Town National Research Hospital"
 #define RIGHTS	"Redistribution permitted under General Public License v2.0."
 
 /**************************** change log **********************************
+0.57 - 30-Sep-19
+> Removed typedefs SINT2, SINT4, UINT4
+0.56 - 25-Aug-19
+> Cleaned up code
 0.55 - 6-Feb-19
 > Cleaned up benign type definition (long) in arsc_helper.c
 0.55 - 6-Feb-19
