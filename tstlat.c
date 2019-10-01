@@ -16,15 +16,15 @@ static int qflag = 0;
 static int enter = 0;
 static int zflag = 0;
 static int nsmp = 0;
-static SINT2 *cc;
-static SINT2 *ml;
+static int16_t *cc;
+static int16_t *ml;
 
 static int
-check_resp(SINT4 *b, int n)
+check_resp(int32_t *b, int n)
 {
     double sm0, sm1, sm2, a, dc;
     int     i, i1, i2, c, m = 0;
-    SINT4   bv, mxbv = 0;
+    int32_t   bv, mxbv = 0;
 
     for (i = 0; i < n; i++) {
 	bv = b[i];
@@ -68,7 +68,7 @@ check_resp(SINT4 *b, int n)
 // sum_rsp - sum response
 
 static void
-sum_rsp(SINT4 *rl, int nsmp)
+sum_rsp(int32_t *rl, int nsmp)
 {
     int i;
 
@@ -138,15 +138,15 @@ static int
 test_io(int c)
 {
     int d, m, nc = 2;
-    SINT4 *sl, *rl, fmt[2];
+    int32_t *sl, *rl, fmt[2];
     void *od[2], *id[2];
-    static SINT4 nseg = 1;	// number of segments
-    static SINT4 nswp = 1;	// number of sweeps
+    static int32_t nseg = 1;	// number of segments
+    static int32_t nswp = 1;	// number of sweeps
 
     // set up i/o
 
     d = io_dev;
-    fmt[0] = 4;			    // sample format = SINT4
+    fmt[0] = 4;			    // sample format = int32_t
     fmt[1] = 0;			    // interleave = no
     tst(ar_set_fmt(d, fmt));	    // set format
     tst(ar_io_open(d, sr, nc, nc)); // open i/o device
@@ -154,17 +154,17 @@ test_io(int c)
 
     // set up stimulus & response buffers
 
-    id[0] = calloc(nsmp * nc, sizeof(SINT4));
-    od[0] = calloc(nsmp * nc, sizeof(SINT4));
-    id[1] = (void *) ((SINT4 *)id[0] + nsmp);
-    od[1] = (void *) ((SINT4 *)od[0] + nsmp);
+    id[0] = calloc(nsmp * nc, sizeof(int32_t));
+    od[0] = calloc(nsmp * nc, sizeof(int32_t));
+    id[1] = (void *) ((int32_t *)id[0] + nsmp);
+    od[1] = (void *) ((int32_t *)od[0] + nsmp);
     rl = id[c];
     sl = od[c];
     sl[0] = 0x7FFFFFFF;
 
     // perform i/o
 
-    tst(ar_io_prepare(d, id, od, (SINT4 *) &nsmp, nseg, nswp));
+    tst(ar_io_prepare(d, id, od, (int32_t *) &nsmp, nseg, nswp));
     tst(ar_io_start(d));
     while (ar_io_cur_seg(d) < nseg) {
 	continue;
@@ -192,7 +192,7 @@ test_io(int c)
 }
 
 static int
-compute_std_dev(SINT2 *c, int n, double *mn, double *sd)
+compute_std_dev(int16_t *c, int n, double *mn, double *sd)
 {
     int i, cnt = 0;
     double v, smv = 0, ssv = 0;
@@ -319,7 +319,7 @@ main(int ac, char **av)
 
     if (nsmp == 0)
 	nsmp = 2048;
-    cc = (SINT2 *) calloc(nsmp, sizeof(SINT2));
+    cc = (int16_t *) calloc(nsmp, sizeof(int16_t));
     printf(" sampling rate = %.0f Hz\n", sr);
     printf(" buffer length = %d samples\n", nsmp);
 
@@ -333,7 +333,7 @@ main(int ac, char **av)
 
     // test latency 
 
-    ml = (SINT2 *) calloc(nclk, sizeof(SINT2));
+    ml = (int16_t *) calloc(nclk, sizeof(int16_t));
     for (i = 0; i < nclk; i++) {
 	ml[i] = test_io(c);
         fputs(".", stdout);

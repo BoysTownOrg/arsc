@@ -27,7 +27,7 @@ static void				// dev short, app short
 xfer_issiie(ARDEV *a, int b)            // input, equal
 {					// dev interleaved, app interleaved
     int i, n, c;
-    SINT2 *spd, *spa;
+    int16_t *spd, *spa;
 
     n = a->sizptr[b];
     c = a->ncad;
@@ -44,8 +44,8 @@ static void				// dev short, app long
 xfer_isliie(ARDEV *a, int b)            // input, equal
 {					// dev interleaved, app interleaved
     int i, n, c;
-    SINT4 *lpa;
-    SINT2 *spd;
+    int32_t *lpa;
+    int16_t *spd;
 
     n = a->sizptr[b];
     c = a->ncad;
@@ -53,7 +53,7 @@ xfer_isliie(ARDEV *a, int b)            // input, equal
     lpa = a->ibptr[b];
     if (lpa) {
         for (i = 0; i < n * c; i++) {
-            lpa[i] = (SINT4) spd[i] << 16;
+            lpa[i] = (int32_t) spd[i] << 16;
         }
     }
 }
@@ -63,7 +63,7 @@ xfer_isfiie(ARDEV *a, int b)            // input, equal
 {					// dev interleaved, app interleaved
     int i, n, c;
     float *fpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = (float) (mxfli / MAXINT16);
     n = a->sizptr[b];
@@ -82,7 +82,7 @@ xfer_isdiie(ARDEV *a, int b)            // input, equal
 {					// dev interleaved, app interleaved
     int i, n, c;
     double *dpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = mxfli / MAXINT16;
     n = a->sizptr[b];
@@ -100,8 +100,8 @@ static void				// dev long, app short
 xfer_ilsiie(ARDEV *a, int b)            // input, equal
 {					// dev interleaved, app interleaved
     int i, n, c;
-    SINT4 *lpd;
-    SINT2 *spa;
+    int32_t *lpd;
+    int16_t *spa;
 
     n = a->sizptr[b];
     c = a->ncad;
@@ -118,7 +118,7 @@ static void				// dev long, app long
 xfer_illiie(ARDEV *a, int b)            // input, equal
 {					// dev interleaved, app interleaved
     int i, n, c;
-    SINT4 *lpd, *lpa;
+    int32_t *lpd, *lpa;
 
     n = a->sizptr[b];
     c = a->ncad;
@@ -136,7 +136,7 @@ xfer_ilfiie(ARDEV *a, int b)            // input, equal
 {					// dev interleaved, app interleaved
     int i, n, c;
     float *fpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = (float) (mxfli / MAXINT32);
     n = a->sizptr[b];
@@ -155,7 +155,7 @@ xfer_ildiie(ARDEV *a, int b)            // input, equal
 {					// dev interleaved, app interleaved
     int i, n, c;
     double *dpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = mxfli / MAXINT32;
     n = a->sizptr[b];
@@ -173,7 +173,7 @@ static void		    		// dev short, app short
 xfer_issine(ARDEV *a, int b)            // input, equal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, c;
-    SINT2 *spd, *spa;
+    int16_t *spd, *spa;
 
     n = a->sizptr[b];
     c = a->ncad;
@@ -194,8 +194,8 @@ static void				// dev short, app long
 xfer_isline(ARDEV *a, int b)            // input, equal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, c;
-    SINT4 *lpa;
-    SINT2 *spd;
+    int32_t *lpa;
+    int16_t *spd;
 
     n = a->sizptr[b];
     c = a->ncad;
@@ -206,7 +206,7 @@ xfer_isline(ARDEV *a, int b)            // input, equal
 	    m = j + i * c;
 	    lpa = a->ibptr[k];
             if (lpa) {
-	        lpa[i] = (SINT4) spd[m] << 16;
+	        lpa[i] = (int32_t) spd[m] << 16;
 	    }
 	}
     }
@@ -217,7 +217,7 @@ xfer_isfine(ARDEV *a, int b)            // input, equal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, c;
     float *fpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = (float) (mxfli / MAXINT16);
     n = a->sizptr[b];
@@ -240,7 +240,7 @@ xfer_isdine(ARDEV *a, int b)            // input, equal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, c;
     double *dpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = mxfli / MAXINT16;
     n = a->sizptr[b];
@@ -262,8 +262,8 @@ static void				// dev long, app short
 xfer_ilsine(ARDEV *a, int b)            // input, equal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, c;
-    SINT4 *lpd;
-    SINT2 *spa;
+    int32_t *lpd;
+    int16_t *spa;
 
     n = a->sizptr[b];
     c = a->ncad;
@@ -284,7 +284,7 @@ static void				// dev long, app long
 xfer_illine(ARDEV *a, int b)            // input, equal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, c;
-    SINT4 *lpd, *lpa;
+    int32_t *lpd, *lpa;
 
     n = a->sizptr[b];
     c = a->ncad;
@@ -306,7 +306,7 @@ xfer_ilfine(ARDEV *a, int b)            // input, equal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, c;
     float *fpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = (float) (mxfli / MAXINT32);
     n = a->sizptr[b];
@@ -329,7 +329,7 @@ xfer_ildine(ARDEV *a, int b)            // input, equal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, c;
     double *dpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = mxfli / MAXINT32;
     n = a->sizptr[b];
@@ -355,7 +355,7 @@ static void				// dev short, app short
 xfer_issiiu(ARDEV *a, int b)            // input, unequal
 {					// dev interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
-    SINT2 *spd, *spa;
+    int16_t *spd, *spa;
 
     n = a->sizptr[b];
     cd = a->ncad;
@@ -381,8 +381,8 @@ static void				// dev short, app long
 xfer_isliiu(ARDEV *a, int b)            // input, unequal
 {					// dev interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
-    SINT4 *lpa;
-    SINT2 *spd;
+    int32_t *lpa;
+    int16_t *spd;
 
     n = a->sizptr[b];
     cd = a->ncad;
@@ -395,7 +395,7 @@ xfer_isliiu(ARDEV *a, int b)            // input, unequal
 	        k = j + i * ca;
 	        m = j + i * cd;
 		if (j < cd) {
-		    lpa[k] = (SINT4) spd[m] << 16;
+		    lpa[k] = (int32_t) spd[m] << 16;
 		} else {
 		    lpa[k] = 0;
 		}
@@ -409,7 +409,7 @@ xfer_isfiiu(ARDEV *a, int b)            // input, unequal
 {					// dev interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
     float *fpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = (float) (mxfli / MAXINT16);
     n = a->sizptr[b];
@@ -437,7 +437,7 @@ xfer_isdiiu(ARDEV *a, int b)            // input, unequal
 {					// dev interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
     double *dpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = mxfli / MAXINT16;
     n = a->sizptr[b];
@@ -451,7 +451,7 @@ xfer_isdiiu(ARDEV *a, int b)            // input, unequal
 	        k = j + i * ca;
 	        m = j + i * cd;
 		if (j < cd) {
-		    dpa[k] = (SINT4) spd[m] * sf;
+		    dpa[k] = (int32_t) spd[m] * sf;
 		} else {
 		    dpa[k] = 0;
 		}
@@ -464,8 +464,8 @@ static void				// dev long, app short
 xfer_ilsiiu(ARDEV *a, int b)            // input, unequal
 {					// dev interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
-    SINT4 *lpd;
-    SINT2 *spa;
+    int32_t *lpd;
+    int16_t *spa;
 
     n = a->sizptr[b];
     cd = a->ncad;
@@ -491,7 +491,7 @@ static void				// dev long, app long
 xfer_illiiu(ARDEV *a, int b)            // input, unequal
 {					// dev interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
-    SINT4 *lpd, *lpa;
+    int32_t *lpd, *lpa;
 
     n = a->sizptr[b];
     cd = a->ncad;
@@ -518,7 +518,7 @@ xfer_ilfiiu(ARDEV *a, int b)            // input, unequal
 {					// dev interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
     float *fpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = (float) (mxfli / MAXINT32);
     n = a->sizptr[b];
@@ -546,7 +546,7 @@ xfer_ildiiu(ARDEV *a, int b)            // input, unequal
 {					// dev interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
     double *dpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = mxfli / MAXINT32;
     n = a->sizptr[b];
@@ -573,7 +573,7 @@ static void		    		// dev short, app short
 xfer_issinu(ARDEV *a, int b)            // input, unequal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
-    SINT2 *spd, *spa;
+    int16_t *spd, *spa;
 
 
     n = a->sizptr[b];
@@ -600,8 +600,8 @@ static void				// dev short, app long
 xfer_islinu(ARDEV *a, int b)		// input, unequal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
-    SINT4 *lpa;
-    SINT2 *spd;
+    int32_t *lpa;
+    int16_t *spd;
 
     n = a->sizptr[b];
     cd = a->ncad;
@@ -614,7 +614,7 @@ xfer_islinu(ARDEV *a, int b)		// input, unequal
             lpa = a->ibptr[k];
             if (lpa) {
 		if (j < cd) {
-		    lpa[i] = (SINT4) spd[m] << 16;
+		    lpa[i] = (int32_t) spd[m] << 16;
 		} else {
 		    lpa[i] = 0;
 		}
@@ -628,7 +628,7 @@ xfer_isfinu(ARDEV *a, int b)            // input, unequal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
     float *fpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = (float) (mxfli / MAXINT16);
     n = a->sizptr[b];
@@ -656,7 +656,7 @@ xfer_isdinu(ARDEV *a, int b)		// input, unequal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
     double *dpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = mxfli / MAXINT16;
     n = a->sizptr[b];
@@ -683,8 +683,8 @@ static void				// dev long, app short
 xfer_ilsinu(ARDEV *a, int b)            // input, unequal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
-    SINT4 *lpd;
-    SINT2 *spa;
+    int32_t *lpd;
+    int16_t *spa;
 
     n = a->sizptr[b];
     cd = a->ncad;
@@ -710,7 +710,7 @@ static void				// dev long, app long
 xfer_illinu(ARDEV *a, int b)            // input, unequal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
-    SINT4 *lpd, *lpa;
+    int32_t *lpd, *lpa;
 
     n = a->sizptr[b];
     cd = a->ncad;
@@ -737,7 +737,7 @@ xfer_ilfinu(ARDEV *a, int b)            // input, unequal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
     float *fpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = (float) (mxfli / MAXINT32);
     n = a->sizptr[b];
@@ -765,7 +765,7 @@ xfer_ildinu(ARDEV *a, int b)            // input, unequal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
     double *dpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = mxfli / MAXINT32;
     n = a->sizptr[b];
@@ -796,7 +796,7 @@ static void				// dev short, app short
 xfer_issnie(ARDEV *a, int b)            // input, equal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, c;
-    SINT2 *spd, *spa;
+    int16_t *spd, *spa;
 
     n = a->sizptr[b];
     c = a->ncad;
@@ -817,8 +817,8 @@ static void				// dev short, app long
 xfer_islnie(ARDEV *a, int b)            // input, equal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, c;
-    SINT4 *lpa;
-    SINT2 *spd;
+    int32_t *lpa;
+    int16_t *spd;
 
     n = a->sizptr[b];
     c = a->ncad;
@@ -829,7 +829,7 @@ xfer_islnie(ARDEV *a, int b)            // input, equal
 	    m = j + i * c;
 	    spd = a->i_data[k];
             if (spd) {
-		lpa[m] = (SINT4) spd[i] << 16;
+		lpa[m] = (int32_t) spd[i] << 16;
 	    }
 	}
     }
@@ -840,7 +840,7 @@ xfer_isfnie(ARDEV *a, int b)            // input, equal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, c;
     float *fpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = (float) (mxfli / MAXINT16);
     n = a->sizptr[b];
@@ -863,7 +863,7 @@ xfer_isdnie(ARDEV *a, int b)            // input, equal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, c;
     double *dpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = mxfli / MAXINT16;
     n = a->sizptr[b];
@@ -885,8 +885,8 @@ static void				// dev long, app short
 xfer_ilsnie(ARDEV *a, int b)            // input, equal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, c;
-    SINT4 *lpd;
-    SINT2 *spa;
+    int32_t *lpd;
+    int16_t *spa;
 
     n = a->sizptr[b];
     c = a->ncad;
@@ -907,7 +907,7 @@ static void				// dev long, app long
 xfer_illnie(ARDEV *a, int b)            // input, equal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, c;
-    SINT4 *lpd, *lpa;
+    int32_t *lpd, *lpa;
 
     n = a->sizptr[b];
     c = a->ncad;
@@ -929,7 +929,7 @@ xfer_ilfnie(ARDEV *a, int b)            // input, equal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, c;
     float *fpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = (float) (mxfli / MAXINT32);
     n = a->sizptr[b];
@@ -952,7 +952,7 @@ xfer_ildnie(ARDEV *a, int b)            // input, equal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, c;
     double *dpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = mxfli / MAXINT32;
     n = a->sizptr[b];
@@ -974,7 +974,7 @@ static void		    		// dev short, app short
 xfer_issnne(ARDEV *a, int b)            // input, equal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, n, c;
-    SINT2 *spd, *spa;
+    int16_t *spd, *spa;
 
     n = a->sizptr[b];
     c = a->ncda;
@@ -994,8 +994,8 @@ static void				// dev short, app long
 xfer_islnne(ARDEV *a, int b)            // input, equal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, n, c;
-    SINT4 *lpa;
-    SINT2 *spd;
+    int32_t *lpa;
+    int16_t *spd;
 
     n = a->sizptr[b];
     c = a->ncda;
@@ -1005,7 +1005,7 @@ xfer_islnne(ARDEV *a, int b)            // input, equal
         lpa = a->ibptr[k];
         if (lpa) {
             for (i = 0; i < n; i++) {
-                lpa[i] = (SINT4) spd[i] << 16;
+                lpa[i] = (int32_t) spd[i] << 16;
             }
         }
     }
@@ -1016,7 +1016,7 @@ xfer_isfnne(ARDEV *a, int b)            // input, equal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, n, c;
     float *fpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = (float) (mxfli / MAXINT16);
     n = a->sizptr[b];
@@ -1038,7 +1038,7 @@ xfer_isdnne(ARDEV *a, int b)            // input, equal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, n, c;
     double *dpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = mxfli / MAXINT16;
     n = a->sizptr[b];
@@ -1059,8 +1059,8 @@ static void				// dev long, app short
 xfer_ilsnne(ARDEV *a, int b)            // input, equal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, n, c;
-    SINT4 *lpd;
-    SINT2 *spa;
+    int32_t *lpd;
+    int16_t *spa;
 
     n = a->sizptr[b];
     c = a->ncda;
@@ -1080,7 +1080,7 @@ static void				// dev long, app long
 xfer_illnne(ARDEV *a, int b)            // input, equal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, n, c;
-    SINT4 *lpd, *lpa;
+    int32_t *lpd, *lpa;
 
     n = a->sizptr[b];
     c = a->ncda;
@@ -1101,7 +1101,7 @@ xfer_ilfnne(ARDEV *a, int b)            // input, equal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, n, c;
     float *fpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = (float) (mxfli / MAXINT32);
     n = a->sizptr[b];
@@ -1123,7 +1123,7 @@ xfer_ildnne(ARDEV *a, int b)            // input, equal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, n, c;
     double *dpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = mxfli / MAXINT32;
     n = a->sizptr[b];
@@ -1148,7 +1148,7 @@ static void				// dev short, app short
 xfer_issniu(ARDEV *a, int b)            // input, unequal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
-    SINT2 *spd, *spa;
+    int16_t *spd, *spa;
 
     n = a->sizptr[b];
     cd = a->ncad;
@@ -1174,8 +1174,8 @@ static void				// dev short, app long
 xfer_islniu(ARDEV *a, int b)            // input, unequal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
-    SINT4 *lpa;
-    SINT2 *spd;
+    int32_t *lpa;
+    int16_t *spd;
 
     n = a->sizptr[b];
     cd = a->ncad;
@@ -1188,7 +1188,7 @@ xfer_islniu(ARDEV *a, int b)            // input, unequal
 	        m = j + i * cd;
 		if (j < cd) {
 		    spd = a->i_data[k];
-		    lpa[k] = (SINT4) spd[m] << 16;
+		    lpa[k] = (int32_t) spd[m] << 16;
 		} else {
 		    lpa[k] = 0;
 		}
@@ -1202,7 +1202,7 @@ xfer_isfniu(ARDEV *a, int b)            // input, unequal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
     float *fpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = (float) (mxfli / MAXINT16);
     n = a->sizptr[b];
@@ -1230,7 +1230,7 @@ xfer_isdniu(ARDEV *a, int b)            // input, unequal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
     double *dpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = mxfli / MAXINT16;
     n = a->sizptr[b];
@@ -1257,8 +1257,8 @@ static void				// dev long, app short
 xfer_ilsniu(ARDEV *a, int b)            // input, unequal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
-    SINT4 *lpd;
-    SINT2 *spa;
+    int32_t *lpd;
+    int16_t *spa;
 
     n = a->sizptr[b];
     cd = a->ncad;
@@ -1284,7 +1284,7 @@ static void				// dev long, app long
 xfer_illniu(ARDEV *a, int b)            // input, unequal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
-    SINT4 *lpd, *lpa;
+    int32_t *lpd, *lpa;
 
     n = a->sizptr[b];
     cd = a->ncad;
@@ -1311,7 +1311,7 @@ xfer_ilfniu(ARDEV *a, int b)            // input, unequal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
     float *fpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = (float) (mxfli / MAXINT32);
     n = a->sizptr[b];
@@ -1339,7 +1339,7 @@ xfer_ildniu(ARDEV *a, int b)            // input, unequal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
     double *dpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = mxfli / MAXINT32;
     n = a->sizptr[b];
@@ -1366,7 +1366,7 @@ static void		    		// dev short, app short
 xfer_issnnu(ARDEV *a, int b)            // input, unequal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
-    SINT2 *spd, *spa;
+    int16_t *spd, *spa;
 
     n = a->sizptr[b];
     cd = a->ncad;
@@ -1392,8 +1392,8 @@ static void				// dev short, app long
 xfer_islnnu(ARDEV *a, int b)		// input, unequal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
-    SINT4 *lpa;
-    SINT2 *spd;
+    int32_t *lpa;
+    int16_t *spd;
 
     n = a->sizptr[b];
     cd = a->ncad;
@@ -1406,7 +1406,7 @@ xfer_islnnu(ARDEV *a, int b)		// input, unequal
             if (lpa) {
 		if (j < cd) {
 		    spd = a->i_data[k];
-		    lpa[i] = (SINT4) spd[m] << 16;
+		    lpa[i] = (int32_t) spd[m] << 16;
 		} else {
 		    lpa[i] = 0;
 		}
@@ -1420,7 +1420,7 @@ xfer_isfnnu(ARDEV *a, int b)            // input, unequal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
     float *fpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = (float) (mxfli / MAXINT16);
     n = a->sizptr[b];
@@ -1448,7 +1448,7 @@ xfer_isdnnu(ARDEV *a, int b)		// input, unequal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
     double *dpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = mxfli / MAXINT16;
     n = a->sizptr[b];
@@ -1475,8 +1475,8 @@ static void				// dev long, app short
 xfer_ilsnnu(ARDEV *a, int b)            // input, unequal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
-    SINT4 *lpd;
-    SINT2 *spa;
+    int32_t *lpd;
+    int16_t *spa;
 
     n = a->sizptr[b];
     cd = a->ncad;
@@ -1502,7 +1502,7 @@ static void				// dev long, app long
 xfer_illnnu(ARDEV *a, int b)            // input, unequal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
-    SINT4 *lpd, *lpa;
+    int32_t *lpd, *lpa;
 
     n = a->sizptr[b];
     cd = a->ncad;
@@ -1529,7 +1529,7 @@ xfer_ilfnnu(ARDEV *a, int b)            // input, unequal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
     float *fpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = (float) (mxfli / MAXINT32);
     n = a->sizptr[b];
@@ -1557,7 +1557,7 @@ xfer_ildnnu(ARDEV *a, int b)            // input, unequal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
     double *dpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = mxfli / MAXINT32;
     n = a->sizptr[b];
@@ -1588,7 +1588,7 @@ static void				// dev short, app short
 xfer_ossiie(ARDEV *a, int b, int d)     // output, equal
 {					// dev interleaved, app interleaved
     int i, n, c;
-    SINT2 *spd, *spa;
+    int16_t *spd, *spa;
 
     n = a->sizptr[b];
     c = a->ncda;
@@ -1607,8 +1607,8 @@ static void				// dev short, app long
 xfer_osliie(ARDEV *a, int b, int d)     // output, equal
 {					// dev interleaved, app interleaved
     int i, n, c;
-    SINT4 *lpa;
-    SINT2 *spd;
+    int32_t *lpa;
+    int16_t *spd;
 
     n = a->sizptr[b];
     c = a->ncda;
@@ -1628,7 +1628,7 @@ xfer_osfiie(ARDEV *a, int b, int d)     // output, equal
 {					// dev interleaved, app interleaved
     int i, n, c;
     float *fpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = (float) (MAXINT16 / mxflo);
     n = a->sizptr[b];
@@ -1649,7 +1649,7 @@ xfer_osdiie(ARDEV *a, int b, int d)     // output, equal
 {					// dev interleaved, app interleaved
     int i, n, c;
     double *dpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = MAXINT16 / mxflo;
     n = a->sizptr[b];
@@ -1669,8 +1669,8 @@ static void				// dev long, app short
 xfer_olsiie(ARDEV *a, int b, int d)     // output, equal
 {					// dev interleaved, app interleaved
     int i, n, c;
-    SINT4 *lpd;
-    SINT2 *spa;
+    int32_t *lpd;
+    int16_t *spa;
 
     n = a->sizptr[b];
     c = a->ncda;
@@ -1678,7 +1678,7 @@ xfer_olsiie(ARDEV *a, int b, int d)     // output, equal
     spa = a->obptr[b];
     for (i = 0; i < n * c; i++) {
         if (!d && spa) {
-	    lpd[i] = (SINT4) spa[i] << 16;
+	    lpd[i] = (int32_t) spa[i] << 16;
 	} else {
 	    lpd[i] = 0;
 	}
@@ -1689,7 +1689,7 @@ static void				// dev long, app long
 xfer_olliie(ARDEV *a, int b, int d)     // output, equal
 {					// dev interleaved, app interleaved
     int i, n, c;
-    SINT4 *lpd, *lpa;
+    int32_t *lpd, *lpa;
 
     n = a->sizptr[b];
     c = a->ncda;
@@ -1709,7 +1709,7 @@ xfer_olfiie(ARDEV *a, int b, int d)     // output, equal
 {					// dev interleaved, app interleaved
     int i, n, c;
     float *fpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = (float) (MAXINT32 / mxflo);
     n = a->sizptr[b];
@@ -1718,7 +1718,7 @@ xfer_olfiie(ARDEV *a, int b, int d)     // output, equal
     fpa = a->obptr[b];
     for (i = 0; i < n * c; i++) {
         if (!d && fpa) {
-	    lpd[i] = (SINT4) round(fpa[i], sf);
+	    lpd[i] = (int32_t) round(fpa[i], sf);
 	} else {
 	    lpd[i] = 0;
 	}
@@ -1730,7 +1730,7 @@ xfer_oldiie(ARDEV *a, int b, int d)     // output, equal
 {					// dev interleaved, app interleaved
     int i, n, c;
     double *dpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = MAXINT32 / mxflo;
     n = a->sizptr[b];
@@ -1739,7 +1739,7 @@ xfer_oldiie(ARDEV *a, int b, int d)     // output, equal
     dpa = a->obptr[b];
     for (i = 0; i < n * c; i++) {
         if (!d && dpa) {
-	    lpd[i] = (SINT4) round(dpa[i], sf);
+	    lpd[i] = (int32_t) round(dpa[i], sf);
         } else {
             lpd[i] = 0;
 	}
@@ -1750,7 +1750,7 @@ static void				// dev short, app short
 xfer_ossine(ARDEV *a, int b, int d)     // output, equal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, c;
-    SINT2 *spd, *spa;
+    int16_t *spd, *spa;
 
     n = a->sizptr[b];
     c = a->ncda;
@@ -1773,8 +1773,8 @@ static void				// dev short, app long
 xfer_osline(ARDEV *a, int b, int d)     // output, equal
 {					// dev interleaved to app non-interleaved
     int i, j, k, m, n, c;
-    SINT4 *lpa;
-    SINT2 *spd;
+    int32_t *lpa;
+    int16_t *spd;
 
     n = a->sizptr[b];
     c = a->ncda;
@@ -1798,7 +1798,7 @@ xfer_osfine(ARDEV *a, int b, int d)     // output, equal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, c;
     float *fpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = (float) (MAXINT16 / mxflo);
     n = a->sizptr[b];
@@ -1823,7 +1823,7 @@ xfer_osdine(ARDEV *a, int b, int d)     // output, equal
 {					// dev interleaved to app non-interleaved
     int i, j, k, m, n, c;
     double *dpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = MAXINT16 / mxflo;
     n = a->sizptr[b];
@@ -1847,8 +1847,8 @@ static void				// dev long, app short
 xfer_olsine(ARDEV *a, int b, int d)     // output, equal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, c;
-    SINT4 *lpd;
-    SINT2 *spa;
+    int32_t *lpd;
+    int16_t *spa;
 
     n = a->sizptr[b];
     c = a->ncda;
@@ -1859,7 +1859,7 @@ xfer_olsine(ARDEV *a, int b, int d)     // output, equal
 	    m = j + i * c;
 	    spa = a->obptr[k];
             if (!d && spa) {
-	        lpd[m] = (SINT4) spa[i] << 16;
+	        lpd[m] = (int32_t) spa[i] << 16;
 	    } else {
 	        lpd[m] = 0;
 	    }
@@ -1871,7 +1871,7 @@ static void				// dev long, app long
 xfer_olline(ARDEV *a, int b, int d)     // output, equal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, c;
-    SINT4 *lpd, *lpa;
+    int32_t *lpd, *lpa;
 
     n = a->sizptr[b];
     c = a->ncda;
@@ -1896,7 +1896,7 @@ xfer_olfine(ARDEV *a, int b, int d)     // output, equal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, c;
     float *fpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = (float) (MAXINT32 / mxflo);
     n = a->sizptr[b];
@@ -1908,7 +1908,7 @@ xfer_olfine(ARDEV *a, int b, int d)     // output, equal
 	    m = j + i * c;
 	    fpa = a->obptr[k];
             if (!d && fpa) {
-	        lpd[m] = (SINT4) round(fpa[i], sf);
+	        lpd[m] = (int32_t) round(fpa[i], sf);
 	    } else {
 	        lpd[m] = 0;
 	    }
@@ -1921,7 +1921,7 @@ xfer_oldine(ARDEV *a, int b, int d)     // output, equal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, c;
     double *dpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = MAXINT32 / mxflo;
     n = a->sizptr[b];
@@ -1933,7 +1933,7 @@ xfer_oldine(ARDEV *a, int b, int d)     // output, equal
 	    m = j + i * c;
 	    dpa = a->obptr[k];
             if (!d && dpa) {
-	        lpd[m] = (SINT4) round(dpa[i], sf);
+	        lpd[m] = (int32_t) round(dpa[i], sf);
 	    } else {
 	        lpd[m] = 0;
 	    }
@@ -1950,7 +1950,7 @@ static void				// dev short, app short
 xfer_ossiiu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
-    SINT2 *spd, *spa;
+    int16_t *spd, *spa;
 
     n = a->sizptr[b];
     cd = a->ncda;
@@ -1974,8 +1974,8 @@ static void				// dev short, app long
 xfer_osliiu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
-    SINT4 *lpa;
-    SINT2 *spd;
+    int32_t *lpa;
+    int16_t *spd;
 
     n = a->sizptr[b];
     cd = a->ncda;
@@ -2000,7 +2000,7 @@ xfer_osfiiu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
     float *fpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = (float) (MAXINT16 / mxflo);
     n = a->sizptr[b];
@@ -2026,7 +2026,7 @@ xfer_osdiiu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
     double *dpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = MAXINT16 / mxflo;
     n = a->sizptr[b];
@@ -2051,8 +2051,8 @@ static void				// dev long, app short
 xfer_olsiiu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
-    SINT4 *lpd;
-    SINT2 *spa;
+    int32_t *lpd;
+    int16_t *spa;
 
     n = a->sizptr[b];
     cd = a->ncda;
@@ -2064,7 +2064,7 @@ xfer_olsiiu(ARDEV *a, int b, int d)     // output, unequal
 	    k = j + i * ca;
 	    m = j + i * cd;
 	    if (j < ca && !d && spa) {
-		lpd[m] = (SINT4) spa[k] << 16;
+		lpd[m] = (int32_t) spa[k] << 16;
 	    } else {
 		lpd[m] = 0;
 	    }
@@ -2076,7 +2076,7 @@ static void				// dev long, app long
 xfer_olliiu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
-    SINT4 *lpd, *lpa;
+    int32_t *lpd, *lpa;
 
     n = a->sizptr[b];
     cd = a->ncda;
@@ -2101,7 +2101,7 @@ xfer_olfiiu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
     float *fpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = (float) (MAXINT32 / mxflo);
     n = a->sizptr[b];
@@ -2114,7 +2114,7 @@ xfer_olfiiu(ARDEV *a, int b, int d)     // output, unequal
 	    k = j + i * ca;
 	    m = j + i * cd;
 	    if (j < ca && !d && fpa) {
-		lpd[m] = (SINT4) round(fpa[k], sf);
+		lpd[m] = (int32_t) round(fpa[k], sf);
 	    } else {
 		lpd[m] = 0;
 	    }
@@ -2127,7 +2127,7 @@ xfer_oldiiu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
     double *dpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = MAXINT32 / mxflo;
     n = a->sizptr[b];
@@ -2140,7 +2140,7 @@ xfer_oldiiu(ARDEV *a, int b, int d)     // output, unequal
 	    k = j + i * ca;
 	    m = j + i * cd;
 	    if (j < ca && !d && dpa) {
-		lpd[m] = (SINT4) round(dpa[k], sf);
+		lpd[m] = (int32_t) round(dpa[k], sf);
 	    } else {
 		lpd[m] = 0;
 	    }
@@ -2152,7 +2152,7 @@ static void				// dev short, app short
 xfer_ossinu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
-    SINT2 *spd, *spa;
+    int16_t *spd, *spa;
 
     n = a->sizptr[b];
     cd = a->ncda;
@@ -2176,8 +2176,8 @@ static void				// dev short, app long
 xfer_oslinu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
-    SINT4 *lpa;
-    SINT2 *spd;
+    int32_t *lpa;
+    int16_t *spd;
 
     n = a->sizptr[b];
     cd = a->ncda;
@@ -2189,7 +2189,7 @@ xfer_oslinu(ARDEV *a, int b, int d)     // output, unequal
 	    m = j + i * cd;
 	    lpa = a->obptr[k];
             if (j < ca && !d && lpa) {
-	        spd[m] = (SINT2) (lpa[i] >> 16);
+	        spd[m] = (int16_t) (lpa[i] >> 16);
 	    } else {
 	        spd[m] = 0;
 	    }
@@ -2202,7 +2202,7 @@ xfer_osfinu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
     float *fpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = (float) (MAXINT16 / mxflo);
     n = a->sizptr[b];
@@ -2215,7 +2215,7 @@ xfer_osfinu(ARDEV *a, int b, int d)     // output, unequal
 	    m = j + i * cd;
 	    fpa = a->obptr[k];
             if (j < ca && !d && fpa) {
-		spd[m] = (SINT2) round(fpa[k], sf);
+		spd[m] = (int16_t) round(fpa[k], sf);
 	    } else {
 	        spd[m] = 0;
 	    }
@@ -2228,7 +2228,7 @@ xfer_osdinu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
     double *dpa;
-    SINT2 *spd;
+    int16_t *spd;
 
     n = a->sizptr[b];
     cd = a->ncda;
@@ -2240,7 +2240,7 @@ xfer_osdinu(ARDEV *a, int b, int d)     // output, unequal
 	    m = j + i * cd;
 	    dpa = a->obptr[k];
             if (j < ca && !d && dpa) {
-	        spd[m] = (SINT2) round(dpa[i], 16);
+	        spd[m] = (int16_t) round(dpa[i], 16);
 	    } else {
 	        spd[m] = 0;
 	    }
@@ -2252,8 +2252,8 @@ static void				// dev long, app short
 xfer_olsinu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
-    SINT4 *lpd;
-    SINT2 *spa;
+    int32_t *lpd;
+    int16_t *spa;
 
     n = a->sizptr[b];
     cd = a->ncda;
@@ -2265,7 +2265,7 @@ xfer_olsinu(ARDEV *a, int b, int d)     // output, unequal
 	    m = j + i * cd;
 	    spa = a->obptr[k];
             if (j < ca && !d && spa) {
-	        lpd[m] = (SINT4) spa[i] << 16;
+	        lpd[m] = (int32_t) spa[i] << 16;
 	    } else {
 	        lpd[m] = 0;
 	    }
@@ -2277,7 +2277,7 @@ static void				// dev long, app long
 xfer_ollinu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
-    SINT4 *lpd, *lpa;
+    int32_t *lpd, *lpa;
 
     n = a->sizptr[b];
     cd = a->ncda;
@@ -2302,7 +2302,7 @@ xfer_olfinu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
     float *fpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = (float) (MAXINT32 / mxflo);
     n = a->sizptr[b];
@@ -2315,7 +2315,7 @@ xfer_olfinu(ARDEV *a, int b, int d)     // output, unequal
 	    m = j + i * cd;
 	    fpa = a->obptr[k];
             if (j < ca && !d && fpa) {
-	        lpd[m] = (SINT4) round(fpa[i], sf);
+	        lpd[m] = (int32_t) round(fpa[i], sf);
 	    } else {
 	        lpd[m] = 0;
 	    }
@@ -2328,7 +2328,7 @@ xfer_oldinu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
     double *dpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = MAXINT32 / mxflo;
     n = a->sizptr[b];
@@ -2341,7 +2341,7 @@ xfer_oldinu(ARDEV *a, int b, int d)     // output, unequal
 	    m = j + i * cd;
 	    dpa = a->obptr[k];
             if (j < ca && !d && dpa) {
-	        lpd[m] = (SINT4) round(dpa[i], sf);
+	        lpd[m] = (int32_t) round(dpa[i], sf);
 	    } else {
 	        lpd[m] = 0;
 	    }
@@ -2357,7 +2357,7 @@ static void				// dev short, app short
 xfer_ossnie(ARDEV *a, int b, int d)     // output, equal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, c;
-    SINT2 *spd, *spa;
+    int16_t *spd, *spa;
 
     n = a->sizptr[b];
     c = a->ncda;
@@ -2380,8 +2380,8 @@ static void				// dev short, app long
 xfer_oslnie(ARDEV *a, int b, int d)     // output, equal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, c;
-    SINT4 *lpa;
-    SINT2 *spd;
+    int32_t *lpa;
+    int16_t *spd;
 
     n = a->sizptr[b];
     c = a->ncda;
@@ -2392,7 +2392,7 @@ xfer_oslnie(ARDEV *a, int b, int d)     // output, equal
 	    m = j + i * c;
 	    spd = a->o_data[k];
             if (!d && lpa) {
-	        spd[i] = (SINT2) (lpa[m] >> 16);
+	        spd[i] = (int16_t) (lpa[m] >> 16);
             } else {
 	        spd[i] = 0;
 	    }
@@ -2405,7 +2405,7 @@ xfer_osfnie(ARDEV *a, int b, int d)     // output, equal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, c;
     float *fpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = (float) (MAXINT16 / mxflo);
     n = a->sizptr[b];
@@ -2417,7 +2417,7 @@ xfer_osfnie(ARDEV *a, int b, int d)     // output, equal
 	    m = j + i * c;
 	    spd = a->o_data[k];
             if (!d && fpa) {
-	        spd[i] = (SINT2) round(fpa[m], sf);
+	        spd[i] = (int16_t) round(fpa[m], sf);
             } else {
 	        spd[i] = 0;
 	    }
@@ -2430,7 +2430,7 @@ xfer_osdnie(ARDEV *a, int b, int d)     // output, equal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, c;
     double *dpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = MAXINT16 / mxflo;
     n = a->sizptr[b];
@@ -2442,7 +2442,7 @@ xfer_osdnie(ARDEV *a, int b, int d)     // output, equal
 	    m = j + i * c;
 	    spd = a->o_data[k];
             if (!d && dpa) {
-	        spd[i] = (SINT2) round(dpa[m], sf);
+	        spd[i] = (int16_t) round(dpa[m], sf);
             } else {
 	        spd[i] = 0;
 	    }
@@ -2454,8 +2454,8 @@ static void				// dev long, app short
 xfer_olsnie(ARDEV *a, int b, int d)     // output, equal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, c;
-    SINT4 *lpd;
-    SINT2 *spa;
+    int32_t *lpd;
+    int16_t *spa;
 
     n = a->sizptr[b];
     c = a->ncda;
@@ -2466,7 +2466,7 @@ xfer_olsnie(ARDEV *a, int b, int d)     // output, equal
 	    m = j + i * c;
 	    lpd = a->o_data[k];
             if (!d && spa) {
-	        lpd[i] = (SINT4) spa[m] << 16;
+	        lpd[i] = (int32_t) spa[m] << 16;
             } else {
 	        lpd[i] = 0;
 	    }
@@ -2478,7 +2478,7 @@ static void				// dev long, app long
 xfer_ollnie(ARDEV *a, int b, int d)     // output, equal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, c;
-    SINT4 *lpd, *lpa;
+    int32_t *lpd, *lpa;
 
     n = a->sizptr[b];
     c = a->ncda;
@@ -2502,7 +2502,7 @@ xfer_olfnie(ARDEV *a, int b, int d)     // output, equal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, c;
     float *fpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = (float) (MAXINT32 / mxflo);
     n = a->sizptr[b];
@@ -2514,7 +2514,7 @@ xfer_olfnie(ARDEV *a, int b, int d)     // output, equal
 	    m = j + i * c;
 	    lpd = a->o_data[k];
             if (!d && fpa) {
-	        lpd[i] = (SINT4) round(fpa[m], sf);
+	        lpd[i] = (int32_t) round(fpa[m], sf);
             } else {
 	        lpd[i] = 0;
 	    }
@@ -2527,7 +2527,7 @@ xfer_oldnie(ARDEV *a, int b, int d)     // output, equal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, c;
     double *dpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = MAXINT32 / mxflo;
     n = a->sizptr[b];
@@ -2539,7 +2539,7 @@ xfer_oldnie(ARDEV *a, int b, int d)     // output, equal
 	    m = j + i * c;
 	    lpd = a->o_data[k];
             if (!d && dpa) {
-	        lpd[i] = (SINT4) round(dpa[m], sf);
+	        lpd[i] = (int32_t) round(dpa[m], sf);
             } else {
 	        lpd[i] = 0;
 	    }
@@ -2551,7 +2551,7 @@ static void				// dev short, app short
 xfer_ossnne(ARDEV *a, int b, int d)     // output, equal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, n, c;
-    SINT2 *spd, *spa;
+    int16_t *spd, *spa;
 
     n = a->sizptr[b];
     c = a->ncda;
@@ -2573,8 +2573,8 @@ static void				// dev short, app long
 xfer_oslnne(ARDEV *a, int b, int d)     // output, equal
 {					// dev non-interleaved to app non-interleaved
     int i, j, k, n, c;
-    SINT4 *lpa;
-    SINT2 *spd;
+    int32_t *lpa;
+    int16_t *spd;
 
     n = a->sizptr[b];
     c = a->ncda;
@@ -2584,7 +2584,7 @@ xfer_oslnne(ARDEV *a, int b, int d)     // output, equal
         lpa = a->obptr[k];
         for (i = 0; i < n; i++) {
             if (!d && lpa) {
-                spd[i] = (SINT2) (lpa[i] >> 16);
+                spd[i] = (int16_t) (lpa[i] >> 16);
             } else {
                 spd[i] = 0;
 	    }
@@ -2597,7 +2597,7 @@ xfer_osfnne(ARDEV *a, int b, int d)     // output, equal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, n, c;
     float *fpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = (float) (MAXINT16 / mxflo);
     n = a->sizptr[b];
@@ -2608,7 +2608,7 @@ xfer_osfnne(ARDEV *a, int b, int d)     // output, equal
         fpa = a->obptr[k];
         for (i = 0; i < n; i++) {
             if (!d && fpa) {
-                spd[i] = (SINT2) round(fpa[i], sf);
+                spd[i] = (int16_t) round(fpa[i], sf);
             } else {
                 spd[i] = 0;
 	    }
@@ -2621,7 +2621,7 @@ xfer_osdnne(ARDEV *a, int b, int d)     // output, equal
 {					// dev non-interleaved to app non-interleaved
     int i, j, k, n, c;
     double *dpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = MAXINT16 / mxflo;
     n = a->sizptr[b];
@@ -2632,7 +2632,7 @@ xfer_osdnne(ARDEV *a, int b, int d)     // output, equal
         dpa = a->obptr[k];
         for (i = 0; i < n; i++) {
             if (!d && dpa) {
-                spd[i] = (SINT2) round(dpa[i], sf);
+                spd[i] = (int16_t) round(dpa[i], sf);
             } else {
                 spd[i] = 0;
 	    }
@@ -2644,8 +2644,8 @@ static void				// dev long, app short
 xfer_olsnne(ARDEV *a, int b, int d)     // output, equal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, n, c;
-    SINT4 *lpd;
-    SINT2 *spa;
+    int32_t *lpd;
+    int16_t *spa;
 
     n = a->sizptr[b];
     c = a->ncda;
@@ -2655,7 +2655,7 @@ xfer_olsnne(ARDEV *a, int b, int d)     // output, equal
         spa = a->obptr[k];
         for (i = 0; i < n; i++) {
             if (!d && spa) {
-                lpd[i] = (SINT4) spa[i] << 16;
+                lpd[i] = (int32_t) spa[i] << 16;
             } else {
                 lpd[i] = 0;
 	    }
@@ -2667,7 +2667,7 @@ static void				// dev long, app long
 xfer_ollnne(ARDEV *a, int b, int d)     // output, equal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, n, c;
-    SINT4 *lpd, *lpa;
+    int32_t *lpd, *lpa;
 
     n = a->sizptr[b];
     c = a->ncda;
@@ -2690,7 +2690,7 @@ xfer_olfnne(ARDEV *a, int b, int d)     // output, equal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, n, c;
     float *fpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = (float) (MAXINT32 / mxflo);
     n = a->sizptr[b];
@@ -2701,7 +2701,7 @@ xfer_olfnne(ARDEV *a, int b, int d)     // output, equal
         fpa = a->obptr[k];
         for (i = 0; i < n; i++) {
             if (!d && fpa) {
-                lpd[i] = (SINT4) round(fpa[i], sf);
+                lpd[i] = (int32_t) round(fpa[i], sf);
             } else {
                 lpd[i] = 0;
 	    }
@@ -2714,7 +2714,7 @@ xfer_oldnne(ARDEV *a, int b, int d)     // output, equal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, n, c;
     double *dpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = MAXINT32 / mxflo;
     n = a->sizptr[b];
@@ -2725,7 +2725,7 @@ xfer_oldnne(ARDEV *a, int b, int d)     // output, equal
         dpa = a->obptr[k];
         for (i = 0; i < n; i++) {
             if (!d && dpa) {
-                lpd[i] = (SINT4) round(dpa[i], sf);
+                lpd[i] = (int32_t) round(dpa[i], sf);
             } else {
                 lpd[i] = 0;
 	    }
@@ -2741,7 +2741,7 @@ static void				// dev short, app short
 xfer_ossniu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
-    SINT2 *spd, *spa;
+    int16_t *spd, *spa;
 
     n = a->sizptr[b];
     cd = a->ncda;
@@ -2765,8 +2765,8 @@ static void				// dev short, app long
 xfer_oslniu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
-    SINT4 *lpa;
-    SINT2 *spd;
+    int32_t *lpa;
+    int16_t *spd;
 
     n = a->sizptr[b];
     cd = a->ncda;
@@ -2778,7 +2778,7 @@ xfer_oslniu(ARDEV *a, int b, int d)     // output, unequal
 	    m = j + i * cd;
 	    spd = a->o_data[k];
             if (j < ca && !d && lpa) {
-	        spd[m] = (SINT2) (lpa[k] >> 16);
+	        spd[m] = (int16_t) (lpa[k] >> 16);
 	    } else {
 		spd[m] = 0;
 	    }
@@ -2791,7 +2791,7 @@ xfer_osfniu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
     float *fpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = (float) (MAXINT16 / mxflo);
     n = a->sizptr[b];
@@ -2804,7 +2804,7 @@ xfer_osfniu(ARDEV *a, int b, int d)     // output, unequal
 	    m = j + i * cd;
 	    spd = a->o_data[k];
             if (j < ca && !d && fpa) {
-	        spd[m] = (SINT2) round(fpa[k], sf);
+	        spd[m] = (int16_t) round(fpa[k], sf);
 	    } else {
 		spd[m] = 0;
 	    }
@@ -2817,7 +2817,7 @@ xfer_osdniu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
     double *dpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = MAXINT16 / mxflo;
     n = a->sizptr[b];
@@ -2838,12 +2838,12 @@ xfer_osdniu(ARDEV *a, int b, int d)     // output, unequal
     }
 }
 
-static void				// dev long, app SINT2
+static void				// dev long, app int16_t
 xfer_olsniu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
-    SINT4 *lpd;
-    SINT2 *spa;
+    int32_t *lpd;
+    int16_t *spa;
 
     n = a->sizptr[b];
     cd = a->ncda;
@@ -2855,7 +2855,7 @@ xfer_olsniu(ARDEV *a, int b, int d)     // output, unequal
 	    m = j + i * cd;
 	    lpd = a->o_data[k];
 	    if (j < ca && !d && spa) {
-		lpd[m] = (SINT4) spa[k] << 16;
+		lpd[m] = (int32_t) spa[k] << 16;
 	    } else {
 		lpd[m] = 0;
 	    }
@@ -2867,7 +2867,7 @@ static void				// dev long, app long
 xfer_ollniu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
-    SINT4 *lpd, *lpa;
+    int32_t *lpd, *lpa;
 
     n = a->sizptr[b];
     cd = a->ncda;
@@ -2892,7 +2892,7 @@ xfer_olfniu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
     float *fpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = (float) (MAXINT32 / mxflo);
     n = a->sizptr[b];
@@ -2905,7 +2905,7 @@ xfer_olfniu(ARDEV *a, int b, int d)     // output, unequal
 	    m = j + i * cd;
 	    lpd = a->o_data[k];
 	    if (j < ca && !d && fpa) {
-		lpd[m] = (SINT4) round(fpa[k], sf);
+		lpd[m] = (int32_t) round(fpa[k], sf);
 	    } else {
 		lpd[m] = 0;
 	    }
@@ -2918,7 +2918,7 @@ xfer_oldniu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev non-interleaved, app interleaved
     int i, j, k, m, n, cd, ca;
     double *dpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = MAXINT32 / mxflo;
     n = a->sizptr[b];
@@ -2931,7 +2931,7 @@ xfer_oldniu(ARDEV *a, int b, int d)     // output, unequal
 	    m = j + i * cd;
 	    lpd = a->o_data[k];
 	    if (j < ca && !d && dpa) {
-		lpd[m] = (SINT4) round(dpa[k], sf);
+		lpd[m] = (int32_t) round(dpa[k], sf);
 	    } else {
 		lpd[m] = 0;
 	    }
@@ -2943,7 +2943,7 @@ static void				// dev short, app short
 xfer_ossnnu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
-    SINT2 *spd, *spa;
+    int16_t *spd, *spa;
 
     n = a->sizptr[b];
     cd = a->ncda;
@@ -2967,8 +2967,8 @@ static void				// dev short, app long
 xfer_oslnnu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
-    SINT4 *lpa;
-    SINT2 *spd;
+    int32_t *lpa;
+    int16_t *spd;
 
     n = a->sizptr[b];
     cd = a->ncda;
@@ -2980,7 +2980,7 @@ xfer_oslnnu(ARDEV *a, int b, int d)     // output, unequal
 	    spd = a->o_data[k];
 	    lpa = a->obptr[k];
             if (j < ca && !d && lpa) {
-	        spd[m] = (SINT2) (lpa[i] >> 16);
+	        spd[m] = (int16_t) (lpa[i] >> 16);
 	    } else {
 	        spd[m] = 0;
 	    }
@@ -2993,7 +2993,7 @@ xfer_osfnnu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
     float *fpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = (float) (MAXINT16 / mxflo);
     n = a->sizptr[b];
@@ -3006,7 +3006,7 @@ xfer_osfnnu(ARDEV *a, int b, int d)     // output, unequal
 	    spd = a->o_data[k];
 	    fpa = a->obptr[k];
             if (j < ca && !d && fpa) {
-	        spd[m] = (SINT2) round(fpa[i], sf);
+	        spd[m] = (int16_t) round(fpa[i], sf);
 	    } else {
 	        spd[m] = 0;
 	    }
@@ -3019,7 +3019,7 @@ xfer_osdnnu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
     double *dpa, sf;
-    SINT2 *spd;
+    int16_t *spd;
 
     sf = MAXINT16 / mxflo;
     n = a->sizptr[b];
@@ -3032,7 +3032,7 @@ xfer_osdnnu(ARDEV *a, int b, int d)     // output, unequal
 	    spd = a->o_data[k];
             dpa = a->obptr[k];
             if (j < ca && !d && dpa) {
-	        spd[m] = (SINT2) round(dpa[i], sf);
+	        spd[m] = (int16_t) round(dpa[i], sf);
 	    } else {
 	        spd[m] = 0;
 	    }
@@ -3044,8 +3044,8 @@ static void				// dev long, app short
 xfer_olsnnu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
-    SINT4 *lpd;
-    SINT2 *spa;
+    int32_t *lpd;
+    int16_t *spa;
 
     n = a->sizptr[b];
     cd = a->ncda;
@@ -3057,7 +3057,7 @@ xfer_olsnnu(ARDEV *a, int b, int d)     // output, unequal
 	    lpd = a->o_data[k];
 	    spa = a->obptr[k];
             if (j < ca && !d && spa) {
-	        lpd[m] = (SINT4) spa[i] << 16;
+	        lpd[m] = (int32_t) spa[i] << 16;
 	    } else {
 	        lpd[m] = 0;
 	    }
@@ -3069,7 +3069,7 @@ static void				// dev long, app long
 xfer_ollnnu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
-    SINT4 *lpd, *lpa;
+    int32_t *lpd, *lpa;
 
     n = a->sizptr[b];
     cd = a->ncda;
@@ -3094,7 +3094,7 @@ xfer_olfnnu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
     float *fpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = (float) (MAXINT32 / mxflo);
     n = a->sizptr[b];
@@ -3107,7 +3107,7 @@ xfer_olfnnu(ARDEV *a, int b, int d)     // output, unequal
 	    lpd = a->o_data[k];
 	    fpa = a->obptr[k];
             if (j < ca && !d && fpa) {
-	        lpd[m] = (SINT4) round(fpa[i], sf);
+	        lpd[m] = (int32_t) round(fpa[i], sf);
 	    } else {
 	        lpd[m] = 0;
 	    }
@@ -3120,7 +3120,7 @@ xfer_oldnnu(ARDEV *a, int b, int d)     // output, unequal
 {					// dev non-interleaved, app non-interleaved
     int i, j, k, m, n, cd, ca;
     double *dpa, sf;
-    SINT4 *lpd;
+    int32_t *lpd;
 
     sf = MAXINT32 / mxflo;
     n = a->sizptr[b];
@@ -3133,7 +3133,7 @@ xfer_oldnnu(ARDEV *a, int b, int d)     // output, unequal
 	    lpd = a->o_data[k];
             dpa = a->obptr[k];
             if (j < ca && !d && dpa) {
-	        lpd[m] = (SINT4) round(dpa[i], sf);
+	        lpd[m] = (int32_t) round(dpa[i], sf);
 	    } else {
 	        lpd[m] = 0;
 	    }
@@ -3278,8 +3278,8 @@ static void (*xfer_out[NDT*16])(ARDEV*,int,int) = {
 
 // set_xfer - bind functions to handle i/o data segment transfers
 
-SINT4
-_ar_xfer_bind(SINT4 di)
+int32_t
+_ar_xfer_bind(int32_t di)
 {
     int d_nbps, a_xfer, a_ncad, a_ncda, t, i, u;
     ARDEV *a;

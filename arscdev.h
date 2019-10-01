@@ -10,76 +10,76 @@
 #ifndef ARSC_LPTR
 #define ARSC_LPTR
 #include <stdint.h>
-typedef int16_t     SINT2;
-typedef int32_t     SINT4;
-typedef uint32_t    UINT4;
+typedef int16_t     int16_t;
+typedef int32_t     int32_t;
+typedef uint32_t    uint32_t;
 #endif /* ARSC_LPTR */
 
 typedef struct{
     double a_rate;		/* desired sampling rate */
     double ad_vfs[MAXNDC];	/* A/D volts full scale */
     double da_vfs[MAXNDC];	/* D/A volts full scale */
-    SINT4 a_chnmsk_i;		/* desired input channel mask */
-    SINT4 a_chnmsk_o;		/* desired output channel mask */
-    SINT4 a_chnoff_i;		/* desired input channel offset */
-    SINT4 a_chnoff_o;		/* desired output channel offset */
-    SINT4 a_ncad;		/* desired channels of A/D  */
-    SINT4 a_ncda;		/* desired channels of D/A */
-    SINT4 chnmsk_i;		/* device input channel mask */
-    SINT4 chnmsk_o;		/* device output channel mask */
-    SINT4 dev_id;		/* device identifier */
-    SINT4 bits;			/* number of converter bits */
-    SINT4 left;			/* number of left-shift bits */
-    SINT4 nbps;			/* number of bytes per sample */
-    SINT4 ntlv;			/* samples interleaved ? */
-    SINT4 ncad;			/* device channels of A/D  */
-    SINT4 ncda;			/* device channels of D/A */
-    SINT4 nibp;			/* number of input buffer pointers */
-    SINT4 nobp;			/* number of output buffer pointers */
-    SINT4 segswp;		/* segments per sweep */
-    SINT4 opened;		/* was i/o opened ? */
-    SINT4 prepped;		/* was i/o prepared ? */
-    SINT4 started;		/* was i/o started ? */
-    SINT4 seg_ic;		/* input segment counter */
-    SINT4 seg_oc;		/* output segment counter */
-    SINT4 xrun;			/* number of underruns/overruns */
-    SINT4 segtot;		/* segments total (all sweeps) */
-    SINT4 gdsr;			/* dev's good samplin rates */
-    SINT4 smpswp;		/* samples per sweep */
-    SINT4 swptot;		/* total number of sweeps */
-    SINT4 smptot;		/* total number of samples */
-    SINT4 *sizptr;		/* list of segment sizes */
-    UINT4 rate;			/* dev's sampling rate */
+    int32_t a_chnmsk_i;		/* desired input channel mask */
+    int32_t a_chnmsk_o;		/* desired output channel mask */
+    int32_t a_chnoff_i;		/* desired input channel offset */
+    int32_t a_chnoff_o;		/* desired output channel offset */
+    int32_t a_ncad;		/* desired channels of A/D  */
+    int32_t a_ncda;		/* desired channels of D/A */
+    int32_t chnmsk_i;		/* device input channel mask */
+    int32_t chnmsk_o;		/* device output channel mask */
+    int32_t dev_id;		/* device identifier */
+    int32_t bits;			/* number of converter bits */
+    int32_t left;			/* number of left-shift bits */
+    int32_t nbps;			/* number of bytes per sample */
+    int32_t ntlv;			/* samples interleaved ? */
+    int32_t ncad;			/* device channels of A/D  */
+    int32_t ncda;			/* device channels of D/A */
+    int32_t nibp;			/* number of input buffer pointers */
+    int32_t nobp;			/* number of output buffer pointers */
+    int32_t segswp;		/* segments per sweep */
+    int32_t opened;		/* was i/o opened ? */
+    int32_t prepped;		/* was i/o prepared ? */
+    int32_t started;		/* was i/o started ? */
+    int32_t seg_ic;		/* input segment counter */
+    int32_t seg_oc;		/* output segment counter */
+    int32_t xrun;			/* number of underruns/overruns */
+    int32_t segtot;		/* segments total (all sweeps) */
+    int32_t gdsr;			/* dev's good samplin rates */
+    int32_t smpswp;		/* samples per sweep */
+    int32_t swptot;		/* total number of sweeps */
+    int32_t smptot;		/* total number of samples */
+    int32_t *sizptr;		/* list of segment sizes */
+    uint32_t rate;			/* dev's sampling rate */
     void **i_data;		/* dev's input data buffer */
     void **o_data;		/* dev's output data buffer */
     void **ibptr;		/* list of app's input data buffers */
     void **obptr;		/* list of app's output data buffers */
-    void (*a_xfer_in)(SINT4);	/* app's input data transfer function */
-    void (*a_xfer_out)(SINT4);	/* app's output data transfer function */
+    void (*a_xfer_in)(int32_t);	/* app's input data transfer function */
+    void (*a_xfer_out)(int32_t);	/* app's output data transfer function */
 } ARDEV;
 
 typedef struct{
-    SINT4 a_dfmt;		/* app's data format */
-    SINT4 a_xfer;		/* app's data transfer function */
-    SINT4 a_nbps;		/* app's number of bytes per sample */
-    SINT4 a_ntlv;		/* app's samples interleaved ? */
+    int32_t a_dfmt;		/* app's data format */
+    int32_t a_xfer;		/* app's data transfer function */
+    int32_t a_nbps;		/* app's number of bytes per sample */
+    int32_t a_ntlv;		/* app's samples interleaved ? */
     double mxfli;		/* maximum float in */
     double mxflo;		/* maximum float out */
 } ARFMT;
 
 typedef struct {
-    char *(* dev_name)(SINT4);
-    SINT4 (* num_dev)();
-    void (* io_stop)(SINT4);
-    void (* close)(SINT4);
-    SINT4 (* open)(SINT4);
-    SINT4 (* io_prepare)(SINT4);
-    void (* io_start)(SINT4);
-    SINT4 (* xfer_seg)(SINT4,SINT4);
-    SINT4 (* chk_seg)(SINT4,SINT4);
-    SINT4 (* latency)(SINT4,SINT4);
-    SINT4 (* list_rates)(SINT4);
-    SINT4 (* find_dev)(SINT4);
+    char *(* dev_name)(int32_t);
+    int32_t (* num_dev)();
+    void (* io_stop)(int32_t);
+    void (* close)(int32_t);
+    int32_t (* open)(int32_t);
+    int32_t (* io_prepare)(int32_t);
+    void (* io_start)(int32_t);
+    int32_t (* xfer_seg)(int32_t,int32_t);
+    int32_t (* chk_seg)(int32_t,int32_t);
+    int32_t (* latency)(int32_t,int32_t);
+    int32_t (* list_rates)(int32_t);
+    int32_t (* find_dev)(int32_t);
 } ARDVT;
 
 typedef struct {
@@ -87,21 +87,21 @@ typedef struct {
     void (*xfer_out)(ARDEV*,int,int);		/* transfer data out */
 } ARXFR;
 
-extern SINT4   _arsc_wind;
-extern SINT4   _arsc_find;
+extern int32_t   _arsc_wind;
+extern int32_t   _arsc_find;
 extern ARDEV *_ardev[MAXDEV];
 extern ARFMT  _arfmt[MAXDEV];
 extern ARDVT  _ardvt[MAXNDT];
 extern ARXFR  _arxfr[MAXDEV];
 
-SINT4  _ar_os_bind();
+int32_t  _ar_os_bind();
 #ifdef ASIO
-SINT4  _ar_asio_bind();
+int32_t  _ar_asio_bind();
 #endif /* ASIO */
-SINT4 _ar_xfer_bind();
+int32_t _ar_xfer_bind();
 void _ar_chk_seg();
 
 /* For sampling rates. */
-extern UINT4 _ar_SRlist[];
-SINT4 _ar_adjust_rate(SINT4 di, double r);
+extern uint32_t _ar_SRlist[];
+int32_t _ar_adjust_rate(int32_t di, double r);
 

@@ -18,8 +18,8 @@
 
 char   _arS[100];	
 int    _ar_debug = 0;
-SINT4   _arsc_wind = 0;
-SINT4   _arsc_find = 0;
+int32_t   _arsc_wind = 0;
+int32_t   _arsc_find = 0;
 ARDEV *_ardev[MAXDEV] = {0};
 ARFMT  _arfmt[MAXDEV] = {{0}};
 ARDVT  _ardvt[MAXNDT] = {{0}};
@@ -42,15 +42,15 @@ static CARDINFO card_info[MAXNCT] = {
 static int nct = MAXNCT;        // number of card_types with info
 static int ndt = 0;		// number of device types
 static int tnd = 0;		// total number of devices
-static SINT4 bound = 0;		// have ARDEV functions been bound ?
-static SINT4 prf[MAXNDT] = {0};	// preference flag for each device type
-static SINT4 dvt[MAXDEV] = {0};	// device-type for each device identifier
+static int32_t bound = 0;		// have ARDEV functions been bound ?
+static int32_t prf[MAXNDT] = {0};	// preference flag for each device type
+static int32_t dvt[MAXDEV] = {0};	// device-type for each device identifier
 
 
 /* card_type - return type of "card" from structure */
 
 static int
-card_type(SINT4 di)
+card_type(int32_t di)
 {
     char   *dn;
     int     i, j, n, c = 0;
@@ -140,8 +140,8 @@ fun_init()
 // Processing on an output segment needs to be done -before- sending it
 // to the hardware.  Thus, the output xfer function will be called once
 // before the segment has been played.
-static SINT4
-xfer_seg(SINT4 di, SINT4 get, SINT4 queue)
+static int32_t
+xfer_seg(int32_t di, int32_t get, int32_t queue)
 {
     int     b, d, ss, st;
     ARDEV  *a;
@@ -339,26 +339,26 @@ _arsc_set_cardinfo(CARDINFO ci, int ct)
 
 /* _arsc_get_cardtype - get card type */
 
-SINT4
-_arsc_get_cardtype(SINT4 di)
+int32_t
+_arsc_get_cardtype(int32_t di)
 {
     return (card_type(di));
 }
 
 /*****************************************************************************/
 
-UINT4 _ar_SRlist[SRLSTSZ] = {
+uint32_t _ar_SRlist[SRLSTSZ] = {
     4000, 5512, 6000, 8000, 8269, 10000, 11025, 12000, 16000, 16538,
     20000, 22050, 24000, 25000, 32000, 33075, 44100, 48000, 50000,
     64000, 88200, 96000, 100000, 128000, 176400, 192000, 200000
 };
 
-SINT4
-_ar_adjust_rate(SINT4 di, double r)
+int32_t
+_ar_adjust_rate(int32_t di, double r)
 {
     double mindiff, diff;
     int     i, bestindex, gdsr;
-    UINT4 rt;
+    uint32_t rt;
     ARDEV  *a;
 
     if (di < 0 || di >= tnd)
@@ -386,14 +386,14 @@ _ar_adjust_rate(SINT4 di, double r)
 #define MAXSEGSWP   1024	/* max segments per sweep */
 #define MAXSEGTOT   1<<30	/* max total segments */
 
-SINT4
+int32_t
 _ar_find_dev(
-    SINT4 flags		    // hints about desired device
+    int32_t flags		    // hints about desired device
     )
 {
     char   *cn, *dn;
     int     i, j, k, nc, nd, bits = 24;
-    SINT4    di = 0, o = 0;
+    int32_t    di = 0, o = 0;
 
     fun_init();
     //FDBUG( (_arS, "find_dev:\n") );
@@ -441,14 +441,14 @@ _ar_find_dev(
     return (di);
 }
 
-SINT4
+int32_t
 _ar_find_dev_name(
     char *name		    // name of desired device
     )
 {
     char   *dn;
     int     i, j, k, nc, nd, nn;
-    SINT4    di = -1;
+    int32_t    di = -1;
 
     fun_init();
     //FDBUG( (_arS, "find_dev_name:\n") );
@@ -484,9 +484,9 @@ _ar_find_dev_name(
     return (di);
 }
 
-SINT4
+int32_t
 _ar_io_stop(
-    SINT4 di 		    // device identifier
+    int32_t di 		    // device identifier
     )
 {
     ARDEV  *a;
@@ -511,12 +511,12 @@ _ar_io_stop(
     return (0);		    // error code
 }
 
-SINT4
+int32_t
 _ar_io_close(
-    SINT4 di 		    // device identifier
+    int32_t di 		    // device identifier
     )
 {
-    SINT4    err = 0;
+    int32_t    err = 0;
     ARDEV  *a;
 
     fun_init();
@@ -534,18 +534,18 @@ _ar_io_close(
     return (err);	    // error code
 }
 
-SINT4
+int32_t
 _ar_io_open_off(
-    SINT4 di,		    // device identifier
+    int32_t di,		    // device identifier
     double rate,	    // desired sampling rate
-    SINT4 chan_in,	    // desired number of input channels
-    SINT4 chan_out,	    // desired number of output channels
-    SINT4 chnoff_in,	    // desired input channel mask
-    SINT4 chnoff_out	    // desired output channel mask
+    int32_t chan_in,	    // desired number of input channels
+    int32_t chan_out,	    // desired number of output channels
+    int32_t chnoff_in,	    // desired input channel mask
+    int32_t chnoff_out	    // desired output channel mask
     )
 {
     int  j, ct;
-    SINT4 err;
+    int32_t err;
     ARDEV *a;
 
     fun_init();
@@ -618,29 +618,29 @@ _ar_io_open_off(
     return (err);		    // error code
 }
 
-SINT4
+int32_t
 _ar_io_open(
-    SINT4 di,		    // device identifier
+    int32_t di,		    // device identifier
     double rate,	    // desired sampling rate
-    SINT4 chan_in,	    // desired number of input channels
-    SINT4 chan_out	    // desired number of output channels
+    int32_t chan_in,	    // desired number of input channels
+    int32_t chan_out	    // desired number of output channels
     )
 {
     return (_ar_io_open_off(di, rate, chan_in, chan_out, 0, 0));
 }
 
-SINT4
+int32_t
 _ar_io_prep(
-    SINT4 di,                // device identifier
+    int32_t di,                // device identifier
     void **in_data,         // input data for each segment
     void **out_data,        // output data for each segment
-    SINT4 *size,             // size of each segment
-    SINT4 nseg,              // number of segments buffered
-    SINT4 tseg               // total number of segments
+    int32_t *size,             // size of each segment
+    int32_t nseg,              // number of segments buffered
+    int32_t tseg               // total number of segments
     )
 {
 
-    SINT4 i, err = 0;
+    int32_t i, err = 0;
     ARDEV *a;
 	
     fun_init();
@@ -692,12 +692,12 @@ _ar_io_prep(
     return (err);           // error code
 }
 
-SINT4
+int32_t
 _ar_io_start(
-    SINT4 di 		    // device identifier
+    int32_t di 		    // device identifier
     )
 {
-    SINT4 err;
+    int32_t err;
     ARDEV *a;
 
     if (di < 0 || di >= tnd)
@@ -718,13 +718,13 @@ _ar_io_start(
     return (err);	    // error code
 }
 
-SINT4
+int32_t
 _ar_set_fmt(
-    SINT4 di, 		    // device identifier
-    SINT4 *fmt 		    // data format
+    int32_t di, 		    // device identifier
+    int32_t *fmt 		    // data format
     )
 {
-    SINT4 err = 0;
+    int32_t err = 0;
     ARDEV *a;
     ARFMT *f;
     static int nbps[] = {
@@ -769,10 +769,10 @@ _ar_set_fmt(
     return (err);		    // error code
 }
 
-SINT4
+int32_t
 _ar_get_fmt(
-    SINT4 di, 			    // device identifier
-    SINT4 *fmt 			    // data format
+    int32_t di, 			    // device identifier
+    int32_t *fmt 			    // data format
     )
 {
     ARDEV *a;
@@ -791,9 +791,9 @@ _ar_get_fmt(
     return (0);			    // error code
 }
 
-SINT4
+int32_t
 _ar_get_gdsr(
-    SINT4 di 			    // device identifier
+    int32_t di 			    // device identifier
     )
 {
     ARDEV *a;
@@ -807,11 +807,11 @@ _ar_get_gdsr(
     return (a->gdsr);		    // good sampling rates
 }
 
-SINT4
+int32_t
 _ar_set_xfer(
-    SINT4 di,                    // device identifier
-    void (*in_xfer)(SINT4),	    // in_xfer function
-    void (*out_xfer)(SINT4)	    // out_xfer function
+    int32_t di,                    // device identifier
+    void (*in_xfer)(int32_t),	    // in_xfer function
+    void (*out_xfer)(int32_t)	    // out_xfer function
     )
 {
     fun_init();
@@ -829,7 +829,7 @@ _ar_set_xfer(
 
 void
 _ar_chk_seg(
-    SINT4 di 			    // device identifier
+    int32_t di 			    // device identifier
     )
 {
     int    i, ss;
@@ -861,9 +861,9 @@ _ar_chk_seg(
     //FDBUG( (_arS, ":chk_seg\n") );
 }
 
-SINT4
+int32_t
 _ar_io_cur_seg(
-    SINT4 di 			    // device identifier
+    int32_t di 			    // device identifier
     )
 {
     ARDEV *a;
@@ -882,8 +882,8 @@ _ar_io_cur_seg(
     return (a->seg_ic);    // current segment
 }
 
-SINT4
-_ar_io_wait_seg(SINT4 di)
+int32_t
+_ar_io_wait_seg(int32_t di)
 {
     int m, n, st;
     
@@ -900,8 +900,8 @@ _ar_io_wait_seg(SINT4 di)
     return (n);
 }
 
-SINT4
-_ar_set_latency(SINT4 di, SINT4 nsmp)
+int32_t
+_ar_set_latency(int32_t di, int32_t nsmp)
 {
     fun_init();
     //FDBUG( (_arS, "set_latency:\n") );
@@ -914,9 +914,9 @@ _ar_set_latency(SINT4 di, SINT4 nsmp)
     return (0);
 }
 
-SINT4
+int32_t
 _ar_out_seg_fill(
-    SINT4 di 			    // device identifier
+    int32_t di 			    // device identifier
     )
 {
     ARDEV *a;
@@ -936,11 +936,11 @@ _ar_out_seg_fill(
     return (0);
 }
 
-SINT4
+int32_t
 _ar_dev_name(
-    SINT4 di,			    // device identifier
+    int32_t di,			    // device identifier
     char *name,			    // pointer to name array
-    SINT4 len			    // length of array
+    int32_t len			    // length of array
     )
 {
     fun_init();
@@ -953,9 +953,9 @@ _ar_dev_name(
     return (0);
 }
 
-SINT4
+int32_t
 _ar_xruns(
-    SINT4 di			    // device identifier
+    int32_t di			    // device identifier
     )
 {
     ARDEV *a;
@@ -972,7 +972,7 @@ _ar_xruns(
     return (a->xrun);
 }
 
-SINT4
+int32_t
 _ar_num_devs(
     )
 {
@@ -983,9 +983,9 @@ _ar_num_devs(
 
 void
 _ar_err_msg(
-    SINT4 err,			    // error code
+    int32_t err,			    // error code
     char *msg,			    // pointer to name array
-    SINT4 len			    // length of array
+    int32_t len			    // length of array
     )
 {
     char *e;
@@ -1004,7 +1004,7 @@ _ar_err_msg(
 
 double
 _ar_get_rate(
-    SINT4 di			    // device identifier
+    int32_t di			    // device identifier
     )
 {
     fun_init();
@@ -1016,7 +1016,7 @@ _ar_get_rate(
 
 void
 _ar_get_sfs(		    // get i/o sample-full-scale
-    SINT4 di,		    // - device identifier
+    int32_t di,		    // - device identifier
     double *i_sfs,	    // - input sample-full-scale
     double *o_sfs	    // - output sample-full-scale
     )
@@ -1034,7 +1034,7 @@ _ar_get_sfs(		    // get i/o sample-full-scale
 
 void
 _ar_set_sfs(		    // set i/o sample-full-scale
-    SINT4 di,		    // - device identifier
+    int32_t di,		    // - device identifier
     double *i_sfs,	    // - input sample-full-scale
     double *o_sfs	    // - output sample-full-scale
     )
@@ -1050,13 +1050,13 @@ _ar_set_sfs(		    // set i/o sample-full-scale
     f->mxflo = *o_sfs;	    // - output sample-full-scale
 }
 
-SINT4 
+int32_t 
 _ar_get_cardinfo(           // Get card info
-    SINT4 di,                // - device identifier
+    int32_t di,                // - device identifier
     CARDINFO *ci            // - pointer to CARDINFO structure
     )
 {
-    SINT4 ct;
+    int32_t ct;
 
     fun_init();
     ct = card_type(di);
@@ -1067,7 +1067,7 @@ _ar_get_cardinfo(           // Get card info
 
 void
 _ar_get_vfs(
-    SINT4 di,			    // device identifier
+    int32_t di,			    // device identifier
     double *da_vfs,		    // DAC volts full scale
     double *ad_vfs		    // ADC volts full scale
     )
@@ -1089,7 +1089,7 @@ _ar_get_vfs(
 
 void
 _ar_set_vfs(
-    SINT4 di,			    // device identifier
+    int32_t di,			    // device identifier
     double *da_vfs, 		    // DAC volts full scale
     double *ad_vfs		    // ADC volts full scale
     )
@@ -1126,7 +1126,7 @@ _ar_close_all()
 
 void
 _ar_wind(
-    SINT4 wind
+    int32_t wind
 )
 {
     _arsc_wind = wind;
@@ -1143,167 +1143,167 @@ _ar_version(
 
 #ifndef WRAP
 
-_API(SINT4)
-ar_find_dev(SINT4 flags)
+_API(int32_t)
+ar_find_dev(int32_t flags)
 {
     return (_ar_find_dev(flags));
 }
 
-_API(SINT4)
+_API(int32_t)
 ar_find_dev_name(char *name)
 {
     return (_ar_find_dev_name(name));
 }
 
-_API(SINT4)
-ar_io_open(SINT4 di, double rate, SINT4 chn_i, SINT4 chn_o)
+_API(int32_t)
+ar_io_open(int32_t di, double rate, int32_t chn_i, int32_t chn_o)
 {
 
     return(_ar_io_open(di, rate, chn_i, chn_o));
 }
 
-_API(SINT4)
-ar_io_open_off(SINT4 di, double rate, SINT4 chn_i, SINT4 chn_o,
-    SINT4 chnoff_i, SINT4 chnoff_o)
+_API(int32_t)
+ar_io_open_off(int32_t di, double rate, int32_t chn_i, int32_t chn_o,
+    int32_t chnoff_i, int32_t chnoff_o)
 {
 
     return(_ar_io_open_off(di, rate, chn_i, chn_o, chnoff_i, chnoff_o));
 }
 
-_API(SINT4)
-ar_io_prep(SINT4 di, void **in_data, void **out_data, SINT4 *size, SINT4 nseg, SINT4 tseg)
+_API(int32_t)
+ar_io_prep(int32_t di, void **in_data, void **out_data, int32_t *size, int32_t nseg, int32_t tseg)
 {
     return (_ar_io_prep(di, in_data, out_data, size, nseg, tseg));
 }
 
-_API(SINT4)
-ar_io_prepare(SINT4 di, void **in_data, void **out_data, SINT4 *size, SINT4 nseg, SINT4 nswp)
+_API(int32_t)
+ar_io_prepare(int32_t di, void **in_data, void **out_data, int32_t *size, int32_t nseg, int32_t nswp)
 {
     return (_ar_io_prep(di, in_data, out_data, size, nseg, nswp * nseg));
 }
 
-_API(SINT4)
-ar_io_start(SINT4 di)
+_API(int32_t)
+ar_io_start(int32_t di)
 {
     return (_ar_io_start(di));
 }
 
-_API(SINT4)
-ar_io_stop(SINT4 di)
+_API(int32_t)
+ar_io_stop(int32_t di)
 {
     return (_ar_io_stop(di));
 }
 
-_API(SINT4)
-ar_io_close(SINT4 di)
+_API(int32_t)
+ar_io_close(int32_t di)
 {
     return (_ar_io_close(di));
 }
 
-_API(SINT4)
-ar_set_fmt(SINT4 di, SINT4 *fmt)
+_API(int32_t)
+ar_set_fmt(int32_t di, int32_t *fmt)
 {
     return (_ar_set_fmt(di, fmt));
 }
 
-_API(SINT4)
-ar_get_fmt(SINT4 di, SINT4 *fmt)
+_API(int32_t)
+ar_get_fmt(int32_t di, int32_t *fmt)
 {
     return (_ar_get_fmt(di, fmt));
 }
 
-_API(SINT4)
-ar_get_gdsr(SINT4 di)
+_API(int32_t)
+ar_get_gdsr(int32_t di)
 {
     return (_ar_get_gdsr(di));
 }
 
-_API(SINT4)
-ar_set_xfer(SINT4 di, void (*in_xfer)(SINT4), void (*out_xfer)(SINT4))
+_API(int32_t)
+ar_set_xfer(int32_t di, void (*in_xfer)(int32_t), void (*out_xfer)(int32_t))
 {
     return (_ar_set_xfer(di, in_xfer, out_xfer));
 }
 
-_API(SINT4)
-ar_io_cur_seg(SINT4 di)
+_API(int32_t)
+ar_io_cur_seg(int32_t di)
 {
     return (_ar_io_cur_seg(di));
 }
 
-_API(SINT4)
-ar_io_wait_seg(SINT4 di)
+_API(int32_t)
+ar_io_wait_seg(int32_t di)
 {
     return (_ar_io_wait_seg(di));
 }
 
-_API(SINT4)
-ar_out_seg_fill(SINT4 di)
+_API(int32_t)
+ar_out_seg_fill(int32_t di)
 {
     return (_ar_out_seg_fill(di));
 }
 
-_API(SINT4)
-ar_dev_name(SINT4 di, char *name, SINT4 len)
+_API(int32_t)
+ar_dev_name(int32_t di, char *name, int32_t len)
 {
     return (_ar_dev_name(di, name, len));
 }
 
-_API(SINT4)
-ar_xruns(SINT4 di)
+_API(int32_t)
+ar_xruns(int32_t di)
 {
     return (_ar_xruns(di));
 }
 
-_API(SINT4)
+_API(int32_t)
 ar_num_devs()
 {
     return (_ar_num_devs());
 }
 
 _API(void)
-ar_err_msg(SINT4 err, char *msg, SINT4 len)
+ar_err_msg(int32_t err, char *msg, int32_t len)
 {
     _ar_err_msg(err, msg, len);
 }
 
 _API(double)
-ar_get_rate(SINT4 di)
+ar_get_rate(int32_t di)
 {
     return (_ar_get_rate(di));
 }
 
 _API(double)
-ar_adjust_rate(SINT4 di, double rate)
+ar_adjust_rate(int32_t di, double rate)
 {
     return ((double) _ar_adjust_rate(di, rate));
 }
 
 _API(void)
-ar_get_sfs(SINT4 di, double *i_sfs, double *o_sfs)
+ar_get_sfs(int32_t di, double *i_sfs, double *o_sfs)
 {
     _ar_get_sfs(di, i_sfs, o_sfs);
 }
 
 _API(void)
-ar_set_sfs(SINT4 di, double *i_sfs, double *o_sfs)
+ar_set_sfs(int32_t di, double *i_sfs, double *o_sfs)
 {
     _ar_set_sfs(di, i_sfs, o_sfs);
 }
 
-_API(SINT4) 
-ar_get_cardinfo(SINT4 di, CARDINFO *ci)
+_API(int32_t) 
+ar_get_cardinfo(int32_t di, CARDINFO *ci)
 {
     return (_ar_get_cardinfo(di, ci));
 }
 
 _API(void)
-ar_get_vfs(SINT4 di, double *da_vfs, double *ad_vfs)
+ar_get_vfs(int32_t di, double *da_vfs, double *ad_vfs)
 {
     _ar_get_vfs(di, da_vfs, ad_vfs);
 }
 
 _API(void)
-ar_set_vfs(SINT4 di, double *da_vfs, double *ad_vfs)
+ar_set_vfs(int32_t di, double *da_vfs, double *ad_vfs)
 {
     _ar_set_vfs(di, da_vfs, ad_vfs);
 }
@@ -1315,7 +1315,7 @@ ar_close_all()
 }
 
 _API(void)
-ar_wind(SINT4 wind)
+ar_wind(int32_t wind)
 {
     _ar_wind(wind);
 }
@@ -1328,23 +1328,23 @@ ar_version()
 
 /*****************************************************************************/
 
-_API(SINT4)
-ar_set_latency(SINT4 di, SINT4 nsmp)
+_API(int32_t)
+ar_set_latency(int32_t di, int32_t nsmp)
 {
     return (_ar_set_latency(di, nsmp));
 }
 
 /*****************************************************************************/
 
-_API(SINT4)
-ar_out_open(SINT4 di, double rate, SINT4 chan_out)
+_API(int32_t)
+ar_out_open(int32_t di, double rate, int32_t chan_out)
 {
 
     return(_ar_io_open(di, rate, 0, chan_out));
 }
 
-_API(SINT4)
-ar_out_prepare(SINT4 di, void **out_data, SINT4 *size, SINT4 nseg, SINT4 nswp)
+_API(int32_t)
+ar_out_prepare(int32_t di, void **out_data, int32_t *size, int32_t nseg, int32_t nswp)
 {
     return (_ar_io_prep(di, NULL, out_data, size, nseg, nswp * nseg));
 }
