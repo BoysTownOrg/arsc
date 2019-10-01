@@ -147,15 +147,15 @@ long asioMessages(long selector, long value, void* message, double* opt);
 /*
 Internal prototypes
 */
-static SINT4 _ar_asio_num_dev();
-static char *_ar_asio_dev_name(SINT4 di);
-static void _ar_asio_close(SINT4 di);
-static SINT4 _ar_asio_open(SINT4 di);
-static SINT4 _ar_asio_io_prepare(SINT4 di);
-static SINT4 _ar_asio_xfer_seg(SINT4 di, SINT4 b);
-static SINT4 _ar_asio_chk_seg(SINT4 di, SINT4 b);
-static void _ar_asio_io_start(SINT4 di);
-static void _ar_asio_io_stop(SINT4 di) ;
+static int32_t _ar_asio_num_dev();
+static char *_ar_asio_dev_name(int32_t di);
+static void _ar_asio_close(int32_t di);
+static int32_t _ar_asio_open(int32_t di);
+static int32_t _ar_asio_io_prepare(int32_t di);
+static int32_t _ar_asio_xfer_seg(int32_t di, int32_t b);
+static int32_t _ar_asio_chk_seg(int32_t di, int32_t b);
+static void _ar_asio_io_start(int32_t di);
+static void _ar_asio_io_stop(int32_t di) ;
 static int32 pSendStimulusData ( int32 *buffer, int32 aintBufferSize, TStimulusData *ptrStimulusData );
 static int32 pFillResponseBlock ( int32 *buffer, int32 aintBufferSize, TResponseData *ptrResponseData );
 static int32 pWriteBufferDemarcation ( int32 aintChunkSize, int32 aintAbsAmplitude );
@@ -172,7 +172,7 @@ bool pGetMutex ( void );
 _ar_asio_num_dev - return number of ASIO devices
 */
 
-static SINT4
+static int32_t
 _ar_asio_num_dev()
 {
 
@@ -200,7 +200,7 @@ name for a number of Echo cards.
 */
 
 static char   *
-_ar_asio_dev_name(SINT4 di)
+_ar_asio_dev_name(int32_t di)
 {
     int32		i;
 
@@ -227,8 +227,8 @@ _ar_asio_dev_name(SINT4 di)
 _ar_asio_list_rates - return good sampling rates
 */
 
-static SINT4
-_ar_asio_list_rates(SINT4 di)
+static int32_t
+_ar_asio_list_rates(int32_t di)
 {
     int32		i;
 
@@ -255,7 +255,7 @@ _ar_asio_list_rates(SINT4 di)
 _ar_asio_close - close I/O device 
 */
 static void
-_ar_asio_close(SINT4 di) {
+_ar_asio_close(int32_t di) {
 
     FDBUG ( ( _arS, "_ar_asio_close(): sintAsioIntializedDriver is [%d] and di is [%d].\n", sintAsioIntializedDriver, di ) );
 
@@ -332,8 +332,8 @@ _ar_asio_close(SINT4 di) {
 
 /* _ar_asio_open - open I/O device */
 
-static SINT4
-_ar_asio_open(SINT4 di)
+static int32_t
+_ar_asio_open(int32_t di)
 {
     long		lngMinBufferSize;
     long		lngMaxBufferSize;
@@ -487,8 +487,8 @@ err:
 
 /* _ar_asio_io_prepare - prepare device and buffers for I/O */
 
-static SINT4
-_ar_asio_io_prepare(SINT4 di)
+static int32_t
+_ar_asio_io_prepare(int32_t di)
 {
     int32		intNumberSegments;	    // Same for in and out
     int32		**out;
@@ -584,8 +584,8 @@ _ar_asio_io_prepare(SINT4 di)
 
 /* _ar_asio_xfer_seg - this segment is ready to go */
 
-static SINT4
-_ar_asio_xfer_seg(SINT4 di, SINT4 b)
+static int32_t
+_ar_asio_xfer_seg(int32_t di, int32_t b)
 {
 	//FDBUG ( ( _arS, "ASIO XFER SEG\n" ) );
 	return ( 0 );
@@ -593,8 +593,8 @@ _ar_asio_xfer_seg(SINT4 di, SINT4 b)
 
 /* _ar_asio_chk_seg - check for segment completion */
 
-static SINT4
-_ar_asio_chk_seg( SINT4 di, SINT4 b )
+static int32_t
+_ar_asio_chk_seg( int32_t di, int32_t b )
 {
     /*
     This function will tell the current segment that is running.
@@ -687,7 +687,7 @@ _ar_asio_chk_seg( SINT4 di, SINT4 b )
 /* _ar_asio_io_start - start I/O */
 
 static void
-_ar_asio_io_start(SINT4 di)
+_ar_asio_io_start(int32_t di)
 {
 
     sintTotalSamples = 0;		// Reset the total samples
@@ -701,7 +701,7 @@ _ar_asio_io_start(SINT4 di)
 /* _ar_asio_io_stop - stop I/O */
 
 static void
-_ar_asio_io_stop(SINT4 di) 
+_ar_asio_io_stop(int32_t di) 
 {
     a = _ardev[di];			// get access to application parameters
 
@@ -719,8 +719,8 @@ _ar_asio_io_stop(SINT4 di)
 
 /* _ar_asio_latency - set and get latency */
 
-static SINT4
-_ar_asio_latency(SINT4 di, SINT4 nsmp) 
+static int32_t
+_ar_asio_latency(int32_t di, int32_t nsmp) 
 {
     long max_latency;
 
@@ -737,8 +737,8 @@ _ar_asio_latency(SINT4 di, SINT4 nsmp)
 
 /* _ar_asio_bind - bind ASIO functions */
 
-SINT4
-_ar_asio_bind(SINT4 ndt, SINT4 tnd)
+int32_t
+_ar_asio_bind(int32_t ndt, int32_t tnd)
 {
     long nd;
 
