@@ -1,5 +1,5 @@
 ARSC_CHK for Windows version 0.56
-Copyright 1988-2010 Boys Town National Research Hospital
+Copyright 1988-2019 Boys Town National Research Hospital
 Non-profit redistribution permitted.
 
 Description:
