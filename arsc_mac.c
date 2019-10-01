@@ -160,14 +160,14 @@ static char *q_idone = NULL;
 static char *q_odone = NULL;
 static void **q_idata = NULL;
 static void **q_odata = NULL;
-static SINT4 q_oseg, q_iseg, q_ocnt, q_icnt, q_ncda, q_ncad;
-static SINT4 q_nseg, *q_size = NULL;
+static int32_t q_oseg, q_iseg, q_ocnt, q_icnt, q_ncda, q_ncad;
+static int32_t q_nseg, *q_size = NULL;
 
 /* q_init - initialize queuing */
 
-void q_init(void *odata[], void *idata[], SINT4 *size, int ncda, int ncad, int nseg)
+void q_init(void *odata[], void *idata[], int32_t *size, int ncda, int ncad, int nseg)
 {
-    SINT4 i;
+    int32_t i;
 
     free_null(q_odata);
     free_null(q_idata);
@@ -176,7 +176,7 @@ void q_init(void *odata[], void *idata[], SINT4 *size, int ncda, int ncad, int n
     free_null(q_idone);
     q_odone = (char *) calloc(nseg, sizeof(char));
     q_idone = (char *) calloc(nseg, sizeof(char));
-    q_size = (SINT4 *) calloc(nseg, sizeof(SINT4));
+    q_size = (int32_t *) calloc(nseg, sizeof(int32_t));
     q_odata = (void **) calloc(nseg * ncda, sizeof(void *));
     q_idata = (void **) calloc(nseg * ncad, sizeof(void *));
     q_ncda = ncda;
@@ -200,7 +200,7 @@ void q_init(void *odata[], void *idata[], SINT4 *size, int ncda, int ncad, int n
 
 void q_put(AudioBufferList *ioData, int nfr)
 {
-    SINT4 i, j, k, m, n, o = 0, nch, *d;
+    int32_t i, j, k, m, n, o = 0, nch, *d;
     UInt32 *c;
 
     nch = ioData ? ioData->mNumberBuffers : q_ncda;
@@ -219,7 +219,7 @@ void q_put(AudioBufferList *ioData, int nfr)
             o = (n < m) ? n : m;
             for (j = 0; j < nch; j++) {
                 c = (UInt32 *) ioData->mBuffers[j].mData + k;
-                d = (SINT4 *) q_odata[q_oseg * q_ncda + j] + q_ocnt;
+                d = (int32_t *) q_odata[q_oseg * q_ncda + j] + q_ocnt;
                 for (i = 0; i < o; i++) {
                     c[i] = (UInt32) d[i] >> 8;
                 }
@@ -239,7 +239,7 @@ void q_put(AudioBufferList *ioData, int nfr)
 
 void q_get(AudioBufferList *ioData, int nfr)
 {
-    SINT4 i, j, k, m, n, o = 0, nch, *d;
+    int32_t i, j, k, m, n, o = 0, nch, *d;
     UInt32 *c;
     
     nch = ioData ? ioData->mNumberBuffers : q_ncad;
@@ -249,13 +249,13 @@ void q_get(AudioBufferList *ioData, int nfr)
             n = nfr - k;
             o = (n < m) ? n : m;
             for (j = 0; j < nch; j++) {
-                d = (SINT4 *) q_idata[q_iseg * q_ncad + j];
+                d = (int32_t *) q_idata[q_iseg * q_ncad + j];
                 if (!d) continue;
                 d += q_icnt;
                 if (ioData) {
                     c = (UInt32 *) ioData->mBuffers[j].mData + k;
                     for (i = 0; i < o; i++) {
-                        d[i] = (SINT4) c[i] << 8;
+                        d[i] = (int32_t) c[i] << 8;
                     }
                 } else {
                     for (i = 0; i < o; i++) {
@@ -337,7 +337,7 @@ OSStatus myInputProc(
 
 /* num_dev - return number of devices */
 
-static SINT4
+static int32_t
 num_dev()
 {
     AudioObjectID aoid;
@@ -361,7 +361,7 @@ num_dev()
 /* dev_name - return name of I/O device */
 
 static char *
-dev_name(SINT4 di)
+dev_name(int32_t di)
 {
     int id;
     AudioObjectPropertyAddress propaddr;
@@ -485,7 +485,7 @@ void dev_close()
     }
 }
 
-int dev_open(SINT4 di)
+int dev_open(int32_t di)
 {
     AudioComponent comp;
     AudioComponentDescription desc;
@@ -579,7 +579,7 @@ int dev_open(SINT4 di)
     return (0);
 }
 
-void dev_prep(SINT4 di)
+void dev_prep(int32_t di)
 {
     AudioStreamBasicDescription streamFormat;
     Float64 outputSampleRate;
@@ -699,7 +699,7 @@ dev_stop()
 }
 
 void
-dev_gdsr(SINT4 di, SINT4 *rate, SINT4 *nr)
+dev_gdsr(int32_t di, int32_t *rate, int32_t *nr)
 {
     int i, n, num_rates = 0;
     AudioObjectPropertyAddress propaddr = {
@@ -740,7 +740,7 @@ dev_gdsr(SINT4 di, SINT4 *rate, SINT4 *nr)
 }
 
 double
-dev_get_rate(SINT4 di)
+dev_get_rate(int32_t di)
 {
     Float64 device_rate = 0;
     AudioObjectPropertyAddress propaddr = {
@@ -765,7 +765,7 @@ dev_get_rate(SINT4 di)
 }
 
 void
-dev_set_rate(SINT4 di, double rate)
+dev_set_rate(int32_t di, double rate)
 {
     AudioObjectPropertyAddress propaddr = {
         kAudioDevicePropertyNominalSampleRate,
@@ -788,7 +788,7 @@ dev_set_rate(SINT4 di, double rate)
 }
 
 static void
-dev_get_chan(SINT4 di, int channels[])
+dev_get_chan(int32_t di, int channels[])
 {
     AudioBufferList *abl;
     AudioObjectPropertyAddress propaddr = {
@@ -822,12 +822,12 @@ dev_get_chan(SINT4 di, int channels[])
 
 /***************************************************************************/
 
-static SINT4
-_ar_mac_list_rates(SINT4 di)
+static int32_t
+_ar_mac_list_rates(int32_t di)
 {
-    SINT4    i, j, gdsr;
-    static  SINT4 rate[32];
-    static  SINT4 nr = sizeof(rate) / sizeof(SINT4);
+    int32_t    i, j, gdsr;
+    static  int32_t rate[32];
+    static  int32_t nr = sizeof(rate) / sizeof(int32_t);
 
     dev_gdsr(di, rate, &nr);
     gdsr = 0;
@@ -845,14 +845,14 @@ _ar_mac_list_rates(SINT4 di)
 
 /* _ar_mac_num_dev - return number of devices */
 
-static SINT4
+static int32_t
 _ar_mac_num_dev()
 {
     return (num_dev());
 }
 
-static SINT4
-_ar_mac_find_dev(SINT4 flags)
+static int32_t
+_ar_mac_find_dev(int32_t flags)
 {
     return (def_dev());
 }
@@ -860,7 +860,7 @@ _ar_mac_find_dev(SINT4 flags)
 /* _ar_mac_dev_name - return name of I/O device */
 
 static char   *
-_ar_mac_dev_name(SINT4 di)
+_ar_mac_dev_name(int32_t di)
 {
     return ((char *) dev_name(di));
 }
@@ -868,7 +868,7 @@ _ar_mac_dev_name(SINT4 di)
 /* _ar_mac_close - close I/O device */
 
 static void
-_ar_mac_close(SINT4 di)
+_ar_mac_close(int32_t di)
 {
     CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.01, false);
     dev_stop();
@@ -878,11 +878,11 @@ _ar_mac_close(SINT4 di)
 
 /* _ar_mac_open - open I/O device */
 
-static SINT4
-_ar_mac_open(SINT4 di)
+static int32_t
+_ar_mac_open(int32_t di)
 {
     int chan[2];
-    SINT4 err = 0;
+    int32_t err = 0;
     ARDEV *a;
 
     a = _ardev[di];
@@ -906,8 +906,8 @@ _ar_mac_open(SINT4 di)
 
 /* _ar_mac_io_prepare - prepare device and buffers for I/O */
 
-static SINT4
-_ar_mac_io_prepare(SINT4 di)
+static int32_t
+_ar_mac_io_prepare(int32_t di)
 {
     ARDEV  *a;
 
@@ -924,8 +924,8 @@ _ar_mac_io_prepare(SINT4 di)
 
 /* _ar_mac_xfer_seg - this segment is ready to go */
 
-static SINT4
-_ar_mac_xfer_seg(SINT4 di, SINT4 b)
+static int32_t
+_ar_mac_xfer_seg(int32_t di, int32_t b)
 {
     q_odone[b] = _ardev[di]->ncda ? 0 : 1;
     q_idone[b] = _ardev[di]->ncad ? 0 : 1;
@@ -934,8 +934,8 @@ _ar_mac_xfer_seg(SINT4 di, SINT4 b)
 
 /* _ar_mac_chk_seg - check for segment completion */
 
-static SINT4
-_ar_mac_chk_seg(SINT4 di, SINT4 b)
+static int32_t
+_ar_mac_chk_seg(int32_t di, int32_t b)
 {
     CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.01, false);
     return (q_odone[b] && q_idone[b]);
@@ -944,7 +944,7 @@ _ar_mac_chk_seg(SINT4 di, SINT4 b)
 /* _ar_mac_io_start - start I/O */
 
 static void
-_ar_mac_io_start(SINT4 di)
+_ar_mac_io_start(int32_t di)
 {
     dev_start();
 }
@@ -952,7 +952,7 @@ _ar_mac_io_start(SINT4 di)
 /* _ar_mac_io_stop - stop I/O */
 
 static void
-_ar_mac_io_stop(SINT4 di)
+_ar_mac_io_stop(int32_t di)
 {
     CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.1, false);
     dev_stop();
@@ -960,10 +960,10 @@ _ar_mac_io_stop(SINT4 di)
 
 /* _ar_os_bind - bind OS functions */
 
-SINT4
-_ar_os_bind(SINT4 ndt, SINT4 tnd)
+int32_t
+_ar_os_bind(int32_t ndt, int32_t tnd)
 {
-    SINT4 nd;
+    int32_t nd;
 
     nd = _ar_mac_num_dev();
     if (nd > 0) {

@@ -43,7 +43,7 @@ libsio.a : sio_arsc.o $(OFILES)
 
 clean:
 	rm -f *.bak *.o  *.a *.log *~ tst *.a
-	rm -f $(MKFILES) *.exe 
+	rm -f $(EFILES) *.exe 
 
 rc : wrtnfo
 	./wrtnfo

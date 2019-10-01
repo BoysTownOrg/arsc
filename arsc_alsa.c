@@ -555,7 +555,7 @@ init_dev()
 
 /* _ar_alsa_num_dev - return number of ALSA devices */
 
-static SINT4
+static int32_t
 _ar_alsa_num_dev()
 {
     if (ndv < 0) {
@@ -568,7 +568,7 @@ _ar_alsa_num_dev()
 /* _ar_alsa_close - close I/O device */
 
 static void
-_ar_alsa_close(SINT4 di)
+_ar_alsa_close(int32_t di)
 {
     ARDEV *a;
 
@@ -614,8 +614,8 @@ _ar_alsa_close(SINT4 di)
 
 /* _ar_alsa_open - open I/O device */
 
-static SINT4
-_ar_alsa_open(SINT4 di)
+static int32_t
+_ar_alsa_open(int32_t di)
 {
     char pcm_name[20];
     int mode, sbd, block = 0;
@@ -680,8 +680,8 @@ _ar_alsa_open(SINT4 di)
 
 /* _ar_alsa_io_prepare - prepare device and buffers for I/O */
 
-static SINT4
-_ar_alsa_io_prepare(SINT4 di)
+static int32_t
+_ar_alsa_io_prepare(int32_t di)
 {
     ARDEV *a;
     ARFMT  *f;
@@ -732,8 +732,8 @@ _ar_alsa_io_prepare(SINT4 di)
 
 /* _ar_alsa_xfer_seg - this segment is ready to go */
 
-static SINT4
-_ar_alsa_xfer_seg(SINT4 di, SINT4 b)
+static int32_t
+_ar_alsa_xfer_seg(int32_t di, int32_t b)
 {
     ARDEV *a;
 
@@ -749,8 +749,8 @@ _ar_alsa_xfer_seg(SINT4 di, SINT4 b)
 
 /* _ar_alsa_chk_seg - check for segment completion */
 
-static SINT4
-_ar_alsa_chk_seg(SINT4 di, SINT4 b)
+static int32_t
+_ar_alsa_chk_seg(int32_t di, int32_t b)
 {
     int    done;
     ARDEV *a;
@@ -771,7 +771,7 @@ _ar_alsa_chk_seg(SINT4 di, SINT4 b)
 /* _ar_alsa_io_start - start I/O */
 
 static void
-_ar_alsa_io_start(SINT4 di)
+_ar_alsa_io_start(int32_t di)
 {
     int err;
     ARDEV *a;
@@ -801,7 +801,7 @@ _ar_alsa_io_start(SINT4 di)
 /* _ar_alsa_io_stop - stop I/O */
 
 static void
-_ar_alsa_io_stop(SINT4 di)
+_ar_alsa_io_stop(int32_t di)
 {
     ARDEV *a;
 
@@ -820,26 +820,26 @@ _ar_alsa_io_stop(SINT4 di)
 /* _ar_alsa_dev_name - return name of I/O device */
 
 static char   *
-_ar_alsa_dev_name(SINT4 di)
+_ar_alsa_dev_name(int32_t di)
 {
     return (dcs[di].dnm);
 }
 
 /* _ar_alsa_list_rates - create a list of available sample rates */
 
-static SINT4
-_ar_alsa_list_rates(SINT4 di)
+static int32_t
+_ar_alsa_list_rates(int32_t di)
 {
     if (debug) {
 	fprintf(stderr, "alsa_list_rates\n");
     }
-    return (SINT4) list_rates(di);
+    return (int32_t) list_rates(di);
 }
 
 /* _ar_os_bind - bind ALSA functions, return number of devices */
 
-SINT4
-_ar_os_bind(SINT4 ndt, SINT4 tnd)
+int32_t
+_ar_os_bind(int32_t ndt, int32_t tnd)
 {
     char *e;
     long nd;
