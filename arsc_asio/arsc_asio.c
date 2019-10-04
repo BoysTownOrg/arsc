@@ -147,7 +147,7 @@ long asioMessages(long selector, long value, void* message, double* opt);
 /*
 Internal prototypes
 */
-static int32_t _ar_asio_num_dev_impl();
+static int32_t ar_asio_devices_impl();
 static char *_ar_asio_dev_name(int32_t di);
 static void _ar_asio_close(int32_t di);
 static int32_t _ar_asio_open(int32_t di);
@@ -173,7 +173,7 @@ _ar_asio_num_dev_impl - return number of ASIO devices
 */
 
 static int32_t
-_ar_asio_num_dev_impl()
+ar_asio_devices_impl()
 {
 
     // Has the number of devices already been polled?
@@ -190,7 +190,7 @@ _ar_asio_num_dev_impl()
     return ( sintNumDevices );
 }
 
-int32_t(*ar_asio_devices)() = _ar_asio_num_dev_impl;
+int32_t(*ar_asio_devices)() = ar_asio_devices_impl;
 
 /* 
 _ar_asio_dev_name - return name of I/O device 
@@ -742,16 +742,14 @@ _ar_asio_latency(int32_t di, int32_t nsmp)
 int32_t
 _ar_asio_bind(int32_t ndt, int32_t tnd)
 {
-    long nd;
-
     FDBUG ( ( _arS, "asio_bind\n" ) );
     // Get the number of ASIO devices.  This is not the same as the 
     // number of ASIO Drivers in the registry.  This will either be
     // 1 or 0.
-    nd = ar_asio_devices();
+	int32_t nd = ar_asio_devices();
 
     if (nd > 0) {
-	_ardvt[ndt].num_dev = _ar_asio_num_dev_impl;
+	_ardvt[ndt].num_dev = ar_asio_devices_impl;
 	_ardvt[ndt].dev_name = _ar_asio_dev_name;
 	_ardvt[ndt].io_stop = _ar_asio_io_stop;
 	_ardvt[ndt].close = _ar_asio_close;
@@ -766,7 +764,7 @@ _ar_asio_bind(int32_t ndt, int32_t tnd)
 	dio = tnd;
     }
 
-    return (nd);
+    return nd;
 }
 
 /*
