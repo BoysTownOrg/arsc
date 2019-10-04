@@ -2,7 +2,7 @@
 
 #ifdef ASIO
 
-#include "../arscdev.h"						    // 
+#include "arsc_asio.h"						    // 
 #include "../arsc_common.h"					    // 
 #include "asiosys.h"						    // platform definition from Steinberg SDK
 #include "asio.h"						    // from Steinberg SDK
@@ -147,7 +147,7 @@ long asioMessages(long selector, long value, void* message, double* opt);
 /*
 Internal prototypes
 */
-static int32_t _ar_asio_num_dev();
+static int32_t _ar_asio_num_dev_impl();
 static char *_ar_asio_dev_name(int32_t di);
 static void _ar_asio_close(int32_t di);
 static int32_t _ar_asio_open(int32_t di);
@@ -169,11 +169,11 @@ bool pGetMutex ( void );
 /***************************************************************************/
 
 /* 
-_ar_asio_num_dev - return number of ASIO devices
+_ar_asio_num_dev_impl - return number of ASIO devices
 */
 
 static int32_t
-_ar_asio_num_dev()
+_ar_asio_num_dev_impl()
 {
 
     // Has the number of devices already been polled?
@@ -189,6 +189,8 @@ _ar_asio_num_dev()
     // Now we should have the number of devices
     return ( sintNumDevices );
 }
+
+int32_t(*_ar_asio_num_dev)() = _ar_asio_num_dev_impl;
 
 /* 
 _ar_asio_dev_name - return name of I/O device 
@@ -749,7 +751,7 @@ _ar_asio_bind(int32_t ndt, int32_t tnd)
     nd = _ar_asio_num_dev();
 
     if (nd > 0) {
-	_ardvt[ndt].num_dev = _ar_asio_num_dev;
+	_ardvt[ndt].num_dev = _ar_asio_num_dev_impl;
 	_ardvt[ndt].dev_name = _ar_asio_dev_name;
 	_ardvt[ndt].io_stop = _ar_asio_io_stop;
 	_ardvt[ndt].close = _ar_asio_close;

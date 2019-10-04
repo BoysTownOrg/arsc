@@ -70,19 +70,19 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:/Program Files (x86)/check/include;$(SolutionDir)/..;$(IncludePath)</IncludePath>
+    <IncludePath>C:/Program Files (x86)/check/include;$(SolutionDir)/..;$(SolutionDir)/../arsc_asio;$(IncludePath)</IncludePath>
     <LibraryPath>C:/Program Files (x86)/check/lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>C:/Program Files (x86)/check/include;$(SolutionDir)/..;$(IncludePath)</IncludePath>
+    <IncludePath>C:/Program Files (x86)/check/include;$(SolutionDir)/..;$(SolutionDir)/../arsc_asio;$(IncludePath)</IncludePath>
     <LibraryPath>C:/Program Files (x86)/check/lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:/Program Files (x86)/check/include;$(SolutionDir)/..;$(IncludePath)</IncludePath>
+    <IncludePath>C:/Program Files (x86)/check/include;$(SolutionDir)/..;$(SolutionDir)/../arsc_asio;$(IncludePath)</IncludePath>
     <LibraryPath>C:/Program Files (x86)/check/lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>C:/Program Files (x86)/check/include;$(SolutionDir)/..;$(IncludePath)</IncludePath>
+    <IncludePath>C:/Program Files (x86)/check/include;$(SolutionDir)/..;$(SolutionDir)/../arsc_asio;$(IncludePath)</IncludePath>
     <LibraryPath>C:/Program Files (x86)/check/lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
