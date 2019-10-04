@@ -27,11 +27,20 @@ START_TEST(ar_asio_bind_returns_number_of_devices) {
 }
 END_TEST
 
+START_TEST(ar_asio_bind_assigns_devices_impl) {
+	ar_asio_devices = ar_asio_devices_stub;
+	devices = 3;
+	_ar_asio_bind(0, 0);
+	ck_assert(ar_asio_devices_stub == _ardvt[0].num_dev);
+}
+END_TEST
+
 Suite* arsc_asio_test_suite() {
 	Suite* suite = suite_create("arsc_asio");
 	TCase* test_case = tcase_create("idk");
 	tcase_add_checked_fixture(test_case, setup, teardown);
 	tcase_add_test(test_case, ar_asio_bind_returns_number_of_devices);
+	tcase_add_test(test_case, ar_asio_bind_assigns_devices_impl);
 	suite_add_tcase(suite, test_case);
 	return suite;
 }
