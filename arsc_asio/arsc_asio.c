@@ -190,7 +190,7 @@ _ar_asio_num_dev_impl()
     return ( sintNumDevices );
 }
 
-int32_t(*_ar_asio_num_dev)() = _ar_asio_num_dev_impl;
+int32_t(*ar_asio_devices)() = _ar_asio_num_dev_impl;
 
 /* 
 _ar_asio_dev_name - return name of I/O device 
@@ -748,7 +748,7 @@ _ar_asio_bind(int32_t ndt, int32_t tnd)
     // Get the number of ASIO devices.  This is not the same as the 
     // number of ASIO Drivers in the registry.  This will either be
     // 1 or 0.
-    nd = _ar_asio_num_dev();
+    nd = ar_asio_devices();
 
     if (nd > 0) {
 	_ardvt[ndt].num_dev = _ar_asio_num_dev_impl;
