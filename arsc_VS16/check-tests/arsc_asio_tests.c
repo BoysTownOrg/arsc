@@ -19,8 +19,12 @@ static void teardown(void) {
 	ar_asio_devices = ar_asio_devices_restore;
 }
 
+static int32_t ar_asio_bind_with_device_type(int32_t device_type) {
+	return _ar_asio_bind(device_type, 0);
+}
+
 static int32_t ar_asio_bind_() {
-	return _ar_asio_bind(0, 0);
+	return ar_asio_bind_with_device_type(0);
 }
 
 static void set_devices(int32_t n) {
@@ -45,6 +49,12 @@ START_TEST(ar_asio_bind_assigns_devices_impl_when_nonzero_devices) {
 	ASSERT_EQUAL_ANY(ar_asio_devices_stub, _ardvt[0].num_dev);
 }
 
+START_TEST(ar_asio_bind_assigns_devices_impl_to_device_type_when_nonzero_devices) {
+	set_nonzero_devices();
+	ar_asio_bind_with_device_type(1);
+	ASSERT_EQUAL_ANY(ar_asio_devices_stub, _ardvt[1].num_dev);
+}
+
 static void add_test(TCase* test_case, const TTest* test) {
 	tcase_add_test(test_case, test);
 }
@@ -55,6 +65,7 @@ Suite* arsc_asio_test_suite() {
 	tcase_add_checked_fixture(test_case, setup, teardown);
 	add_test(test_case, ar_asio_bind_returns_number_of_devices);
 	add_test(test_case, ar_asio_bind_assigns_devices_impl_when_nonzero_devices);
+	add_test(test_case, ar_asio_bind_assigns_devices_impl_to_device_type_when_nonzero_devices);
 	suite_add_tcase(suite, test_case);
 	return suite;
 }
