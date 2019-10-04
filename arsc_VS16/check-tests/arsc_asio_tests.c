@@ -1,6 +1,9 @@
 #include "arsc_asio_tests.h"
+#define ASIO
+#include <arscdev.h>
 
 START_TEST(tbd) {
+	ck_assert_int_eq(0, _ar_asio_bind(0, 0));
 	ck_assert(2 + 2 == 5);
 }
 END_TEST
