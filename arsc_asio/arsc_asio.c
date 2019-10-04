@@ -746,25 +746,25 @@ _ar_asio_bind(int32_t ndt, int32_t tnd)
     // Get the number of ASIO devices.  This is not the same as the 
     // number of ASIO Drivers in the registry.  This will either be
     // 1 or 0.
-	int32_t nd = ar_asio_devices();
+	int32_t devices = ar_asio_devices();
 
-    if (nd > 0) {
-	_ardvt[ndt].num_dev = ar_asio_devices;
-	_ardvt[ndt].dev_name = _ar_asio_dev_name;
-	_ardvt[ndt].io_stop = _ar_asio_io_stop;
-	_ardvt[ndt].close = _ar_asio_close;
-	_ardvt[ndt].open = _ar_asio_open;
-	_ardvt[ndt].io_prepare = _ar_asio_io_prepare;
-	_ardvt[ndt].io_start = _ar_asio_io_start;
-	_ardvt[ndt].xfer_seg = _ar_asio_xfer_seg;
-	_ardvt[ndt].chk_seg = _ar_asio_chk_seg;
-	_ardvt[ndt].latency = _ar_asio_latency;
-	_ardvt[ndt].list_rates = _ar_asio_list_rates;
+    if (devices > 0) {
+		_ardvt[ndt].num_dev = ar_asio_devices;
+		_ardvt[ndt].dev_name = _ar_asio_dev_name;
+		_ardvt[ndt].io_stop = _ar_asio_io_stop;
+		_ardvt[ndt].close = _ar_asio_close;
+		_ardvt[ndt].open = _ar_asio_open;
+		_ardvt[ndt].io_prepare = _ar_asio_io_prepare;
+		_ardvt[ndt].io_start = _ar_asio_io_start;
+		_ardvt[ndt].xfer_seg = _ar_asio_xfer_seg;
+		_ardvt[ndt].chk_seg = _ar_asio_chk_seg;
+		_ardvt[ndt].latency = _ar_asio_latency;
+		_ardvt[ndt].list_rates = _ar_asio_list_rates;
 	
-	dio = tnd;
+		dio = tnd;
     }
 
-    return nd;
+    return devices;
 }
 
 /*
