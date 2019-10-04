@@ -3,20 +3,29 @@
 #include <arsc_asio.h>
 
 static int32_t(*ar_asio_devices_restore)();
+static char* (*ar_asio_device_name_restore)(int32_t);
 
 static int32_t devices;
+static char* device_name;
 
 static int32_t ar_asio_devices_stub() {
 	return devices;
 }
 
+static char* ar_asio_device_name_stub(int32_t n) {
+	return device_name;
+}
+
 static void setup(void) {
 	ar_asio_devices_restore = ar_asio_devices;
+	ar_asio_device_name_restore = ar_asio_device_name;
 	ar_asio_devices = ar_asio_devices_stub;
+	ar_asio_device_name = ar_asio_device_name_stub;
 }
 
 static void teardown(void) {
 	ar_asio_devices = ar_asio_devices_restore;
+	ar_asio_device_name = ar_asio_device_name_restore;
 }
 
 static int32_t ar_asio_bind_with_device_type(int32_t device_type) {
@@ -61,6 +70,12 @@ START_TEST(ar_asio_bind_assigns_devices_impl_to_device_type_one_when_nonzero_dev
 	assert_asio_bind_assigns_devices_impl_when_nonzero_devices(1);
 }
 
+START_TEST(ar_asio_bind_assigns_device_name_impl_to_device_type_zero_when_nonzero_devices) {
+	set_nonzero_devices();
+	ar_asio_bind_with_device_type(0);
+	ASSERT_EQUAL_ANY(ar_asio_device_name_stub, _ardvt[0].dev_name);
+}
+
 static void add_test(TCase* test_case, const TTest* test) {
 	tcase_add_test(test_case, test);
 }
@@ -72,6 +87,7 @@ Suite* arsc_asio_test_suite() {
 	add_test(test_case, ar_asio_bind_returns_number_of_devices);
 	add_test(test_case, ar_asio_bind_assigns_devices_impl_to_device_type_zero_when_nonzero_devices);
 	add_test(test_case, ar_asio_bind_assigns_devices_impl_to_device_type_one_when_nonzero_devices);
+	add_test(test_case, ar_asio_bind_assigns_device_name_impl_to_device_type_zero_when_nonzero_devices);
 	suite_add_tcase(suite, test_case);
 	return suite;
 }

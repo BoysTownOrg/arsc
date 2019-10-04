@@ -225,6 +225,8 @@ _ar_asio_dev_name(int32_t di)
     return NULL;
 }
 
+char* (*ar_asio_device_name)(int32_t) = _ar_asio_dev_name;
+
 /* 
 _ar_asio_list_rates - return good sampling rates
 */
@@ -750,7 +752,7 @@ _ar_asio_bind(int32_t ndt, int32_t tnd)
 
     if (devices > 0) {
 		_ardvt[ndt].num_dev = ar_asio_devices;
-		_ardvt[ndt].dev_name = _ar_asio_dev_name;
+		_ardvt[ndt].dev_name = ar_asio_device_name;
 		_ardvt[ndt].io_stop = _ar_asio_io_stop;
 		_ardvt[ndt].close = _ar_asio_close;
 		_ardvt[ndt].open = _ar_asio_open;
