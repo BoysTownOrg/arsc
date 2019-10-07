@@ -1,6 +1,7 @@
 #include "arsc_asio_tests.h"
 #define ASIO
 #include <arsc_asio.h>
+#include <stdlib.h>
 
 static int32_t(*devices_restore)();
 static char* (*device_name_restore)(int32_t);
@@ -312,6 +313,13 @@ START_TEST(bind_assigns_latency_to_device_type_one_when_nonzero_devices) {
 	ASSERT_BIND_ASSIGNS_LATENCY_IMPL_WHEN_NONZERO_DEVICES(1);
 }
 
+START_TEST(open_tbd) {
+	_ardev[0] = calloc(1, sizeof(ARDEV));
+	_ar_asio_open(0);
+	free(_ardev[0]);
+	ASSERT_EQUAL_ANY(1, 2);
+}
+
 static void add_test(TCase* test_case, const TTest* test) {
 	tcase_add_test(test_case, test);
 }
@@ -343,6 +351,7 @@ Suite* arsc_asio_test_suite() {
 	add_test(test_case, bind_assigns_check_segment_to_device_type_one_when_nonzero_devices);
 	add_test(test_case, bind_assigns_latency_to_device_type_zero_when_nonzero_devices);
 	add_test(test_case, bind_assigns_latency_to_device_type_one_when_nonzero_devices);
+	add_test(test_case, open_tbd);
 	suite_add_tcase(suite, test_case);
 	return suite;
 }
