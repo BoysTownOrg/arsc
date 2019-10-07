@@ -126,48 +126,52 @@ static void set_nonzero_devices(void) {
 	set_devices(1);
 }
 
+static ARDVT device(int32_t device_type) {
+	return _ardvt[device_type];
+}
+
 static int32_t(*bound_devices_impl(int32_t device_type))() {
-	return _ardvt[device_type].num_dev;
+	return device(device_type).num_dev;
 }
 
 static char*(*bound_device_name_impl(int32_t device_type))(int32_t) {
-	return _ardvt[device_type].dev_name;
+	return device(device_type).dev_name;
 }
 
 static void (*bound_io_stop_impl(int32_t device_type))(int32_t) {
-	return _ardvt[device_type].io_stop;
+	return device(device_type).io_stop;
 }
 
 static void (*bound_close_impl(int32_t device_type))(int32_t) {
-	return _ardvt[device_type].close;
+	return device(device_type).close;
 }
 
 static int32_t (*bound_open_impl(int32_t device_type))(int32_t) {
-	return _ardvt[device_type].open;
+	return device(device_type).open;
 }
 
 static int32_t(*bound_io_prepare_impl(int32_t device_type))(int32_t) {
-	return _ardvt[device_type].io_prepare;
+	return device(device_type).io_prepare;
 }
 
 static int32_t(*bound_list_rates_impl(int32_t device_type))(int32_t) {
-	return _ardvt[device_type].list_rates;
+	return device(device_type).list_rates;
 }
 
 static void(*bound_io_start_impl(int32_t device_type))(int32_t) {
-	return _ardvt[device_type].io_start;
+	return device(device_type).io_start;
 }
 
 static int32_t(*bound_transfer_segment_impl(int32_t device_type))(int32_t, int32_t) {
-	return _ardvt[device_type].xfer_seg;
+	return device(device_type).xfer_seg;
 }
 
 static int32_t(*bound_check_segment_impl(int32_t device_type))(int32_t, int32_t) {
-	return _ardvt[device_type].chk_seg;
+	return device(device_type).chk_seg;
 }
 
 static int32_t(*bound_latency_impl(int32_t device_type))(int32_t, int32_t) {
-	return _ardvt[device_type].latency;
+	return device(device_type).latency;
 }
 
 static void bind_nonzero_devices_with_device_type(int32_t device_type) {
