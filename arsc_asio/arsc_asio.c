@@ -147,15 +147,6 @@ long asioMessages(long selector, long value, void* message, double* opt);
 /*
 Internal prototypes
 */
-static int32_t ar_asio_devices_impl();
-static char *_ar_asio_dev_name(int32_t di);
-static void _ar_asio_close(int32_t di);
-static int32_t _ar_asio_open(int32_t di);
-static int32_t _ar_asio_io_prepare(int32_t di);
-static int32_t _ar_asio_xfer_seg(int32_t di, int32_t b);
-static int32_t _ar_asio_chk_seg(int32_t di, int32_t b);
-static void _ar_asio_io_start(int32_t di);
-static void _ar_asio_io_stop(int32_t di) ;
 static int32 pSendStimulusData ( int32 *buffer, int32 aintBufferSize, TStimulusData *ptrStimulusData );
 static int32 pFillResponseBlock ( int32 *buffer, int32 aintBufferSize, TResponseData *ptrResponseData );
 static int32 pWriteBufferDemarcation ( int32 aintChunkSize, int32 aintAbsAmplitude );
@@ -256,6 +247,26 @@ _ar_asio_list_rates(int32_t di)
 }
 
 int32_t(*ar_asio_list_rates)(int32_t) = _ar_asio_list_rates;
+
+/* _ar_asio_io_stop - stop I/O */
+
+static void
+_ar_asio_io_stop(int32_t di)
+{
+	a = _ardev[di];			// get access to application parameters
+
+	if (sbolIsStarted) {
+		FDBUG((_arS, "_ar_asio_io_stop(): Calling SDKAsioStop().\n"));
+		SDKAsioStop();
+		sbolIsStarted = false;
+	}
+
+	// Let the calling window know that we are done.
+	if (_arsc_wind)
+		PostMessage((HWND)_arsc_wind, WM_ARSC, AM_Stopped, dio);
+}
+
+void (*ar_asio_io_stop)(int32_t) = _ar_asio_io_stop;
 
 /* 
 _ar_asio_close - close I/O device 
@@ -714,26 +725,6 @@ _ar_asio_io_start(int32_t di)
 }
 
 void (*ar_asio_io_start)(int32_t) = _ar_asio_io_start;
-
-/* _ar_asio_io_stop - stop I/O */
-
-static void
-_ar_asio_io_stop(int32_t di) 
-{
-    a = _ardev[di];			// get access to application parameters
-
-    if ( sbolIsStarted ) {
-	FDBUG ( ( _arS, "_ar_asio_io_stop(): Calling SDKAsioStop().\n" ) );
-	SDKAsioStop();
-	sbolIsStarted = false;
-    }
-
-    // Let the calling window know that we are done.
-    if ( _arsc_wind )
-	PostMessage ( (HWND) _arsc_wind, WM_ARSC, AM_Stopped, dio );
-}
-
-void (*ar_asio_io_stop)(int32_t) = _ar_asio_io_stop;
 
 /* _ar_asio_latency - set and get latency */
 
