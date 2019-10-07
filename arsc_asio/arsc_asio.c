@@ -491,6 +491,8 @@ err:
     return  120;		// ASIO open error
 }
 
+int32_t(*ar_asio_open)(int32_t) = _ar_asio_open;
+
 /* _ar_asio_io_prepare - prepare device and buffers for I/O */
 
 static int32_t
@@ -758,7 +760,7 @@ _ar_asio_bind(int32_t ndt, int32_t tnd)
 		_ardvt[ndt].dev_name = ar_asio_device_name;
 		_ardvt[ndt].io_stop = ar_asio_io_stop;
 		_ardvt[ndt].close = ar_asio_close;
-		_ardvt[ndt].open = _ar_asio_open;
+		_ardvt[ndt].open = ar_asio_open;
 		_ardvt[ndt].io_prepare = _ar_asio_io_prepare;
 		_ardvt[ndt].io_start = _ar_asio_io_start;
 		_ardvt[ndt].xfer_seg = _ar_asio_xfer_seg;
