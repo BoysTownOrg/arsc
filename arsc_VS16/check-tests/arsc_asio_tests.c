@@ -2,38 +2,38 @@
 #define ASIO
 #include <arsc_asio.h>
 
-static int32_t(*ar_asio_devices_restore)();
-static char* (*ar_asio_device_name_restore)(int32_t);
+static int32_t(*devices_restore)();
+static char* (*device_name_restore)(int32_t);
 
 static int32_t devices;
 static char* device_name;
 
-static int32_t ar_asio_devices_stub() {
+static int32_t devices_stub() {
 	return devices;
 }
 
-static char* ar_asio_device_name_stub(int32_t n) {
+static char* device_name_stub(int32_t n) {
 	return device_name;
 }
 
 static void setup(void) {
-	ar_asio_devices_restore = ar_asio_devices;
-	ar_asio_device_name_restore = ar_asio_device_name;
-	ar_asio_devices = ar_asio_devices_stub;
-	ar_asio_device_name = ar_asio_device_name_stub;
+	devices_restore = ar_asio_devices;
+	device_name_restore = ar_asio_device_name;
+	ar_asio_devices = devices_stub;
+	ar_asio_device_name = device_name_stub;
 }
 
 static void teardown(void) {
-	ar_asio_devices = ar_asio_devices_restore;
-	ar_asio_device_name = ar_asio_device_name_restore;
+	ar_asio_devices = devices_restore;
+	ar_asio_device_name = device_name_restore;
 }
 
-static int32_t ar_asio_bind_with_device_type(int32_t device_type) {
+static int32_t bind_with_device_type(int32_t device_type) {
 	return _ar_asio_bind(device_type, 0);
 }
 
 static int32_t bind(void) {
-	return ar_asio_bind_with_device_type(0);
+	return bind_with_device_type(0);
 }
 
 static void set_devices(int32_t n) {
@@ -53,12 +53,12 @@ static int32_t(*bound_devices_impl(int32_t device_type))() {
 
 static void bind_nonzero_devices_with_device_type(int32_t device_type) {
 	set_nonzero_devices();
-	ar_asio_bind_with_device_type(device_type);
+	bind_with_device_type(device_type);
 }
 
 static void assert_bind_assigns_devices_impl_when_nonzero_devices(int32_t device_type) {
 	bind_nonzero_devices_with_device_type(device_type);
-	ASSERT_EQUAL_ANY(ar_asio_devices_stub, bound_devices_impl(device_type));
+	ASSERT_EQUAL_ANY(devices_stub, bound_devices_impl(device_type));
 }
 
 START_TEST(bind_returns_number_of_devices) {
@@ -76,7 +76,7 @@ START_TEST(bind_assigns_devices_impl_to_device_type_one_when_nonzero_devices) {
 
 START_TEST(bind_assigns_device_name_impl_to_device_type_zero_when_nonzero_devices) {
 	bind_nonzero_devices_with_device_type(0);
-	ASSERT_EQUAL_ANY(ar_asio_device_name_stub, _ardvt[0].dev_name);
+	ASSERT_EQUAL_ANY(device_name_stub, _ardvt[0].dev_name);
 }
 
 static void add_test(TCase* test_case, const TTest* test) {
