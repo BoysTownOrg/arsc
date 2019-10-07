@@ -720,6 +720,7 @@ _ar_asio_io_stop(int32_t di)
 	PostMessage ( (HWND) _arsc_wind, WM_ARSC, AM_Stopped, dio );
 }
 
+void (*ar_asio_io_stop)(int32_t) = _ar_asio_io_stop;
 
 /* _ar_asio_latency - set and get latency */
 
@@ -753,7 +754,7 @@ _ar_asio_bind(int32_t ndt, int32_t tnd)
     if (devices > 0) {
 		_ardvt[ndt].num_dev = ar_asio_devices;
 		_ardvt[ndt].dev_name = ar_asio_device_name;
-		_ardvt[ndt].io_stop = _ar_asio_io_stop;
+		_ardvt[ndt].io_stop = ar_asio_io_stop;
 		_ardvt[ndt].close = _ar_asio_close;
 		_ardvt[ndt].open = _ar_asio_open;
 		_ardvt[ndt].io_prepare = _ar_asio_io_prepare;
