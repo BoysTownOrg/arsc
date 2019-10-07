@@ -110,6 +110,10 @@ START_TEST(bind_assigns_io_stop_impl_to_device_type_zero_when_nonzero_devices) {
 	ASSERT_BIND_ASSIGNS_IO_STOP_IMPL_WHEN_NONZERO_DEVICES(0);
 }
 
+START_TEST(bind_assigns_io_stop_impl_to_device_type_one_when_nonzero_devices) {
+	ASSERT_BIND_ASSIGNS_IO_STOP_IMPL_WHEN_NONZERO_DEVICES(1);
+}
+
 static void add_test(TCase* test_case, const TTest* test) {
 	tcase_add_test(test_case, test);
 }
@@ -124,6 +128,7 @@ Suite* arsc_asio_test_suite() {
 	add_test(test_case, bind_assigns_device_name_impl_to_device_type_zero_when_nonzero_devices);
 	add_test(test_case, bind_assigns_device_name_impl_to_device_type_one_when_nonzero_devices);
 	add_test(test_case, bind_assigns_io_stop_impl_to_device_type_zero_when_nonzero_devices);
+	add_test(test_case, bind_assigns_io_stop_impl_to_device_type_one_when_nonzero_devices);
 	suite_add_tcase(suite, test_case);
 	return suite;
 }
