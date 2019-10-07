@@ -590,6 +590,8 @@ _ar_asio_io_prepare(int32_t di)
     return (0);
 }
 
+int32_t(*ar_asio_io_prepare)(int32_t) = _ar_asio_io_prepare;
+
 /* _ar_asio_xfer_seg - this segment is ready to go */
 
 static int32_t
@@ -761,7 +763,7 @@ _ar_asio_bind(int32_t ndt, int32_t tnd)
 		_ardvt[ndt].io_stop = ar_asio_io_stop;
 		_ardvt[ndt].close = ar_asio_close;
 		_ardvt[ndt].open = ar_asio_open;
-		_ardvt[ndt].io_prepare = _ar_asio_io_prepare;
+		_ardvt[ndt].io_prepare = ar_asio_io_prepare;
 		_ardvt[ndt].io_start = _ar_asio_io_start;
 		_ardvt[ndt].xfer_seg = _ar_asio_xfer_seg;
 		_ardvt[ndt].chk_seg = _ar_asio_chk_seg;
