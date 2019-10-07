@@ -48,18 +48,25 @@ static int32_t(*bound_devices_impl(int32_t device_type))() {
 	return _ardvt[device_type].num_dev;
 }
 
-#define ASSERT_EQUAL_INT(a, b) ck_assert_int_eq(a, b)
-#define ASSERT_EQUAL_ANY(a, b) ck_assert(a == b)
+static char*(*bound_device_name_impl(int32_t device_type))(int32_t) {
+	return _ardvt[device_type].dev_name;
+}
 
 static void bind_nonzero_devices_with_device_type(int32_t device_type) {
 	set_nonzero_devices();
 	bind_with_device_type(device_type);
 }
 
-static void assert_bind_assigns_devices_impl_when_nonzero_devices(int32_t device_type) {
-	bind_nonzero_devices_with_device_type(device_type);
-	ASSERT_EQUAL_ANY(devices_stub, bound_devices_impl(device_type));
-}
+#define ASSERT_EQUAL_INT(a, b) ck_assert_int_eq(a, b)
+#define ASSERT_EQUAL_ANY(a, b) ck_assert(a == b)
+
+#define ASSERT_BIND_ASSIGNS_DEVICES_IMPL_WHEN_NONZERO_DEVICES(device_type)\
+	bind_nonzero_devices_with_device_type(device_type);\
+	ASSERT_EQUAL_ANY(devices_stub, bound_devices_impl(device_type))
+
+#define ASSERT_BIND_ASSIGNS_DEVICE_NAME_IMPL_WHEN_NONZERO_DEVICES(device_type)\
+	bind_nonzero_devices_with_device_type(device_type);\
+	ASSERT_EQUAL_ANY(device_name_stub, bound_device_name_impl(device_type))
 
 START_TEST(bind_returns_number_of_devices) {
 	set_devices(3);
@@ -67,21 +74,19 @@ START_TEST(bind_returns_number_of_devices) {
 }
 
 START_TEST(bind_assigns_devices_impl_to_device_type_zero_when_nonzero_devices) {
-	assert_bind_assigns_devices_impl_when_nonzero_devices(0);
+	ASSERT_BIND_ASSIGNS_DEVICES_IMPL_WHEN_NONZERO_DEVICES(0);
 }
 
 START_TEST(bind_assigns_devices_impl_to_device_type_one_when_nonzero_devices) {
-	assert_bind_assigns_devices_impl_when_nonzero_devices(1);
+	ASSERT_BIND_ASSIGNS_DEVICES_IMPL_WHEN_NONZERO_DEVICES(1);
 }
 
 START_TEST(bind_assigns_device_name_impl_to_device_type_zero_when_nonzero_devices) {
-	bind_nonzero_devices_with_device_type(0);
-	ASSERT_EQUAL_ANY(device_name_stub, _ardvt[0].dev_name);
+	ASSERT_BIND_ASSIGNS_DEVICE_NAME_IMPL_WHEN_NONZERO_DEVICES(0);
 }
 
 START_TEST(bind_assigns_device_name_impl_to_device_type_one_when_nonzero_devices) {
-	bind_nonzero_devices_with_device_type(1);
-	ASSERT_EQUAL_ANY(device_name_stub, _ardvt[1].dev_name);
+	ASSERT_BIND_ASSIGNS_DEVICE_NAME_IMPL_WHEN_NONZERO_DEVICES(1);
 }
 
 static void add_test(TCase* test_case, const TTest* test) {
