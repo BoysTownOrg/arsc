@@ -79,6 +79,11 @@ START_TEST(bind_assigns_device_name_impl_to_device_type_zero_when_nonzero_device
 	ASSERT_EQUAL_ANY(device_name_stub, _ardvt[0].dev_name);
 }
 
+START_TEST(bind_assigns_device_name_impl_to_device_type_one_when_nonzero_devices) {
+	bind_nonzero_devices_with_device_type(1);
+	ASSERT_EQUAL_ANY(device_name_stub, _ardvt[1].dev_name);
+}
+
 static void add_test(TCase* test_case, const TTest* test) {
 	tcase_add_test(test_case, test);
 }
@@ -91,6 +96,7 @@ Suite* arsc_asio_test_suite() {
 	add_test(test_case, bind_assigns_devices_impl_to_device_type_zero_when_nonzero_devices);
 	add_test(test_case, bind_assigns_devices_impl_to_device_type_one_when_nonzero_devices);
 	add_test(test_case, bind_assigns_device_name_impl_to_device_type_zero_when_nonzero_devices);
+	add_test(test_case, bind_assigns_device_name_impl_to_device_type_one_when_nonzero_devices);
 	suite_add_tcase(suite, test_case);
 	return suite;
 }
