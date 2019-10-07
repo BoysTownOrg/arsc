@@ -16,13 +16,13 @@ static int32_t(*check_segment_restore)(int32_t, int32_t);
 static int32_t(*latency_restore)(int32_t, int32_t);
 static int32_t(*pLockAndLoadRestore)(int32_t);
 
-static int32_t devices;
+static int32_t device_count;
 static char* device_name;
 static int32_t opened_device;
 static int32_t rates;
 
 static int32_t devices_stub() {
-	return devices;
+	return device_count;
 }
 
 static char* device_name_stub(int32_t n) {
@@ -79,7 +79,16 @@ static int32_t pLockAndLoadStub(int32_t m) {
 	return 1;
 }
 
+static ARDEV** devices_(int32_t device) {
+	return &_ardev[device];
+}
+
+static ARDEV* devices(int32_t device) {
+	return *devices_(device);
+}
+
 static void setup(void) {
+	*devices_(0) = calloc(1, sizeof(ARDEV));
 	devices_restore = ar_asio_devices;
 	device_name_restore = ar_asio_device_name;
 	io_stop_restore = ar_asio_io_stop;
@@ -119,6 +128,7 @@ static void teardown(void) {
 	ar_asio_check_segment = check_segment_restore;
 	ar_asio_latency = latency_restore;
 	pLockAndLoad = pLockAndLoadRestore;
+	free(devices(0));
 }
 
 static int32_t bind_with_device_type(int32_t device_type) {
@@ -130,59 +140,59 @@ static int32_t bind(void) {
 }
 
 static void set_devices(int32_t n) {
-	devices = n;
+	device_count = n;
 }
 
 static void set_nonzero_devices(void) {
 	set_devices(1);
 }
 
-static ARDVT device(int32_t device_type) {
+static ARDVT device_types(int32_t device_type) {
 	return _ardvt[device_type];
 }
 
 static int32_t(*bound_devices_impl(int32_t device_type))() {
-	return device(device_type).num_dev;
+	return device_types(device_type).num_dev;
 }
 
 static char*(*bound_device_name_impl(int32_t device_type))(int32_t) {
-	return device(device_type).dev_name;
+	return device_types(device_type).dev_name;
 }
 
 static void (*bound_io_stop_impl(int32_t device_type))(int32_t) {
-	return device(device_type).io_stop;
+	return device_types(device_type).io_stop;
 }
 
 static void (*bound_close_impl(int32_t device_type))(int32_t) {
-	return device(device_type).close;
+	return device_types(device_type).close;
 }
 
 static int32_t (*bound_open_impl(int32_t device_type))(int32_t) {
-	return device(device_type).open;
+	return device_types(device_type).open;
 }
 
 static int32_t(*bound_io_prepare_impl(int32_t device_type))(int32_t) {
-	return device(device_type).io_prepare;
+	return device_types(device_type).io_prepare;
 }
 
 static int32_t(*bound_list_rates_impl(int32_t device_type))(int32_t) {
-	return device(device_type).list_rates;
+	return device_types(device_type).list_rates;
 }
 
 static void(*bound_io_start_impl(int32_t device_type))(int32_t) {
-	return device(device_type).io_start;
+	return device_types(device_type).io_start;
 }
 
 static int32_t(*bound_transfer_segment_impl(int32_t device_type))(int32_t, int32_t) {
-	return device(device_type).xfer_seg;
+	return device_types(device_type).xfer_seg;
 }
 
 static int32_t(*bound_check_segment_impl(int32_t device_type))(int32_t, int32_t) {
-	return device(device_type).chk_seg;
+	return device_types(device_type).chk_seg;
 }
 
 static int32_t(*bound_latency_impl(int32_t device_type))(int32_t, int32_t) {
-	return device(device_type).latency;
+	return device_types(device_type).latency;
 }
 
 static void bind_nonzero_devices_with_device_type(int32_t device_type) {
@@ -323,15 +333,13 @@ START_TEST(bind_assigns_latency_to_device_type_one_when_nonzero_devices) {
 	ASSERT_BIND_ASSIGNS_LATENCY_IMPL_WHEN_NONZERO_DEVICES(1);
 }
 
-START_TEST(open_tbd) {
-	_ardev[0] = calloc(1, sizeof(ARDEV));
+START_TEST(open_assigns_good_sample_rates) {
+	devices(0)->ncad = -2;
+	devices(0)->ncda = -2;
+
 	rates = 3;
-	_ardev[0]->ncad = -2;
-	_ardev[0]->ncda = -2;
 	_ar_asio_open(0);
-	int32_t good_sample_rates = _ardev[0]->gdsr;
-	free(_ardev[0]);
-	ASSERT_EQUAL_ANY(3, good_sample_rates);
+	ASSERT_EQUAL_ANY(3, devices(0)->gdsr);
 }
 
 static void add_test(TCase* test_case, const TTest* test) {
@@ -365,7 +373,7 @@ Suite* arsc_asio_test_suite() {
 	add_test(test_case, bind_assigns_check_segment_to_device_type_one_when_nonzero_devices);
 	add_test(test_case, bind_assigns_latency_to_device_type_zero_when_nonzero_devices);
 	add_test(test_case, bind_assigns_latency_to_device_type_one_when_nonzero_devices);
-	add_test(test_case, open_tbd);
+	add_test(test_case, open_assigns_good_sample_rates);
 	suite_add_tcase(suite, test_case);
 	return suite;
 }
