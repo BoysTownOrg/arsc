@@ -11,6 +11,7 @@ static int32_t(*io_prepare_restore)(int32_t);
 static void(*io_start_restore)(int32_t);
 static int32_t(*transfer_segment_restore)(int32_t, int32_t);
 static int32_t(*check_segment_restore)(int32_t, int32_t);
+static int32_t(*latency_restore)(int32_t, int32_t);
 
 static int32_t devices;
 static char* device_name;
@@ -58,6 +59,12 @@ static int32_t check_segment_stub(int32_t m, int32_t n) {
 	return 1;
 }
 
+static int32_t latency_stub(int32_t m, int32_t n) {
+	m;
+	n;
+	return 1;
+}
+
 static void setup(void) {
 	devices_restore = ar_asio_devices;
 	device_name_restore = ar_asio_device_name;
@@ -68,6 +75,7 @@ static void setup(void) {
 	io_start_restore = ar_asio_io_start;
 	transfer_segment_restore = ar_asio_transfer_segment;
 	check_segment_restore = ar_asio_check_segment;
+	latency_restore = ar_asio_latency;
 	ar_asio_devices = devices_stub;
 	ar_asio_device_name = device_name_stub;
 	ar_asio_io_stop = io_stop_stub;
@@ -77,6 +85,7 @@ static void setup(void) {
 	ar_asio_io_start = io_start_stub;
 	ar_asio_transfer_segment = transfer_segment_stub;
 	ar_asio_check_segment = check_segment_stub;
+	ar_asio_latency = latency_stub;
 }
 
 static void teardown(void) {
@@ -89,6 +98,7 @@ static void teardown(void) {
 	ar_asio_io_start = io_start_restore;
 	ar_asio_transfer_segment = transfer_segment_restore;
 	ar_asio_check_segment = check_segment_restore;
+	ar_asio_latency = latency_restore;
 }
 
 static int32_t bind_with_device_type(int32_t device_type) {
@@ -143,6 +153,10 @@ static int32_t(*bound_check_segment_impl(int32_t device_type))(int32_t, int32_t)
 	return _ardvt[device_type].chk_seg;
 }
 
+static int32_t(*bound_latency_impl(int32_t device_type))(int32_t, int32_t) {
+	return _ardvt[device_type].latency;
+}
+
 static void bind_nonzero_devices_with_device_type(int32_t device_type) {
 	set_nonzero_devices();
 	bind_with_device_type(device_type);
@@ -181,6 +195,9 @@ static void bind_nonzero_devices_with_device_type(int32_t device_type) {
 
 #define ASSERT_BIND_ASSIGNS_CHECK_SEGMENT_IMPL_WHEN_NONZERO_DEVICES(device_type)\
 	ASSERT_BIND_ASSIGNS_IMPL_WHEN_NONZERO_DEVICES(device_type, check_segment_stub, bound_check_segment_impl)
+
+#define ASSERT_BIND_ASSIGNS_LATENCY_IMPL_WHEN_NONZERO_DEVICES(device_type)\
+	ASSERT_BIND_ASSIGNS_IMPL_WHEN_NONZERO_DEVICES(device_type, latency_stub, bound_latency_impl)
 
 START_TEST(bind_returns_number_of_devices) {
 	set_devices(3);
@@ -259,6 +276,14 @@ START_TEST(bind_assigns_check_segment_to_device_type_one_when_nonzero_devices) {
 	ASSERT_BIND_ASSIGNS_CHECK_SEGMENT_IMPL_WHEN_NONZERO_DEVICES(1);
 }
 
+START_TEST(bind_assigns_latency_to_device_type_zero_when_nonzero_devices) {
+	ASSERT_BIND_ASSIGNS_LATENCY_IMPL_WHEN_NONZERO_DEVICES(0);
+}
+
+START_TEST(bind_assigns_latency_to_device_type_one_when_nonzero_devices) {
+	ASSERT_BIND_ASSIGNS_LATENCY_IMPL_WHEN_NONZERO_DEVICES(1);
+}
+
 static void add_test(TCase* test_case, const TTest* test) {
 	tcase_add_test(test_case, test);
 }
@@ -286,6 +311,8 @@ Suite* arsc_asio_test_suite() {
 	add_test(test_case, bind_assigns_transfer_segment_to_device_type_one_when_nonzero_devices);
 	add_test(test_case, bind_assigns_check_segment_to_device_type_zero_when_nonzero_devices);
 	add_test(test_case, bind_assigns_check_segment_to_device_type_one_when_nonzero_devices);
+	add_test(test_case, bind_assigns_latency_to_device_type_zero_when_nonzero_devices);
+	add_test(test_case, bind_assigns_latency_to_device_type_one_when_nonzero_devices);
 	suite_add_tcase(suite, test_case);
 	return suite;
 }

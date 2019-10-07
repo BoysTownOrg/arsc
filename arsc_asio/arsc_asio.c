@@ -751,6 +751,8 @@ _ar_asio_latency(int32_t di, int32_t nsmp)
     return (slngLatencyOffset);
 }
 
+int32_t(*ar_asio_latency)(int32_t, int32_t) = _ar_asio_latency;
+
 /* _ar_asio_bind - bind ASIO functions */
 
 int32_t
@@ -772,7 +774,7 @@ _ar_asio_bind(int32_t ndt, int32_t tnd)
 		_ardvt[ndt].io_start = ar_asio_io_start;
 		_ardvt[ndt].xfer_seg = ar_asio_transfer_segment;
 		_ardvt[ndt].chk_seg = ar_asio_check_segment;
-		_ardvt[ndt].latency = _ar_asio_latency;
+		_ardvt[ndt].latency = ar_asio_latency;
 		_ardvt[ndt].list_rates = _ar_asio_list_rates;
 	
 		dio = tnd;
