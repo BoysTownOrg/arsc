@@ -20,6 +20,7 @@ static int32_t device_count;
 static char* device_name;
 static int32_t opened_device;
 static int32_t rates;
+static int32_t list_rates_device;
 
 static int32_t devices_stub() {
 	return device_count;
@@ -48,7 +49,7 @@ static int32_t io_prepare_stub(int32_t n) {
 }
 
 static int32_t list_rates_stub(int32_t n) {
-	n;
+	list_rates_device = n;
 	return rates;
 }
 
@@ -89,6 +90,7 @@ static ARDEV* devices(int32_t device) {
 
 static void setup(void) {
 	*devices_(0) = calloc(1, sizeof(ARDEV));
+	*devices_(1) = calloc(1, sizeof(ARDEV));
 	devices_restore = ar_asio_devices;
 	device_name_restore = ar_asio_device_name;
 	io_stop_restore = ar_asio_io_stop;
@@ -129,6 +131,7 @@ static void teardown(void) {
 	ar_asio_latency = latency_restore;
 	pLockAndLoad = pLockAndLoadRestore;
 	free(devices(0));
+	free(devices(1));
 }
 
 static int32_t bind_with_device_type(int32_t device_type) {
@@ -342,6 +345,14 @@ START_TEST(open_assigns_good_sample_rates) {
 	ASSERT_EQUAL_ANY(3, devices(0)->gdsr);
 }
 
+START_TEST(open_passes_device_to_list_rates) {
+	devices(1)->ncad = -2;
+	devices(1)->ncda = -2;
+
+	_ar_asio_open(1);
+	ASSERT_EQUAL_ANY(1, list_rates_device);
+}
+
 static void add_test(TCase* test_case, const TTest* test) {
 	tcase_add_test(test_case, test);
 }
@@ -374,6 +385,7 @@ Suite* arsc_asio_test_suite() {
 	add_test(test_case, bind_assigns_latency_to_device_type_zero_when_nonzero_devices);
 	add_test(test_case, bind_assigns_latency_to_device_type_one_when_nonzero_devices);
 	add_test(test_case, open_assigns_good_sample_rates);
+	add_test(test_case, open_passes_device_to_list_rates);
 	suite_add_tcase(suite, test_case);
 	return suite;
 }
