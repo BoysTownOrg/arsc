@@ -14,5 +14,6 @@ extern int32_t(*ar_asio_check_segment)(int32_t, int32_t);
 extern int32_t(*ar_asio_latency)(int32_t, int32_t);
 extern int32_t(*ar_asio_list_rates)(int32_t);
 int32_t _ar_asio_open(int32_t);
+extern int32_t (*pLockAndLoad)(int32_t aintDevice);
 
 #endif

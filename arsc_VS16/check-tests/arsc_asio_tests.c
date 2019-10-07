@@ -14,10 +14,12 @@ static void(*io_start_restore)(int32_t);
 static int32_t(*transfer_segment_restore)(int32_t, int32_t);
 static int32_t(*check_segment_restore)(int32_t, int32_t);
 static int32_t(*latency_restore)(int32_t, int32_t);
+static int32_t(*pLockAndLoadRestore)(int32_t);
 
 static int32_t devices;
 static char* device_name;
 static int32_t opened_device;
+static int32_t rates;
 
 static int32_t devices_stub() {
 	return devices;
@@ -47,7 +49,7 @@ static int32_t io_prepare_stub(int32_t n) {
 
 static int32_t list_rates_stub(int32_t n) {
 	n;
-	return 0;
+	return rates;
 }
 
 static void io_start_stub(int32_t n) {
@@ -72,6 +74,11 @@ static int32_t latency_stub(int32_t m, int32_t n) {
 	return 1;
 }
 
+static int32_t pLockAndLoadStub(int32_t m) {
+	m;
+	return 1;
+}
+
 static void setup(void) {
 	devices_restore = ar_asio_devices;
 	device_name_restore = ar_asio_device_name;
@@ -84,6 +91,7 @@ static void setup(void) {
 	transfer_segment_restore = ar_asio_transfer_segment;
 	check_segment_restore = ar_asio_check_segment;
 	latency_restore = ar_asio_latency;
+	pLockAndLoadRestore = pLockAndLoad;
 	ar_asio_devices = devices_stub;
 	ar_asio_device_name = device_name_stub;
 	ar_asio_io_stop = io_stop_stub;
@@ -95,6 +103,7 @@ static void setup(void) {
 	ar_asio_transfer_segment = transfer_segment_stub;
 	ar_asio_check_segment = check_segment_stub;
 	ar_asio_latency = latency_stub;
+	pLockAndLoad = pLockAndLoadStub;
 }
 
 static void teardown(void) {
@@ -109,6 +118,7 @@ static void teardown(void) {
 	ar_asio_transfer_segment = transfer_segment_restore;
 	ar_asio_check_segment = check_segment_restore;
 	ar_asio_latency = latency_restore;
+	pLockAndLoad = pLockAndLoadRestore;
 }
 
 static int32_t bind_with_device_type(int32_t device_type) {
@@ -315,9 +325,13 @@ START_TEST(bind_assigns_latency_to_device_type_one_when_nonzero_devices) {
 
 START_TEST(open_tbd) {
 	_ardev[0] = calloc(1, sizeof(ARDEV));
+	rates = 3;
+	_ardev[0]->ncad = -2;
+	_ardev[0]->ncda = -2;
 	_ar_asio_open(0);
+	int32_t good_sample_rates = _ardev[0]->gdsr;
 	free(_ardev[0]);
-	ASSERT_EQUAL_ANY(1, 2);
+	ASSERT_EQUAL_ANY(3, good_sample_rates);
 }
 
 static void add_test(TCase* test_case, const TTest* test) {

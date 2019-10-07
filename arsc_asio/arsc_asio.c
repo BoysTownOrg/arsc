@@ -151,7 +151,7 @@ static int32 pSendStimulusData ( int32 *buffer, int32 aintBufferSize, TStimulusD
 static int32 pFillResponseBlock ( int32 *buffer, int32 aintBufferSize, TResponseData *ptrResponseData );
 static int32 pWriteBufferDemarcation ( int32 aintChunkSize, int32 aintAbsAmplitude );
 static int32 pPollAsioDrivers ( void );
-static int32 pLockAndLoad ( int32 aintDevice );
+static int32 pLockAndLoadImpl ( int32 aintDevice );
 static int32 pBuildVirtualDevices ( int32 aintDriver );
 #ifdef USE_MUTEX
 bool pGetMutex ( void );
@@ -389,7 +389,7 @@ int32_t _ar_asio_open(int32_t di)
     Once known, we don't have to look it up again.
     */
     if (!a->gdsr)
-	a->gdsr = _ar_asio_list_rates(di);
+	a->gdsr = ar_asio_list_rates(di);
     a->rate = _ar_adjust_rate ( di, a->a_rate );
     if ( ! SDKAsioSetSampleRate ( (double) a->rate ) )
 	goto err;
@@ -1503,7 +1503,7 @@ int32 pBuildVirtualDevices ( int32 aintDriver ) {
 The driver is now known from the application's request.  Load
 the appropriate driver and initialize.
 */
-int32 pLockAndLoad ( int32 aintDevice ) {
+int32 pLockAndLoadImpl ( int32 aintDevice ) {
     int32		intDriver = VirtualDevice[aintDevice - dio].driver;
     ASIODriverInfo	asioDriverInfo;			// needed for ASIOInit()
     ASIOChannelInfo	*ptrChannelInfo;		// handy pointer
@@ -1568,6 +1568,8 @@ int32 pLockAndLoad ( int32 aintDevice ) {
 
     return 1;
 }
+
+int32(*pLockAndLoad)(int32 aintDevice) = pLockAndLoadImpl;
 
 /*
 --------------------------------------- CALLBACKS ------------------------------------------
