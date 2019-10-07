@@ -334,6 +334,8 @@ _ar_asio_close(int32_t di) {
     sintAsioIntializedDriver = -1;										// Let 'em know driver is unloaded
 }
 
+void (*ar_asio_close)(int32_t) = _ar_asio_close;
+
 /* _ar_asio_open - open I/O device */
 
 static int32_t
@@ -755,7 +757,7 @@ _ar_asio_bind(int32_t ndt, int32_t tnd)
 		_ardvt[ndt].num_dev = ar_asio_devices;
 		_ardvt[ndt].dev_name = ar_asio_device_name;
 		_ardvt[ndt].io_stop = ar_asio_io_stop;
-		_ardvt[ndt].close = _ar_asio_close;
+		_ardvt[ndt].close = ar_asio_close;
 		_ardvt[ndt].open = _ar_asio_open;
 		_ardvt[ndt].io_prepare = _ar_asio_io_prepare;
 		_ardvt[ndt].io_start = _ar_asio_io_start;
