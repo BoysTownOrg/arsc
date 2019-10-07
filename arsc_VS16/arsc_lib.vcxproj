@@ -256,6 +256,7 @@ copy ..\arsclib.h c:\usr\include
   <ItemGroup>
     <ClInclude Include="..\arscdev.h" />
     <ClInclude Include="..\arsc_asio\arsc_asio.h" />
+    <ClInclude Include="..\arsc_asio\arsc_asio_wrappers.h" />
     <ClInclude Include="..\arsc_asio\asio.h" />
     <ClInclude Include="..\arsc_asio\asiodrivers.h" />
     <ClInclude Include="..\arsc_asio\asiolist.h" />

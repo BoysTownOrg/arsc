@@ -85,7 +85,7 @@ EXTERN_CPP bool SDKAsioCanSampleRate ( ASIOSampleRate aSampleRate ) {
 }
 
 
-EXTERN_CPP bool SDKAsioSetSampleRate ( ASIOSampleRate aSampleRate ) {
+EXTERN_CPP bool SDKAsioSetSampleRateImpl ( ASIOSampleRate aSampleRate ) {
 	ASIOError aseError = ASIOSetSampleRate ( aSampleRate );
 	bool bolReturn = false;
 

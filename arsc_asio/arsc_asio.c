@@ -6,6 +6,7 @@
 #include "../arsc_common.h"					    // 
 #include "asiosys.h"						    // platform definition from Steinberg SDK
 #include "asio.h"						    // from Steinberg SDK
+#include "arsc_asio_wrappers.h"
 
 #define MAX_KEY_LENGTH		255				    // Maximum registry key length
 #define ASIO_PATH		"software\\asio"		    // For my example
@@ -123,7 +124,6 @@ bool SDKAsioGetBufferSize ( long *alngMinBufferSize,
 			long *alngMaxBufferSize,
 			long *aslngPreferredBufferSize,
 			long *alngGranularity );
-bool SDKAsioSetSampleRate ( ASIOSampleRate aSampleRate );
 bool SDKAsioGetChannelInfo ( ASIOChannelInfo *info );
 bool SDKAsioCreateBuffers ( ASIOBufferInfo *bufferInfos,
 			long numChannels,
@@ -135,6 +135,9 @@ bool SDKAsioGetLatencies ( long *inputLatency, long *outputLatency );
 bool SDKAsioDisposeBuffers ( void );
 bool SDKAsioStop ( void );
 bool SDKAsioStart ( void );
+bool SDKAsioSetSampleRateImpl(ASIOSampleRate aSampleRate);
+
+bool (*SDKAsioSetSampleRate)(ASIOSampleRate aSampleRate) = SDKAsioSetSampleRateImpl;
 
 /*
 Callback prototypes
