@@ -755,6 +755,10 @@ _ar_asio_latency(int32_t di, int32_t nsmp)
 
 int32_t(*ar_asio_latency)(int32_t, int32_t) = _ar_asio_latency;
 
+static ARDVT *device(int32_t device_type) {
+	return &_ardvt[device_type];
+}
+
 /* _ar_asio_bind - bind ASIO functions */
 
 int32_t
@@ -767,17 +771,17 @@ _ar_asio_bind(int32_t ndt, int32_t tnd)
 	int32_t devices = ar_asio_devices();
 
     if (devices > 0) {
-		_ardvt[ndt].num_dev = ar_asio_devices;
-		_ardvt[ndt].dev_name = ar_asio_device_name;
-		_ardvt[ndt].io_stop = ar_asio_io_stop;
-		_ardvt[ndt].close = ar_asio_close;
-		_ardvt[ndt].open = ar_asio_open;
-		_ardvt[ndt].io_prepare = ar_asio_io_prepare;
-		_ardvt[ndt].io_start = ar_asio_io_start;
-		_ardvt[ndt].xfer_seg = ar_asio_transfer_segment;
-		_ardvt[ndt].chk_seg = ar_asio_check_segment;
-		_ardvt[ndt].latency = ar_asio_latency;
-		_ardvt[ndt].list_rates = ar_asio_list_rates;
+		device(ndt)->num_dev = ar_asio_devices;
+		device(ndt)->dev_name = ar_asio_device_name;
+		device(ndt)->io_stop = ar_asio_io_stop;
+		device(ndt)->close = ar_asio_close;
+		device(ndt)->open = ar_asio_open;
+		device(ndt)->io_prepare = ar_asio_io_prepare;
+		device(ndt)->io_start = ar_asio_io_start;
+		device(ndt)->xfer_seg = ar_asio_transfer_segment;
+		device(ndt)->chk_seg = ar_asio_check_segment;
+		device(ndt)->latency = ar_asio_latency;
+		device(ndt)->list_rates = ar_asio_list_rates;
 	
 		dio = tnd;
     }
