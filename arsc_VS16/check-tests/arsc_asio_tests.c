@@ -60,13 +60,15 @@ static void bind_nonzero_devices_with_device_type(int32_t device_type) {
 #define ASSERT_EQUAL_INT(a, b) ck_assert_int_eq(a, b)
 #define ASSERT_EQUAL_ANY(a, b) ck_assert(a == b)
 
-#define ASSERT_BIND_ASSIGNS_DEVICES_IMPL_WHEN_NONZERO_DEVICES(device_type)\
+#define ASSERT_BIND_ASSIGNS_IMPL_WHEN_NONZERO_DEVICES(device_type, stub, impl)\
 	bind_nonzero_devices_with_device_type(device_type);\
-	ASSERT_EQUAL_ANY(devices_stub, bound_devices_impl(device_type))
+	ASSERT_EQUAL_ANY(stub, impl(device_type))
+
+#define ASSERT_BIND_ASSIGNS_DEVICES_IMPL_WHEN_NONZERO_DEVICES(device_type)\
+	ASSERT_BIND_ASSIGNS_IMPL_WHEN_NONZERO_DEVICES(device_type, devices_stub, bound_devices_impl)
 
 #define ASSERT_BIND_ASSIGNS_DEVICE_NAME_IMPL_WHEN_NONZERO_DEVICES(device_type)\
-	bind_nonzero_devices_with_device_type(device_type);\
-	ASSERT_EQUAL_ANY(device_name_stub, bound_device_name_impl(device_type))
+	ASSERT_BIND_ASSIGNS_IMPL_WHEN_NONZERO_DEVICES(device_type, device_name_stub, bound_device_name_impl)
 
 START_TEST(bind_returns_number_of_devices) {
 	set_devices(3);
