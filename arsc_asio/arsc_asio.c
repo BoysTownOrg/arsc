@@ -351,8 +351,7 @@ void (*ar_asio_close)(int32_t) = _ar_asio_close;
 
 /* _ar_asio_open - open I/O device */
 
-static int32_t
-_ar_asio_open(int32_t di)
+int32_t _ar_asio_open(int32_t di)
 {
     long		lngMinBufferSize;
     long		lngMaxBufferSize;
