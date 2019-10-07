@@ -138,12 +138,12 @@ static void teardown(void) {
 	free(devices(1));
 }
 
-static int32_t open_with_device(int32_t n) {
+static int32_t open_device(int32_t n) {
 	return _ar_asio_open(n);
 }
 
 static int32_t open() {
-	return open_with_device(0);
+	return open_device(0);
 }
 
 static int32_t bind_with_device_type(int32_t device_type) {
@@ -355,7 +355,7 @@ START_TEST(open_assigns_good_sample_rates) {
 }
 
 START_TEST(open_passes_device_to_list_rates) {
-	open_with_device(1);
+	open_device(1);
 	ASSERT_EQUAL_ANY(1, list_rates_device);
 }
 
