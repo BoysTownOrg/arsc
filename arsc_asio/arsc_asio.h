@@ -12,5 +12,6 @@ extern void (*ar_asio_io_start)(int32_t);
 extern int32_t(*ar_asio_transfer_segment)(int32_t, int32_t);
 extern int32_t(*ar_asio_check_segment)(int32_t, int32_t);
 extern int32_t(*ar_asio_latency)(int32_t, int32_t);
+extern int32_t(*ar_asio_list_rates)(int32_t);
 
 #endif

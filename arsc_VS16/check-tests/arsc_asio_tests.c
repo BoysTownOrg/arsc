@@ -8,6 +8,7 @@ static void (*io_stop_restore)(int32_t);
 static void (*close_restore)(int32_t);
 static int32_t(*open_restore)(int32_t);
 static int32_t(*io_prepare_restore)(int32_t);
+static int32_t(*list_rates_restore)(int32_t);
 static void(*io_start_restore)(int32_t);
 static int32_t(*transfer_segment_restore)(int32_t, int32_t);
 static int32_t(*check_segment_restore)(int32_t, int32_t);
@@ -43,6 +44,11 @@ static int32_t io_prepare_stub(int32_t n) {
 	return 0;
 }
 
+static int32_t list_rates_stub(int32_t n) {
+	n;
+	return 0;
+}
+
 static void io_start_stub(int32_t n) {
 	n;
 }
@@ -72,6 +78,7 @@ static void setup(void) {
 	close_restore = ar_asio_close;
 	open_restore = ar_asio_open;
 	io_prepare_restore = ar_asio_io_prepare;
+	list_rates_restore = ar_asio_list_rates;
 	io_start_restore = ar_asio_io_start;
 	transfer_segment_restore = ar_asio_transfer_segment;
 	check_segment_restore = ar_asio_check_segment;
@@ -82,6 +89,7 @@ static void setup(void) {
 	ar_asio_close = close_stub;
 	ar_asio_open = open_stub;
 	ar_asio_io_prepare = io_prepare_stub;
+	ar_asio_list_rates = list_rates_stub;
 	ar_asio_io_start = io_start_stub;
 	ar_asio_transfer_segment = transfer_segment_stub;
 	ar_asio_check_segment = check_segment_stub;
@@ -95,6 +103,7 @@ static void teardown(void) {
 	ar_asio_close = close_restore;
 	ar_asio_open = open_restore;
 	ar_asio_io_prepare = io_prepare_restore;
+	ar_asio_list_rates = list_rates_restore;
 	ar_asio_io_start = io_start_restore;
 	ar_asio_transfer_segment = transfer_segment_restore;
 	ar_asio_check_segment = check_segment_restore;
@@ -139,6 +148,10 @@ static int32_t (*bound_open_impl(int32_t device_type))(int32_t) {
 
 static int32_t(*bound_io_prepare_impl(int32_t device_type))(int32_t) {
 	return _ardvt[device_type].io_prepare;
+}
+
+static int32_t(*bound_list_rates_impl(int32_t device_type))(int32_t) {
+	return _ardvt[device_type].list_rates;
 }
 
 static void(*bound_io_start_impl(int32_t device_type))(int32_t) {
@@ -186,6 +199,9 @@ static void bind_nonzero_devices_with_device_type(int32_t device_type) {
 
 #define ASSERT_BIND_ASSIGNS_IO_PREPARE_IMPL_WHEN_NONZERO_DEVICES(device_type)\
 	ASSERT_BIND_ASSIGNS_IMPL_WHEN_NONZERO_DEVICES(device_type, io_prepare_stub, bound_io_prepare_impl)
+
+#define ASSERT_BIND_ASSIGNS_LIST_RATES_IMPL_WHEN_NONZERO_DEVICES(device_type)\
+	ASSERT_BIND_ASSIGNS_IMPL_WHEN_NONZERO_DEVICES(device_type, list_rates_stub, bound_list_rates_impl)
 
 #define ASSERT_BIND_ASSIGNS_IO_START_IMPL_WHEN_NONZERO_DEVICES(device_type)\
 	ASSERT_BIND_ASSIGNS_IMPL_WHEN_NONZERO_DEVICES(device_type, io_start_stub, bound_io_start_impl)
@@ -252,6 +268,14 @@ START_TEST(bind_assigns_io_prepare_to_device_type_one_when_nonzero_devices) {
 	ASSERT_BIND_ASSIGNS_IO_PREPARE_IMPL_WHEN_NONZERO_DEVICES(1);
 }
 
+START_TEST(bind_assigns_list_rates_to_device_type_zero_when_nonzero_devices) {
+	ASSERT_BIND_ASSIGNS_LIST_RATES_IMPL_WHEN_NONZERO_DEVICES(0);
+}
+
+START_TEST(bind_assigns_list_rates_to_device_type_one_when_nonzero_devices) {
+	ASSERT_BIND_ASSIGNS_LIST_RATES_IMPL_WHEN_NONZERO_DEVICES(1);
+}
+
 START_TEST(bind_assigns_io_start_to_device_type_zero_when_nonzero_devices) {
 	ASSERT_BIND_ASSIGNS_IO_START_IMPL_WHEN_NONZERO_DEVICES(0);
 }
@@ -305,6 +329,8 @@ Suite* arsc_asio_test_suite() {
 	add_test(test_case, bind_assigns_open_to_device_type_one_when_nonzero_devices);
 	add_test(test_case, bind_assigns_io_prepare_to_device_type_zero_when_nonzero_devices);
 	add_test(test_case, bind_assigns_io_prepare_to_device_type_one_when_nonzero_devices);
+	add_test(test_case, bind_assigns_list_rates_to_device_type_zero_when_nonzero_devices);
+	add_test(test_case, bind_assigns_list_rates_to_device_type_one_when_nonzero_devices);
 	add_test(test_case, bind_assigns_io_start_to_device_type_zero_when_nonzero_devices);
 	add_test(test_case, bind_assigns_io_start_to_device_type_one_when_nonzero_devices);
 	add_test(test_case, bind_assigns_transfer_segment_to_device_type_zero_when_nonzero_devices);

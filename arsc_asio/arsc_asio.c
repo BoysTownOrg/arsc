@@ -255,6 +255,8 @@ _ar_asio_list_rates(int32_t di)
     return 0;
 }
 
+int32_t(*ar_asio_list_rates)(int32_t) = _ar_asio_list_rates;
+
 /* 
 _ar_asio_close - close I/O device 
 */
@@ -775,7 +777,7 @@ _ar_asio_bind(int32_t ndt, int32_t tnd)
 		_ardvt[ndt].xfer_seg = ar_asio_transfer_segment;
 		_ardvt[ndt].chk_seg = ar_asio_check_segment;
 		_ardvt[ndt].latency = ar_asio_latency;
-		_ardvt[ndt].list_rates = _ar_asio_list_rates;
+		_ardvt[ndt].list_rates = ar_asio_list_rates;
 	
 		dio = tnd;
     }
