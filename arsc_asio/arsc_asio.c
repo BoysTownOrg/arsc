@@ -695,6 +695,7 @@ _ar_asio_chk_seg( int32_t di, int32_t b )
     return ( false );			// false means the API xfer function isn't run
 }
 
+int32_t(*ar_asio_check_segment)(int32_t, int32_t) = _ar_asio_chk_seg;
 
 /* _ar_asio_io_start - start I/O */
 
@@ -770,7 +771,7 @@ _ar_asio_bind(int32_t ndt, int32_t tnd)
 		_ardvt[ndt].io_prepare = ar_asio_io_prepare;
 		_ardvt[ndt].io_start = ar_asio_io_start;
 		_ardvt[ndt].xfer_seg = ar_asio_transfer_segment;
-		_ardvt[ndt].chk_seg = _ar_asio_chk_seg;
+		_ardvt[ndt].chk_seg = ar_asio_check_segment;
 		_ardvt[ndt].latency = _ar_asio_latency;
 		_ardvt[ndt].list_rates = _ar_asio_list_rates;
 	
