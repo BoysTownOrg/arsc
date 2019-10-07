@@ -91,6 +91,10 @@ static ARDEV* devices(int32_t device) {
 static void setup(void) {
 	*devices_(0) = calloc(1, sizeof(ARDEV));
 	*devices_(1) = calloc(1, sizeof(ARDEV));
+	devices(0)->ncad = -2;
+	devices(0)->ncda = -2;
+	devices(1)->ncad = -2;
+	devices(1)->ncda = -2;
 	devices_restore = ar_asio_devices;
 	device_name_restore = ar_asio_device_name;
 	io_stop_restore = ar_asio_io_stop;
@@ -132,6 +136,14 @@ static void teardown(void) {
 	pLockAndLoad = pLockAndLoadRestore;
 	free(devices(0));
 	free(devices(1));
+}
+
+static int32_t open_with_device(int32_t n) {
+	return _ar_asio_open(n);
+}
+
+static int32_t open() {
+	return open_with_device(0);
 }
 
 static int32_t bind_with_device_type(int32_t device_type) {
@@ -337,19 +349,13 @@ START_TEST(bind_assigns_latency_to_device_type_one_when_nonzero_devices) {
 }
 
 START_TEST(open_assigns_good_sample_rates) {
-	devices(0)->ncad = -2;
-	devices(0)->ncda = -2;
-
-	rates = 3;
-	_ar_asio_open(0);
-	ASSERT_EQUAL_ANY(3, devices(0)->gdsr);
+	rates = 1;
+	open();
+	ASSERT_EQUAL_ANY(1, devices(0)->gdsr);
 }
 
 START_TEST(open_passes_device_to_list_rates) {
-	devices(1)->ncad = -2;
-	devices(1)->ncda = -2;
-
-	_ar_asio_open(1);
+	open_with_device(1);
 	ASSERT_EQUAL_ANY(1, list_rates_device);
 }
 
