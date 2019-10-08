@@ -433,9 +433,9 @@ START_TEST(open_initializes_buffer_infos) {
 }
 
 START_TEST(io_prepare_initializes_stimulus_data) {
+	devices(0)->segswp = 1;
 	devices(0)->ncda = 1;
 	devices(0)->ncad = 0;
-	devices(0)->segswp = 1;
 
 	int32_t size = 3;
 	devices(0)->sizptr = &size;
@@ -444,9 +444,10 @@ START_TEST(io_prepare_initializes_stimulus_data) {
 	devices(0)->o_data = &output;
 	_ar_asio_io_prepare(0);
 	ASSERT_EQUAL_ANY(&local, stimulusData_(0)->StimulusBlock);
+	ASSERT_EQUAL_ANY(3, stimulusData_(0)->Samples);
 	ASSERT_EQUAL_ANY(0, stimulusData_(0)->SegmentNumber);
 	ASSERT_EQUAL_ANY(0, stimulusData_(0)->ChannelNumber);
-	ASSERT_EQUAL_ANY(3, stimulusData_(0)->Samples);
+	ASSERT_EQUAL_ANY(0, stimulusData_(0)->Index);
 }
 
 
