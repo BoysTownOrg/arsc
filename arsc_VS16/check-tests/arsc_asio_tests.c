@@ -551,8 +551,18 @@ START_TEST(io_prepare_initializes_stimulus_data_blocks) {
 }
 
 START_TEST(pSendStimulusDataTbd) {
+	assign_device_input_channels(0, 0);
+	assign_device_segments(0, 1);
+	assign_device_output_channels(0, 1);
+	devices(0)->a_ncda = 1;
+	void* output[1];
+	assign_device_output_buffers(0, output);
+	int32_t size;
+	assign_device_sizes(0, &size);
+
 	_ar_asio_io_prepare(0);
-	pSendStimulusData(NULL, 0, stimulusData_(0));
+	int32_t buffer[3];
+	pSendStimulusData(buffer, 3, stimulusData_(0));
 	ASSERT_EQUAL_ANY(2, 1);
 }
 
