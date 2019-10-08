@@ -436,11 +436,14 @@ START_TEST(io_prepare_initializes_stimulus_data) {
 	devices(0)->segswp = 3;
 	devices(0)->ncda = 2;
 	devices(0)->ncad = 0;
-
-	int32_t sizes[] = { 4, 5, 6 };
+	int32_t sizes[3];
 	devices(0)->sizptr = sizes;
-	void* output[3*2];
+	void* output[3 * 2];
 	devices(0)->o_data = output;
+
+	sizes[0] = 4;
+	sizes[1] = 5;
+	sizes[2] = 6;
 	_ar_asio_io_prepare(0);
 	ASSERT_EQUAL_ANY(4, stimulusData_(0)->Samples);
 	ASSERT_EQUAL_ANY(4, stimulusData_(1)->Samples);
@@ -471,22 +474,25 @@ START_TEST(io_prepare_initializes_stimulus_data) {
 	ASSERT_EQUAL_ANY(0, stimulusData_(5)->Index);
 }
 
-START_TEST(io_prepare_initializes_stimulus_data_duplicate) {
+START_TEST(io_prepare_initializes_stimulus_data_blocks) {
 	devices(0)->segswp = 1;
-	devices(0)->ncda = 2;
+	devices(0)->ncda = 3;
 	devices(0)->ncad = 0;
-
+	void* output[3 * 1];
+	devices(0)->o_data = output;
 	int32_t size;
 	devices(0)->sizptr = &size;
 	int32 local_first;
 	int32 local_second;
-	void* output[2 * 1];
+	int32 local_third;
+
 	output[0] = &local_first;
 	output[1] = &local_second;
-	devices(0)->o_data = output;
+	output[2] = &local_third;
 	_ar_asio_io_prepare(0);
 	ASSERT_EQUAL_ANY(&local_first, stimulusData_(0)->StimulusBlock);
 	ASSERT_EQUAL_ANY(&local_second, stimulusData_(1)->StimulusBlock);
+	ASSERT_EQUAL_ANY(&local_third, stimulusData_(2)->StimulusBlock);
 }
 
 static void add_test(TCase* test_case, const TTest* test) {
@@ -524,7 +530,7 @@ Suite* arsc_asio_test_suite() {
 	add_test(test_case, open_passes_device_to_list_rates);
 	add_test(test_case, open_initializes_buffer_infos);
 	add_test(test_case, io_prepare_initializes_stimulus_data);
-	add_test(test_case, io_prepare_initializes_stimulus_data_duplicate);
+	add_test(test_case, io_prepare_initializes_stimulus_data_blocks);
 	suite_add_tcase(suite, test_case);
 	return suite;
 }
