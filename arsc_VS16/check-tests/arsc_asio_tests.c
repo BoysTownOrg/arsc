@@ -481,6 +481,10 @@ START_TEST(io_prepare_initializes_stimulus_data) {
 	ASSERT_EQUAL_ANY(0, stimulusData_(5)->Index);
 }
 
+static void assign_pointer_array(void** a, int i, void* what) {
+	a[i] = what;
+}
+
 START_TEST(io_prepare_initializes_stimulus_data_blocks) {
 	devices(0)->segswp = 1;
 	devices(0)->ncda = 3;
@@ -493,9 +497,9 @@ START_TEST(io_prepare_initializes_stimulus_data_blocks) {
 	int32 local_second;
 	int32 local_third;
 
-	output[0] = &local_first;
-	output[1] = &local_second;
-	output[2] = &local_third;
+	assign_pointer_array(output, 0, &local_first);
+	assign_pointer_array(output, 1, &local_second);
+	assign_pointer_array(output, 2, &local_third);
 	_ar_asio_io_prepare(0);
 	ASSERT_STIMULUS_DATA_BUFFER(&local_first, 0);
 	ASSERT_STIMULUS_DATA_BUFFER(&local_second, 1);
