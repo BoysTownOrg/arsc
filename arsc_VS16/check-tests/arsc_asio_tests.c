@@ -550,6 +550,12 @@ START_TEST(io_prepare_initializes_stimulus_data_blocks) {
 	ASSERT_STIMULUS_DATA_BUFFER(&local_third, 2);
 }
 
+START_TEST(pSendStimulusDataTbd) {
+	_ar_asio_io_prepare(0);
+	pSendStimulusData(NULL, 0, stimulusData_(0));
+	ASSERT_EQUAL_ANY(2, 1);
+}
+
 static void add_test(TCase* test_case, const TTest* test) {
 	tcase_add_test(test_case, test);
 }
@@ -586,6 +592,7 @@ Suite* arsc_asio_test_suite() {
 	add_test(test_case, open_initializes_buffer_infos);
 	add_test(test_case, io_prepare_initializes_stimulus_data);
 	add_test(test_case, io_prepare_initializes_stimulus_data_blocks);
+	add_test(test_case, pSendStimulusDataTbd);
 	suite_add_tcase(suite, test_case);
 	return suite;
 }

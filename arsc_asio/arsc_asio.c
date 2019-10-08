@@ -135,7 +135,7 @@ long asioMessages(long selector, long value, void* message, double* opt);
 /*
 Internal prototypes
 */
-static int32 pSendStimulusData ( int32 *buffer, int32 aintBufferSize, TStimulusData *ptrStimulusData );
+
 static int32 pFillResponseBlock ( int32 *buffer, int32 aintBufferSize, TResponseData *ptrResponseData );
 static int32 pWriteBufferDemarcation ( int32 aintChunkSize, int32 aintAbsAmplitude );
 static int32 pPollAsioDrivers ( void );

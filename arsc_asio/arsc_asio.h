@@ -40,5 +40,6 @@ extern TStimulusData* stimulusData;
 
 int32_t _ar_asio_open(int32_t);
 int32_t _ar_asio_io_prepare(int32_t);
+int32 pSendStimulusData(int32* buffer, int32 aintBufferSize, TStimulusData* ptrStimulusData);
 
 #endif
