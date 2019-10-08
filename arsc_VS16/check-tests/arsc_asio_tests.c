@@ -434,20 +434,29 @@ START_TEST(open_initializes_buffer_infos) {
 
 START_TEST(io_prepare_initializes_stimulus_data) {
 	devices(0)->segswp = 1;
-	devices(0)->ncda = 1;
+	devices(0)->ncda = 2;
 	devices(0)->ncad = 0;
 
 	int32_t size = 3;
 	devices(0)->sizptr = &size;
-	int32 local;
-	void* output = &local;
-	devices(0)->o_data = &output;
+	int32 local_first;
+	int32 local_second;
+	void* output[2];
+	output[0] = &local_first;
+	output[1] = &local_second;
+	devices(0)->o_data = output;
 	_ar_asio_io_prepare(0);
-	ASSERT_EQUAL_ANY(&local, stimulusData_(0)->StimulusBlock);
+	ASSERT_EQUAL_ANY(&local_first, stimulusData_(0)->StimulusBlock);
 	ASSERT_EQUAL_ANY(3, stimulusData_(0)->Samples);
-	ASSERT_EQUAL_ANY(0, stimulusData_(0)->SegmentNumber);
 	ASSERT_EQUAL_ANY(0, stimulusData_(0)->ChannelNumber);
+	ASSERT_EQUAL_ANY(0, stimulusData_(0)->SegmentNumber);
 	ASSERT_EQUAL_ANY(0, stimulusData_(0)->Index);
+
+	ASSERT_EQUAL_ANY(&local_second, stimulusData_(1)->StimulusBlock);
+	ASSERT_EQUAL_ANY(3, stimulusData_(1)->Samples);
+	ASSERT_EQUAL_ANY(1, stimulusData_(1)->ChannelNumber);
+	ASSERT_EQUAL_ANY(0, stimulusData_(1)->SegmentNumber);
+	ASSERT_EQUAL_ANY(0, stimulusData_(1)->Index);
 }
 
 
