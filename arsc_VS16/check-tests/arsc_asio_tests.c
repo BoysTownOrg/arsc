@@ -110,10 +110,7 @@ static ARDEV* devices(int32_t device) {
 }
 
 static int32_t pLockAndLoadStub(int32_t device) {
-	devices(0)->ncad = 4;
-	devices(0)->ncda = 5;
-	devices(1)->ncad = 6;
-	devices(1)->ncda = 7;
+	device;
 	return 1;
 }
 
@@ -395,8 +392,13 @@ START_TEST(open_passes_device_to_list_rates) {
 }
 
 START_TEST(open_initializes_buffer_infos) {
-	open();
-	ASSERT_EQUAL_ANY(ASIOFalse, bufferInfos[0].isInput);
+	devices(1)->a_ncda = 2;
+	devices(1)->a_ncad = 3;
+	open_device(1);
+	for (int i = 0; i < 2; ++i)
+		ASSERT_EQUAL_ANY(ASIOFalse, bufferInfos[i].isInput);
+	for (int i = 2; i < 2 + 3; ++i)
+		ASSERT_EQUAL_ANY(ASIOTrue, bufferInfos[i].isInput);
 }
 
 static void add_test(TCase* test_case, const TTest* test) {
