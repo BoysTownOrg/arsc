@@ -83,7 +83,7 @@ static int32		sintAsioIntializedDriver = -1;		    // Index into the AsioDriverLi
 static int32		sintNumDevices = 0;			    // Number of valid ASIO devices
 static int32		sintMaxInputChannels = -1;		    // Maximum as reported by the driver
 static int32		sintMaxOutputChannels = -1;		    // Maximum as reported by the driver
-static ASIOBufferInfo	*bufferInfos = NULL;			    // Pointer to array of bufferInfos; one for each channel (input + output)
+ASIOBufferInfo	*bufferInfos = NULL;			    // Pointer to array of bufferInfos; one for each channel (input + output)
 static ASIOChannelInfo	*channelInfos = NULL;			    // Pointer to array of channelInfos; one for each channel (input + output)
 static ASIOCallbacks	asioCallbacks;				    // structure that holds the pointers to the callback functions
 static TStimulusData	*stimulusData;				    // pointer to the main stimulus block

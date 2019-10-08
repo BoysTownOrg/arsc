@@ -83,11 +83,6 @@ static int32_t latency_stub(int32_t m, int32_t n) {
 	return 1;
 }
 
-static int32_t pLockAndLoadStub(int32_t m) {
-	m;
-	return 1;
-}
-
 static bool SDKAsioSetSampleRateStub(ASIOSampleRate r) {
 	r;
 	return 1;
@@ -112,6 +107,14 @@ static ARDEV** devices_(int32_t device) {
 
 static ARDEV* devices(int32_t device) {
 	return *devices_(device);
+}
+
+static int32_t pLockAndLoadStub(int32_t device) {
+	devices(0)->ncad = 4;
+	devices(0)->ncda = 5;
+	devices(1)->ncad = 6;
+	devices(1)->ncda = 7;
+	return 1;
 }
 
 static void setup(void) {
@@ -391,6 +394,11 @@ START_TEST(open_passes_device_to_list_rates) {
 	ASSERT_EQUAL_ANY(1, list_rates_device);
 }
 
+START_TEST(open_initializes_buffer_infos) {
+	open();
+	ASSERT_EQUAL_ANY(ASIOFalse, bufferInfos[0].isInput);
+}
+
 static void add_test(TCase* test_case, const TTest* test) {
 	tcase_add_test(test_case, test);
 }
@@ -424,6 +432,7 @@ Suite* arsc_asio_test_suite() {
 	add_test(test_case, bind_assigns_latency_to_device_type_one_when_nonzero_devices);
 	add_test(test_case, open_assigns_good_sample_rates);
 	add_test(test_case, open_passes_device_to_list_rates);
+	add_test(test_case, open_initializes_buffer_infos);
 	suite_add_tcase(suite, test_case);
 	return suite;
 }

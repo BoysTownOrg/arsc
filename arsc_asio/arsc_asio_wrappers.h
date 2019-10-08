@@ -11,5 +11,6 @@ extern bool (*SDKAsioGetBufferSize)(
 	long* aslngPreferredBufferSize,
 	long* alngGranularity
 );
+extern ASIOBufferInfo* bufferInfos;
 
 #endif
