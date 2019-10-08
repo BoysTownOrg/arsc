@@ -1,6 +1,7 @@
 #include "arsc_asio_tests.h"
 #define ASIO
 #include <arsc_asio.h>
+#include <arsc_asio_wrappers.h>
 #include <stdlib.h>
 
 static int32_t(*devices_restore)();
@@ -15,6 +16,13 @@ static int32_t(*transfer_segment_restore)(int32_t, int32_t);
 static int32_t(*check_segment_restore)(int32_t, int32_t);
 static int32_t(*latency_restore)(int32_t, int32_t);
 static int32_t(*pLockAndLoadRestore)(int32_t);
+static bool(*SDKAsioSetSampleRateRestore)(ASIOSampleRate);
+static bool (*SDKAsioGetBufferSizeRestore)(
+	long* alngMinBufferSize,
+	long* alngMaxBufferSize,
+	long* aslngPreferredBufferSize,
+	long* alngGranularity
+);
 
 static int32_t device_count;
 static char* device_name;
@@ -80,6 +88,24 @@ static int32_t pLockAndLoadStub(int32_t m) {
 	return 1;
 }
 
+static bool SDKAsioSetSampleRateStub(ASIOSampleRate r) {
+	r;
+	return 1;
+}
+
+static bool SDKAsioGetBufferSizeStub(
+	long* alngMinBufferSize,
+	long* alngMaxBufferSize,
+	long* aslngPreferredBufferSize,
+	long* alngGranularity
+) {
+	alngMinBufferSize;
+	alngMaxBufferSize;
+	aslngPreferredBufferSize;
+	alngGranularity;
+	return 1;
+}
+
 static ARDEV** devices_(int32_t device) {
 	return &_ardev[device];
 }
@@ -107,6 +133,8 @@ static void setup(void) {
 	check_segment_restore = ar_asio_check_segment;
 	latency_restore = ar_asio_latency;
 	pLockAndLoadRestore = pLockAndLoad;
+	SDKAsioSetSampleRateRestore = SDKAsioSetSampleRate;
+	SDKAsioGetBufferSizeRestore = SDKAsioGetBufferSize;
 	ar_asio_devices = devices_stub;
 	ar_asio_device_name = device_name_stub;
 	ar_asio_io_stop = io_stop_stub;
@@ -119,6 +147,8 @@ static void setup(void) {
 	ar_asio_check_segment = check_segment_stub;
 	ar_asio_latency = latency_stub;
 	pLockAndLoad = pLockAndLoadStub;
+	SDKAsioSetSampleRate = SDKAsioSetSampleRateStub;
+	SDKAsioGetBufferSize = SDKAsioGetBufferSizeStub;
 }
 
 static void teardown(void) {
@@ -134,6 +164,8 @@ static void teardown(void) {
 	ar_asio_check_segment = check_segment_restore;
 	ar_asio_latency = latency_restore;
 	pLockAndLoad = pLockAndLoadRestore;
+	SDKAsioSetSampleRate = SDKAsioSetSampleRateRestore;
+	SDKAsioGetBufferSize = SDKAsioGetBufferSizeRestore;
 	free(devices(0));
 	free(devices(1));
 }
@@ -150,7 +182,7 @@ static int32_t bind_with_device_type(int32_t device_type) {
 	return _ar_asio_bind(device_type, 0);
 }
 
-static int32_t bind(void) {
+static int32_t bind_(void) {
 	return bind_with_device_type(0);
 }
 
@@ -257,7 +289,7 @@ static void bind_nonzero_devices_with_device_type(int32_t device_type) {
 
 START_TEST(bind_returns_number_of_devices) {
 	set_devices(3);
-	ASSERT_EQUAL_INT(3, bind());
+	ASSERT_EQUAL_INT(3, bind_());
 }
 
 START_TEST(bind_assigns_devices_impl_to_device_type_zero_when_nonzero_devices) {

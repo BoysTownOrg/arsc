@@ -120,7 +120,7 @@ bool SDKAsioInit ( ASIODriverInfo *info );
 bool SDKAsioExit ( void );
 bool SDKAsioGetChannels ( long *alngInputChannels, long *alngOutputChannels );
 bool SDKAsioCanSampleRate ( ASIOSampleRate aSampleRate );
-bool SDKAsioGetBufferSize ( long *alngMinBufferSize,
+bool SDKAsioGetBufferSizeImpl ( long *alngMinBufferSize,
 			long *alngMaxBufferSize,
 			long *aslngPreferredBufferSize,
 			long *alngGranularity );
@@ -138,6 +138,12 @@ bool SDKAsioStart ( void );
 bool SDKAsioSetSampleRateImpl(ASIOSampleRate aSampleRate);
 
 bool (*SDKAsioSetSampleRate)(ASIOSampleRate aSampleRate) = SDKAsioSetSampleRateImpl;
+bool (*SDKAsioGetBufferSize)(
+	long* alngMinBufferSize,
+	long* alngMaxBufferSize,
+	long* aslngPreferredBufferSize,
+	long* alngGranularity
+) = SDKAsioGetBufferSizeImpl;
 
 /*
 Callback prototypes
@@ -407,7 +413,7 @@ int32_t _ar_asio_open(int32_t di)
     value is set in the ASIO control panel.  So far I haven't
     found a need to deviate from the Preferred . . . .
     */
-    if ( ! SDKAsioGetBufferSize (	&lngMinBufferSize, 
+    if ( !SDKAsioGetBufferSize(	&lngMinBufferSize,
 					&lngMaxBufferSize, 
 					&slngPreferredBufferSize, 
 					&lngGranularity ) )
@@ -748,8 +754,8 @@ _ar_asio_latency(int32_t di, int32_t nsmp)
 
 int32_t(*ar_asio_latency)(int32_t, int32_t) = _ar_asio_latency;
 
-static ARDVT *device(int32_t device_type) {
-	return &_ardvt[device_type];
+static ARDVT *device_type(int32_t n) {
+	return &_ardvt[n];
 }
 
 /* _ar_asio_bind - bind ASIO functions */
@@ -764,17 +770,17 @@ _ar_asio_bind(int32_t ndt, int32_t tnd)
 	int32_t devices = ar_asio_devices();
 
     if (devices > 0) {
-		device(ndt)->num_dev = ar_asio_devices;
-		device(ndt)->dev_name = ar_asio_device_name;
-		device(ndt)->io_stop = ar_asio_io_stop;
-		device(ndt)->close = ar_asio_close;
-		device(ndt)->open = ar_asio_open;
-		device(ndt)->io_prepare = ar_asio_io_prepare;
-		device(ndt)->io_start = ar_asio_io_start;
-		device(ndt)->xfer_seg = ar_asio_transfer_segment;
-		device(ndt)->chk_seg = ar_asio_check_segment;
-		device(ndt)->latency = ar_asio_latency;
-		device(ndt)->list_rates = ar_asio_list_rates;
+		device_type(ndt)->num_dev = ar_asio_devices;
+		device_type(ndt)->dev_name = ar_asio_device_name;
+		device_type(ndt)->io_stop = ar_asio_io_stop;
+		device_type(ndt)->close = ar_asio_close;
+		device_type(ndt)->open = ar_asio_open;
+		device_type(ndt)->io_prepare = ar_asio_io_prepare;
+		device_type(ndt)->io_start = ar_asio_io_start;
+		device_type(ndt)->xfer_seg = ar_asio_transfer_segment;
+		device_type(ndt)->chk_seg = ar_asio_check_segment;
+		device_type(ndt)->latency = ar_asio_latency;
+		device_type(ndt)->list_rates = ar_asio_list_rates;
 	
 		dio = tnd;
     }

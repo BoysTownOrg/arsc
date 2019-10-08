@@ -110,7 +110,7 @@ EXTERN_CPP bool SDKAsioSetSampleRateImpl ( ASIOSampleRate aSampleRate ) {
 	return bolReturn;
 }
 
-EXTERN_CPP bool SDKAsioGetBufferSize (	long *alngMinBufferSize,
+EXTERN_CPP bool SDKAsioGetBufferSizeImpl (	long *alngMinBufferSize,
 										long *alngMaxBufferSize,
 										long *aslngPreferredBufferSize,
 										long *alngGranularity ) {
