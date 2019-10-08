@@ -126,6 +126,10 @@ static void assign_device_output_channels(int device, int32_t channels) {
 	devices(device)->ncda = channels;
 }
 
+static void assign_device_segments(int device, int32_t segments) {
+	devices(device)->segswp = segments;
+}
+
 static void free_device(int device) {
 	free(devices(device));
 }
@@ -472,7 +476,7 @@ static void assign_integer_array(int32_t* a, int i, int32_t what) {
 }
 
 START_TEST(io_prepare_initializes_stimulus_data) {
-	devices(0)->segswp = 3;
+	assign_device_segments(0, 3);
 	assign_device_input_channels(0, 0);
 	assign_device_output_channels(0, 2);
 	int32_t sizes[3];
@@ -518,7 +522,7 @@ static void assign_pointer_array(void** a, int i, void* what) {
 }
 
 START_TEST(io_prepare_initializes_stimulus_data_blocks) {
-	devices(0)->segswp = 1;
+	assign_device_segments(0, 1);
 	assign_device_input_channels(0, 0);
 	assign_device_output_channels(0, 3);
 	void* output[3 * 1];
