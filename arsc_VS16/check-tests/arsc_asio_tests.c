@@ -126,6 +126,10 @@ static void assign_device_output_channels(int device, int32_t channels) {
 	devices(device)->ncda = channels;
 }
 
+static void free_device(int device) {
+	free(devices(device));
+}
+
 static void setup(void) {
 	allocate_device(0);
 	allocate_device(1);
@@ -178,8 +182,8 @@ static void teardown(void) {
 	pLockAndLoad = pLockAndLoadRestore;
 	SDKAsioSetSampleRate = SDKAsioSetSampleRateRestore;
 	SDKAsioGetBufferSize = SDKAsioGetBufferSizeRestore;
-	free(devices(0));
-	free(devices(1));
+	free_device(0);
+	free_device(1);
 }
 
 static int32_t open_device(int32_t n) {
@@ -469,8 +473,8 @@ static void assign_integer_array(int32_t* a, int i, int32_t what) {
 
 START_TEST(io_prepare_initializes_stimulus_data) {
 	devices(0)->segswp = 3;
-	devices(0)->ncda = 2;
-	devices(0)->ncad = 0;
+	assign_device_input_channels(0, 0);
+	assign_device_output_channels(0, 2);
 	int32_t sizes[3];
 	devices(0)->sizptr = sizes;
 	void* output[3 * 2];
@@ -515,8 +519,8 @@ static void assign_pointer_array(void** a, int i, void* what) {
 
 START_TEST(io_prepare_initializes_stimulus_data_blocks) {
 	devices(0)->segswp = 1;
-	devices(0)->ncda = 3;
-	devices(0)->ncad = 0;
+	assign_device_input_channels(0, 0);
+	assign_device_output_channels(0, 3);
 	void* output[3 * 1];
 	devices(0)->o_data = output;
 	int32_t size;
