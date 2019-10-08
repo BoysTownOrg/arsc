@@ -450,10 +450,25 @@ START_TEST(io_prepare_initializes_stimulus_data) {
 	ASSERT_EQUAL_ANY(6, stimulusData_(5)->Samples);
 
 	ASSERT_EQUAL_ANY(0, stimulusData_(0)->SegmentNumber);
-	ASSERT_EQUAL_ANY(0, stimulusData_(0)->Index);
-
 	ASSERT_EQUAL_ANY(0, stimulusData_(1)->SegmentNumber);
+	ASSERT_EQUAL_ANY(1, stimulusData_(2)->SegmentNumber);
+	ASSERT_EQUAL_ANY(1, stimulusData_(3)->SegmentNumber);
+	ASSERT_EQUAL_ANY(2, stimulusData_(4)->SegmentNumber);
+	ASSERT_EQUAL_ANY(2, stimulusData_(5)->SegmentNumber);
+
+	ASSERT_EQUAL_ANY(0, stimulusData_(0)->ChannelNumber);
+	ASSERT_EQUAL_ANY(1, stimulusData_(1)->ChannelNumber);
+	ASSERT_EQUAL_ANY(0, stimulusData_(2)->ChannelNumber);
+	ASSERT_EQUAL_ANY(1, stimulusData_(3)->ChannelNumber);
+	ASSERT_EQUAL_ANY(0, stimulusData_(4)->ChannelNumber);
+	ASSERT_EQUAL_ANY(1, stimulusData_(5)->ChannelNumber);
+
+	ASSERT_EQUAL_ANY(0, stimulusData_(0)->Index);
 	ASSERT_EQUAL_ANY(0, stimulusData_(1)->Index);
+	ASSERT_EQUAL_ANY(0, stimulusData_(2)->Index);
+	ASSERT_EQUAL_ANY(0, stimulusData_(3)->Index);
+	ASSERT_EQUAL_ANY(0, stimulusData_(4)->Index);
+	ASSERT_EQUAL_ANY(0, stimulusData_(5)->Index);
 }
 
 START_TEST(io_prepare_initializes_stimulus_data_duplicate) {
@@ -473,25 +488,6 @@ START_TEST(io_prepare_initializes_stimulus_data_duplicate) {
 	ASSERT_EQUAL_ANY(&local_first, stimulusData_(0)->StimulusBlock);
 	ASSERT_EQUAL_ANY(&local_second, stimulusData_(1)->StimulusBlock);
 }
-
-START_TEST(io_prepare_initializes_stimulus_data_duplicate_again) {
-	devices(0)->segswp = 3;
-	devices(0)->ncda = 2;
-	devices(0)->ncad = 0;
-
-	int32_t sizes[3];
-	devices(0)->sizptr = sizes;
-	void* output[3 * 2];
-	devices(0)->o_data = output;
-	_ar_asio_io_prepare(0);
-	ASSERT_EQUAL_ANY(0, stimulusData_(0)->ChannelNumber);
-	ASSERT_EQUAL_ANY(1, stimulusData_(1)->ChannelNumber);
-	ASSERT_EQUAL_ANY(0, stimulusData_(2)->ChannelNumber);
-	ASSERT_EQUAL_ANY(1, stimulusData_(3)->ChannelNumber);
-	ASSERT_EQUAL_ANY(0, stimulusData_(4)->ChannelNumber);
-	ASSERT_EQUAL_ANY(1, stimulusData_(5)->ChannelNumber);
-}
-
 
 static void add_test(TCase* test_case, const TTest* test) {
 	tcase_add_test(test_case, test);
@@ -529,7 +525,6 @@ Suite* arsc_asio_test_suite() {
 	add_test(test_case, open_initializes_buffer_infos);
 	add_test(test_case, io_prepare_initializes_stimulus_data);
 	add_test(test_case, io_prepare_initializes_stimulus_data_duplicate);
-	add_test(test_case, io_prepare_initializes_stimulus_data_duplicate_again);
 	suite_add_tcase(suite, test_case);
 	return suite;
 }
