@@ -325,6 +325,15 @@ for (int i = a; i < b; ++i)\
 #define ASSERT_STIMULUS_DATA_SAMPLES(a, b)\
 	ASSERT_EQUAL_ANY(a, stimulusData_(b)->Samples)
 
+#define ASSERT_STIMULUS_DATA_SEGMENT(a, b)\
+	ASSERT_EQUAL_ANY(a, stimulusData_(b)->SegmentNumber)
+
+#define ASSERT_STIMULUS_DATA_CHANNEL(a, b)\
+	ASSERT_EQUAL_ANY(a, stimulusData_(b)->ChannelNumber)
+
+#define ASSERT_STIMULUS_DATA_INDEX(a, b)\
+	ASSERT_EQUAL_ANY(a, stimulusData_(b)->Index)
+
 START_TEST(bind_returns_number_of_devices) {
 	set_devices(3);
 	ASSERT_EQUAL_INT(3, bind_());
@@ -442,6 +451,10 @@ START_TEST(open_initializes_buffer_infos) {
 	ASSERT_BUFFER_INFO_CHANNEL_NUMBER(2, 4);
 }
 
+static void assign_integer_array(int32_t* a, int i, int32_t what) {
+	a[i] = what;
+}
+
 START_TEST(io_prepare_initializes_stimulus_data) {
 	devices(0)->segswp = 3;
 	devices(0)->ncda = 2;
@@ -451,9 +464,9 @@ START_TEST(io_prepare_initializes_stimulus_data) {
 	void* output[3 * 2];
 	devices(0)->o_data = output;
 
-	sizes[0] = 4;
-	sizes[1] = 5;
-	sizes[2] = 6;
+	assign_integer_array(sizes, 0, 4);
+	assign_integer_array(sizes, 1, 5);
+	assign_integer_array(sizes, 2, 6);
 	_ar_asio_io_prepare(0);
 	ASSERT_STIMULUS_DATA_SAMPLES(4, 0);
 	ASSERT_STIMULUS_DATA_SAMPLES(4, 1);
@@ -462,26 +475,26 @@ START_TEST(io_prepare_initializes_stimulus_data) {
 	ASSERT_STIMULUS_DATA_SAMPLES(6, 4);
 	ASSERT_STIMULUS_DATA_SAMPLES(6, 5);
 
-	ASSERT_EQUAL_ANY(0, stimulusData_(0)->SegmentNumber);
-	ASSERT_EQUAL_ANY(0, stimulusData_(1)->SegmentNumber);
-	ASSERT_EQUAL_ANY(1, stimulusData_(2)->SegmentNumber);
-	ASSERT_EQUAL_ANY(1, stimulusData_(3)->SegmentNumber);
-	ASSERT_EQUAL_ANY(2, stimulusData_(4)->SegmentNumber);
-	ASSERT_EQUAL_ANY(2, stimulusData_(5)->SegmentNumber);
+	ASSERT_STIMULUS_DATA_SEGMENT(0, 0);
+	ASSERT_STIMULUS_DATA_SEGMENT(0, 1);
+	ASSERT_STIMULUS_DATA_SEGMENT(1, 2);
+	ASSERT_STIMULUS_DATA_SEGMENT(1, 3);
+	ASSERT_STIMULUS_DATA_SEGMENT(2, 4);
+	ASSERT_STIMULUS_DATA_SEGMENT(2, 5);
 
-	ASSERT_EQUAL_ANY(0, stimulusData_(0)->ChannelNumber);
-	ASSERT_EQUAL_ANY(1, stimulusData_(1)->ChannelNumber);
-	ASSERT_EQUAL_ANY(0, stimulusData_(2)->ChannelNumber);
-	ASSERT_EQUAL_ANY(1, stimulusData_(3)->ChannelNumber);
-	ASSERT_EQUAL_ANY(0, stimulusData_(4)->ChannelNumber);
-	ASSERT_EQUAL_ANY(1, stimulusData_(5)->ChannelNumber);
+	ASSERT_STIMULUS_DATA_CHANNEL(0, 0);
+	ASSERT_STIMULUS_DATA_CHANNEL(1, 1);
+	ASSERT_STIMULUS_DATA_CHANNEL(0, 2);
+	ASSERT_STIMULUS_DATA_CHANNEL(1, 3);
+	ASSERT_STIMULUS_DATA_CHANNEL(0, 4);
+	ASSERT_STIMULUS_DATA_CHANNEL(1, 5);
 
-	ASSERT_EQUAL_ANY(0, stimulusData_(0)->Index);
-	ASSERT_EQUAL_ANY(0, stimulusData_(1)->Index);
-	ASSERT_EQUAL_ANY(0, stimulusData_(2)->Index);
-	ASSERT_EQUAL_ANY(0, stimulusData_(3)->Index);
-	ASSERT_EQUAL_ANY(0, stimulusData_(4)->Index);
-	ASSERT_EQUAL_ANY(0, stimulusData_(5)->Index);
+	ASSERT_STIMULUS_DATA_INDEX(0, 0);
+	ASSERT_STIMULUS_DATA_INDEX(0, 1);
+	ASSERT_STIMULUS_DATA_INDEX(0, 2);
+	ASSERT_STIMULUS_DATA_INDEX(0, 3);
+	ASSERT_STIMULUS_DATA_INDEX(0, 4);
+	ASSERT_STIMULUS_DATA_INDEX(0, 5);
 }
 
 static void assign_pointer_array(void** a, int i, void* what) {
