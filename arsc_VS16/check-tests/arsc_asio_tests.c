@@ -247,6 +247,18 @@ static void bind_nonzero_devices_with_device_type(int32_t device_type) {
 	bind_with_device_type(device_type);
 }
 
+static ASIOBufferInfo* bufferInfo_(int i) {
+	return bufferInfos + i;
+}
+
+static ASIOBool bufferInfoIsInput(int i) {
+	return bufferInfo_(i)->isInput;
+}
+
+static long bufferInfoChannelNumber(int i) {
+	return bufferInfo_(i)->channelNum;
+}
+
 #define ASSERT_EQUAL_INT(a, b) ck_assert_int_eq(a, b)
 #define ASSERT_EQUAL_ANY(a, b) ck_assert(a == b)
 
@@ -287,15 +299,19 @@ static void bind_nonzero_devices_with_device_type(int32_t device_type) {
 #define ASSERT_BIND_ASSIGNS_LATENCY_IMPL_WHEN_NONZERO_DEVICES(device_type)\
 	ASSERT_BIND_ASSIGNS_IMPL_WHEN_NONZERO_DEVICES(device_type, latency_stub, bound_latency_impl)
 
+#define ASSERT_BUFFER_INFO_IS_INPUT_EQUALS(a, b) ASSERT_EQUAL_ANY(a, bufferInfoIsInput(b))
+
 #define FOR_INT_RANGE(a, b) for (int i = a; i < b; ++i)
 
 #define ASSERT_BUFFER_INFO_IS_INPUT_FOR_DEVICE_RANGE(a, b)\
 FOR_INT_RANGE(a, b)\
-	ASSERT_EQUAL_ANY(ASIOFalse, bufferInfos[i].isInput)
+	ASSERT_BUFFER_INFO_IS_INPUT_EQUALS(ASIOFalse, i)
 
 #define ASSERT_BUFFER_INFO_IS_OUTPUT_FOR_DEVICE_RANGE(a, b)\
 FOR_INT_RANGE(a, b)\
-	ASSERT_EQUAL_ANY(ASIOTrue, bufferInfos[i].isInput)
+	ASSERT_BUFFER_INFO_IS_INPUT_EQUALS(ASIOTrue, i)
+
+#define ASSERT_BUFFER_INFO_CHANNEL_NUMBER(a, b) ASSERT_EQUAL_ANY(a, bufferInfoChannelNumber(b))
 
 START_TEST(bind_returns_number_of_devices) {
 	set_devices(3);
@@ -407,11 +423,11 @@ START_TEST(open_initializes_buffer_infos) {
 	open_device(1);
 	ASSERT_BUFFER_INFO_IS_INPUT_FOR_DEVICE_RANGE(0, 2);
 	ASSERT_BUFFER_INFO_IS_OUTPUT_FOR_DEVICE_RANGE(2, 2 + 3);
-	ASSERT_EQUAL_ANY(0, bufferInfos[0].channelNum);
-	ASSERT_EQUAL_ANY(1, bufferInfos[1].channelNum);
-	ASSERT_EQUAL_ANY(0, bufferInfos[2].channelNum);
-	ASSERT_EQUAL_ANY(1, bufferInfos[3].channelNum);
-	ASSERT_EQUAL_ANY(2, bufferInfos[4].channelNum);
+	ASSERT_BUFFER_INFO_CHANNEL_NUMBER(0, 0);
+	ASSERT_BUFFER_INFO_CHANNEL_NUMBER(1, 1);
+	ASSERT_BUFFER_INFO_CHANNEL_NUMBER(0, 2);
+	ASSERT_BUFFER_INFO_CHANNEL_NUMBER(1, 3);
+	ASSERT_BUFFER_INFO_CHANNEL_NUMBER(2, 4);
 }
 
 static void add_test(TCase* test_case, const TTest* test) {
