@@ -555,15 +555,22 @@ START_TEST(pSendStimulusDataTbd) {
 	assign_device_segments(0, 1);
 	assign_device_output_channels(0, 1);
 	devices(0)->a_ncda = 1;
+	int32 other[3];
 	void* output[1];
+	assign_pointer_array(output, 0, other);
 	assign_device_output_buffers(0, output);
-	int32_t size;
+	int32_t size = sizeof other;
 	assign_device_sizes(0, &size);
 
 	_ar_asio_io_prepare(0);
+	assign_integer_array(other, 0, 5);
+	assign_integer_array(other, 1, 6);
+	assign_integer_array(other, 2, 7);
 	int32_t buffer[3];
 	pSendStimulusData(buffer, 3, stimulusData_(0));
-	ASSERT_EQUAL_ANY(2, 1);
+	ASSERT_EQUAL_ANY(5, buffer[0]);
+	ASSERT_EQUAL_ANY(6, buffer[1]);
+	ASSERT_EQUAL_ANY(7, buffer[2]);
 }
 
 static void add_test(TCase* test_case, const TTest* test) {
