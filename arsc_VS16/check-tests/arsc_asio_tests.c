@@ -445,6 +445,7 @@ START_TEST(io_prepare_initializes_stimulus_data) {
 	_ar_asio_io_prepare(0);
 	ASSERT_EQUAL_ANY(&local, stimulusData_(0)->StimulusBlock);
 	ASSERT_EQUAL_ANY(0, stimulusData_(0)->SegmentNumber);
+	ASSERT_EQUAL_ANY(0, stimulusData_(0)->ChannelNumber);
 	ASSERT_EQUAL_ANY(3, stimulusData_(0)->Samples);
 }
 
