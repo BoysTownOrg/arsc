@@ -287,12 +287,14 @@ static void bind_nonzero_devices_with_device_type(int32_t device_type) {
 #define ASSERT_BIND_ASSIGNS_LATENCY_IMPL_WHEN_NONZERO_DEVICES(device_type)\
 	ASSERT_BIND_ASSIGNS_IMPL_WHEN_NONZERO_DEVICES(device_type, latency_stub, bound_latency_impl)
 
+#define FOR_INT_RANGE(a, b) for (int i = a; i < b; ++i)
+
 #define ASSERT_BUFFER_INFO_IS_INPUT_FOR_DEVICE_RANGE(a, b)\
-for (int i = a; i < b; ++i)\
+FOR_INT_RANGE(a, b)\
 	ASSERT_EQUAL_ANY(ASIOFalse, bufferInfos[i].isInput)
 
 #define ASSERT_BUFFER_INFO_IS_OUTPUT_FOR_DEVICE_RANGE(a, b)\
-for (int i = a; i < b; ++i)\
+FOR_INT_RANGE(a, b)\
 	ASSERT_EQUAL_ANY(ASIOTrue, bufferInfos[i].isInput)
 
 START_TEST(bind_returns_number_of_devices) {
