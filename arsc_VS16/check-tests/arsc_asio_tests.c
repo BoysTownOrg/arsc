@@ -407,6 +407,11 @@ START_TEST(open_initializes_buffer_infos) {
 	open_device(1);
 	ASSERT_BUFFER_INFO_IS_INPUT_FOR_DEVICE_RANGE(0, 2);
 	ASSERT_BUFFER_INFO_IS_OUTPUT_FOR_DEVICE_RANGE(2, 2 + 3);
+	ASSERT_EQUAL_ANY(0, bufferInfos[0].channelNum);
+	ASSERT_EQUAL_ANY(1, bufferInfos[1].channelNum);
+	ASSERT_EQUAL_ANY(0, bufferInfos[2].channelNum);
+	ASSERT_EQUAL_ANY(1, bufferInfos[3].channelNum);
+	ASSERT_EQUAL_ANY(2, bufferInfos[4].channelNum);
 }
 
 static void add_test(TCase* test_case, const TTest* test) {
