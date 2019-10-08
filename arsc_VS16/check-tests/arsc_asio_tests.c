@@ -259,6 +259,10 @@ static long bufferInfoChannelNumber(int i) {
 	return bufferInfo_(i)->channelNum;
 }
 
+static TStimulusData* stimulusData_(int i) {
+	return stimulusData + i;
+}
+
 #define ASSERT_EQUAL_INT(a, b) ck_assert_int_eq(a, b)
 #define ASSERT_EQUAL_ANY(a, b) ck_assert(a == b)
 
@@ -428,18 +432,19 @@ START_TEST(open_initializes_buffer_infos) {
 	ASSERT_BUFFER_INFO_CHANNEL_NUMBER(2, 4);
 }
 
-START_TEST(io_prepare_tbd) {
-	int32 local;
-	void *output[1];
-	output[0] = &local;
-	int32_t sizes[1] = { 0 };
+START_TEST(io_prepare_initializes_stimulus_data) {
 	devices(0)->ncda = 1;
 	devices(0)->ncad = 0;
-	devices(0)->sizptr = sizes;
 	devices(0)->segswp = 1;
-	devices(0)->o_data = output;
+
+	int32_t size = 3;
+	devices(0)->sizptr = &size;
+	int32 local;
+	void* output = &local;
+	devices(0)->o_data = &output;
 	_ar_asio_io_prepare(0);
-	ASSERT_EQUAL_ANY(&local, stimulusData[0].StimulusBlock);
+	ASSERT_EQUAL_ANY(&local, stimulusData_(0)->StimulusBlock);
+	ASSERT_EQUAL_ANY(3, stimulusData_(0)->Samples);
 }
 
 
@@ -477,7 +482,7 @@ Suite* arsc_asio_test_suite() {
 	add_test(test_case, open_assigns_good_sample_rates);
 	add_test(test_case, open_passes_device_to_list_rates);
 	add_test(test_case, open_initializes_buffer_infos);
-	add_test(test_case, io_prepare_tbd);
+	add_test(test_case, io_prepare_initializes_stimulus_data);
 	suite_add_tcase(suite, test_case);
 	return suite;
 }
