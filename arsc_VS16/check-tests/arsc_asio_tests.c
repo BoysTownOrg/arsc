@@ -433,30 +433,48 @@ START_TEST(open_initializes_buffer_infos) {
 }
 
 START_TEST(io_prepare_initializes_stimulus_data) {
-	devices(0)->segswp = 1;
+	devices(0)->segswp = 3;
 	devices(0)->ncda = 2;
 	devices(0)->ncad = 0;
 
-	int32_t size = 3;
-	devices(0)->sizptr = &size;
+	int32_t sizes[] = { 4, 5, 6 };
+	devices(0)->sizptr = sizes;
 	int32 local_first;
 	int32 local_second;
-	void* output[2];
+	void* output[3*2];
 	output[0] = &local_first;
 	output[1] = &local_second;
 	devices(0)->o_data = output;
 	_ar_asio_io_prepare(0);
 	ASSERT_EQUAL_ANY(&local_first, stimulusData_(0)->StimulusBlock);
-	ASSERT_EQUAL_ANY(3, stimulusData_(0)->Samples);
+	ASSERT_EQUAL_ANY(4, stimulusData_(0)->Samples);
 	ASSERT_EQUAL_ANY(0, stimulusData_(0)->ChannelNumber);
 	ASSERT_EQUAL_ANY(0, stimulusData_(0)->SegmentNumber);
 	ASSERT_EQUAL_ANY(0, stimulusData_(0)->Index);
 
 	ASSERT_EQUAL_ANY(&local_second, stimulusData_(1)->StimulusBlock);
-	ASSERT_EQUAL_ANY(3, stimulusData_(1)->Samples);
+	ASSERT_EQUAL_ANY(4, stimulusData_(1)->Samples);
 	ASSERT_EQUAL_ANY(1, stimulusData_(1)->ChannelNumber);
 	ASSERT_EQUAL_ANY(0, stimulusData_(1)->SegmentNumber);
 	ASSERT_EQUAL_ANY(0, stimulusData_(1)->Index);
+}
+
+START_TEST(io_prepare_initializes_stimulus_data_duplicate) {
+	devices(0)->segswp = 1;
+	devices(0)->ncda = 2;
+	devices(0)->ncad = 0;
+
+	int32_t size;
+	devices(0)->sizptr = &size;
+	int32 local_first;
+	int32 local_second;
+	void* output[2 * 1];
+	output[0] = &local_first;
+	output[1] = &local_second;
+	devices(0)->o_data = output;
+	_ar_asio_io_prepare(0);
+	ASSERT_EQUAL_ANY(&local_first, stimulusData_(0)->StimulusBlock);
+	ASSERT_EQUAL_ANY(&local_second, stimulusData_(1)->StimulusBlock);
 }
 
 
@@ -495,6 +513,7 @@ Suite* arsc_asio_test_suite() {
 	add_test(test_case, open_passes_device_to_list_rates);
 	add_test(test_case, open_initializes_buffer_infos);
 	add_test(test_case, io_prepare_initializes_stimulus_data);
+	add_test(test_case, io_prepare_initializes_stimulus_data_duplicate);
 	suite_add_tcase(suite, test_case);
 	return suite;
 }
