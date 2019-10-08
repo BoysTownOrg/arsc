@@ -3,7 +3,6 @@
 #ifdef ASIO
 
 #include "arsc_asio.h"						    // 
-#include "../arsc_common.h"					    // 
 #include "asiosys.h"						    // platform definition from Steinberg SDK
 #include "asio.h"						    // from Steinberg SDK
 #include "arsc_asio_wrappers.h"
@@ -40,26 +39,6 @@ typedef struct {
 } TVirtualDevice;
 
 /*
-Stimulus structure
-
-Channels are handled differently in ASIO than MME, so made sense to
-map the "segments" passed from the calling program in the format 
-Steve set up to an array of these structures.
-
-A StimulusBlock is 32-bit integers, since that is what all of the sound 
-cards tested expect.  A pointer to the "next" sample to be sent is kept.
-*/
-typedef struct {
-	int32		Magic;					    // Just an identifier for this structure
-	int32		*StimulusBlock;				    // Pointer to segment
-	int32		Samples;				    // # of samples, e.g. 2048, in this block
-	int32		Index;					    // How many samples have already been played
-	int32		ChannelNumber;				    // 0, 1, 2, . . . 
-	int32		SegmentNumber;				    // Current segment for this channel
-	bool		OutputDone;				    // Says if output is done for this channel
-} TStimulusData;
-
-/*
 Response structure
 */
 typedef struct {
@@ -86,7 +65,7 @@ static int32		sintMaxOutputChannels = -1;		    // Maximum as reported by the dri
 ASIOBufferInfo	*bufferInfos = NULL;			    // Pointer to array of bufferInfos; one for each channel (input + output)
 static ASIOChannelInfo	*channelInfos = NULL;			    // Pointer to array of channelInfos; one for each channel (input + output)
 static ASIOCallbacks	asioCallbacks;				    // structure that holds the pointers to the callback functions
-static TStimulusData	*stimulusData;				    // pointer to the main stimulus block
+TStimulusData	*stimulusData;				    // pointer to the main stimulus block
 static TStimulusData	*sptrCurSegmentStimulus;		    // Points to the current segment stimulus (channel 0)
 static TResponseData	*responseData;				    // pointer to the main response block
 static TResponseData	*sptrCurSegmentResponse;		    // Points to the current segment response (channel 0)
@@ -516,7 +495,7 @@ int32_t(*ar_asio_open)(int32_t) = _ar_asio_open;
 
 /* _ar_asio_io_prepare - prepare device and buffers for I/O */
 
-static int32_t
+int32_t
 _ar_asio_io_prepare(int32_t di)
 {
     int32		intNumberSegments;	    // Same for in and out

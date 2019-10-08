@@ -428,6 +428,21 @@ START_TEST(open_initializes_buffer_infos) {
 	ASSERT_BUFFER_INFO_CHANNEL_NUMBER(2, 4);
 }
 
+START_TEST(io_prepare_tbd) {
+	int32 local;
+	void *output[1];
+	output[0] = &local;
+	int32_t sizes[1] = { 0 };
+	devices(0)->ncda = 1;
+	devices(0)->ncad = 0;
+	devices(0)->sizptr = sizes;
+	devices(0)->segswp = 1;
+	devices(0)->o_data = output;
+	_ar_asio_io_prepare(0);
+	ASSERT_EQUAL_ANY(&local, stimulusData[0].StimulusBlock);
+}
+
+
 static void add_test(TCase* test_case, const TTest* test) {
 	tcase_add_test(test_case, test);
 }
@@ -462,6 +477,7 @@ Suite* arsc_asio_test_suite() {
 	add_test(test_case, open_assigns_good_sample_rates);
 	add_test(test_case, open_passes_device_to_list_rates);
 	add_test(test_case, open_initializes_buffer_infos);
+	add_test(test_case, io_prepare_tbd);
 	suite_add_tcase(suite, test_case);
 	return suite;
 }
