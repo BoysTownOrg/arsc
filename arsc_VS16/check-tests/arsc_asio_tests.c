@@ -322,6 +322,9 @@ for (int i = a; i < b; ++i)\
 #define ASSERT_STIMULUS_DATA_BUFFER(a, b)\
 	ASSERT_EQUAL_ANY(a, stimulusDataBlock(b));
 
+#define ASSERT_STIMULUS_DATA_SAMPLES(a, b)\
+	ASSERT_EQUAL_ANY(a, stimulusData_(b)->Samples)
+
 START_TEST(bind_returns_number_of_devices) {
 	set_devices(3);
 	ASSERT_EQUAL_INT(3, bind_());
@@ -452,12 +455,12 @@ START_TEST(io_prepare_initializes_stimulus_data) {
 	sizes[1] = 5;
 	sizes[2] = 6;
 	_ar_asio_io_prepare(0);
-	ASSERT_EQUAL_ANY(4, stimulusData_(0)->Samples);
-	ASSERT_EQUAL_ANY(4, stimulusData_(1)->Samples);
-	ASSERT_EQUAL_ANY(5, stimulusData_(2)->Samples);
-	ASSERT_EQUAL_ANY(5, stimulusData_(3)->Samples);
-	ASSERT_EQUAL_ANY(6, stimulusData_(4)->Samples);
-	ASSERT_EQUAL_ANY(6, stimulusData_(5)->Samples);
+	ASSERT_STIMULUS_DATA_SAMPLES(4, 0);
+	ASSERT_STIMULUS_DATA_SAMPLES(4, 1);
+	ASSERT_STIMULUS_DATA_SAMPLES(5, 2);
+	ASSERT_STIMULUS_DATA_SAMPLES(5, 3);
+	ASSERT_STIMULUS_DATA_SAMPLES(6, 4);
+	ASSERT_STIMULUS_DATA_SAMPLES(6, 5);
 
 	ASSERT_EQUAL_ANY(0, stimulusData_(0)->SegmentNumber);
 	ASSERT_EQUAL_ANY(0, stimulusData_(1)->SegmentNumber);
