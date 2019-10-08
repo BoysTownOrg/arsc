@@ -130,6 +130,14 @@ static void assign_device_segments(int device, int32_t segments) {
 	devices(device)->segswp = segments;
 }
 
+static void assign_device_output_buffers(int device, void **buffers) {
+	devices(device)->o_data = buffers;
+}
+
+static void assign_device_sizes(int device, int32_t *sizes) {
+	devices(device)->sizptr = sizes;
+}
+
 static void free_device(int device) {
 	free(devices(device));
 }
@@ -480,9 +488,9 @@ START_TEST(io_prepare_initializes_stimulus_data) {
 	assign_device_input_channels(0, 0);
 	assign_device_output_channels(0, 2);
 	int32_t sizes[3];
-	devices(0)->sizptr = sizes;
+	assign_device_sizes(0, sizes);
 	void* output[3 * 2];
-	devices(0)->o_data = output;
+	assign_device_output_buffers(0, output);
 
 	assign_integer_array(sizes, 0, 4);
 	assign_integer_array(sizes, 1, 5);
@@ -526,9 +534,9 @@ START_TEST(io_prepare_initializes_stimulus_data_blocks) {
 	assign_device_input_channels(0, 0);
 	assign_device_output_channels(0, 3);
 	void* output[3 * 1];
-	devices(0)->o_data = output;
+	assign_device_output_buffers(0, output);
 	int32_t size;
-	devices(0)->sizptr = &size;
+	assign_device_sizes(0, &size);
 	int32 local_first;
 	int32 local_second;
 	int32 local_third;
