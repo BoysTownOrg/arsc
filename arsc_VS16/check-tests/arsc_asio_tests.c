@@ -263,6 +263,10 @@ static TStimulusData* stimulusData_(int i) {
 	return stimulusData + i;
 }
 
+static int32_t *stimulusDataBlock(int i) {
+	return stimulusData_(i)->StimulusBlock;
+}
+
 #define ASSERT_EQUAL_INT(a, b) ck_assert_int_eq(a, b)
 #define ASSERT_EQUAL_ANY(a, b) ck_assert(a == b)
 
@@ -314,6 +318,9 @@ for (int i = a; i < b; ++i)\
 	ASSERT_BUFFER_INFO_IS_INPUT_EQUALS(ASIOTrue, i)
 
 #define ASSERT_BUFFER_INFO_CHANNEL_NUMBER(a, b) ASSERT_EQUAL_ANY(a, bufferInfoChannelNumber(b))
+
+#define ASSERT_STIMULUS_DATA_BUFFER(a, b)\
+	ASSERT_EQUAL_ANY(a, stimulusDataBlock(b));
 
 START_TEST(bind_returns_number_of_devices) {
 	set_devices(3);
@@ -490,9 +497,9 @@ START_TEST(io_prepare_initializes_stimulus_data_blocks) {
 	output[1] = &local_second;
 	output[2] = &local_third;
 	_ar_asio_io_prepare(0);
-	ASSERT_EQUAL_ANY(&local_first, stimulusData_(0)->StimulusBlock);
-	ASSERT_EQUAL_ANY(&local_second, stimulusData_(1)->StimulusBlock);
-	ASSERT_EQUAL_ANY(&local_third, stimulusData_(2)->StimulusBlock);
+	ASSERT_STIMULUS_DATA_BUFFER(&local_first, 0);
+	ASSERT_STIMULUS_DATA_BUFFER(&local_second, 1);
+	ASSERT_STIMULUS_DATA_BUFFER(&local_third, 2);
 }
 
 static void add_test(TCase* test_case, const TTest* test) {
