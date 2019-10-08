@@ -439,22 +439,19 @@ START_TEST(io_prepare_initializes_stimulus_data) {
 
 	int32_t sizes[] = { 4, 5, 6 };
 	devices(0)->sizptr = sizes;
-	int32 local_first;
-	int32 local_second;
 	void* output[3*2];
-	output[0] = &local_first;
-	output[1] = &local_second;
 	devices(0)->o_data = output;
 	_ar_asio_io_prepare(0);
-	ASSERT_EQUAL_ANY(&local_first, stimulusData_(0)->StimulusBlock);
 	ASSERT_EQUAL_ANY(4, stimulusData_(0)->Samples);
-	ASSERT_EQUAL_ANY(0, stimulusData_(0)->ChannelNumber);
+	ASSERT_EQUAL_ANY(4, stimulusData_(1)->Samples);
+	ASSERT_EQUAL_ANY(5, stimulusData_(2)->Samples);
+	ASSERT_EQUAL_ANY(5, stimulusData_(3)->Samples);
+	ASSERT_EQUAL_ANY(6, stimulusData_(4)->Samples);
+	ASSERT_EQUAL_ANY(6, stimulusData_(5)->Samples);
+
 	ASSERT_EQUAL_ANY(0, stimulusData_(0)->SegmentNumber);
 	ASSERT_EQUAL_ANY(0, stimulusData_(0)->Index);
 
-	ASSERT_EQUAL_ANY(&local_second, stimulusData_(1)->StimulusBlock);
-	ASSERT_EQUAL_ANY(4, stimulusData_(1)->Samples);
-	ASSERT_EQUAL_ANY(1, stimulusData_(1)->ChannelNumber);
 	ASSERT_EQUAL_ANY(0, stimulusData_(1)->SegmentNumber);
 	ASSERT_EQUAL_ANY(0, stimulusData_(1)->Index);
 }
@@ -475,6 +472,24 @@ START_TEST(io_prepare_initializes_stimulus_data_duplicate) {
 	_ar_asio_io_prepare(0);
 	ASSERT_EQUAL_ANY(&local_first, stimulusData_(0)->StimulusBlock);
 	ASSERT_EQUAL_ANY(&local_second, stimulusData_(1)->StimulusBlock);
+}
+
+START_TEST(io_prepare_initializes_stimulus_data_duplicate_again) {
+	devices(0)->segswp = 3;
+	devices(0)->ncda = 2;
+	devices(0)->ncad = 0;
+
+	int32_t sizes[3];
+	devices(0)->sizptr = sizes;
+	void* output[3 * 2];
+	devices(0)->o_data = output;
+	_ar_asio_io_prepare(0);
+	ASSERT_EQUAL_ANY(0, stimulusData_(0)->ChannelNumber);
+	ASSERT_EQUAL_ANY(1, stimulusData_(1)->ChannelNumber);
+	ASSERT_EQUAL_ANY(0, stimulusData_(2)->ChannelNumber);
+	ASSERT_EQUAL_ANY(1, stimulusData_(3)->ChannelNumber);
+	ASSERT_EQUAL_ANY(0, stimulusData_(4)->ChannelNumber);
+	ASSERT_EQUAL_ANY(1, stimulusData_(5)->ChannelNumber);
 }
 
 
@@ -514,6 +529,7 @@ Suite* arsc_asio_test_suite() {
 	add_test(test_case, open_initializes_buffer_infos);
 	add_test(test_case, io_prepare_initializes_stimulus_data);
 	add_test(test_case, io_prepare_initializes_stimulus_data_duplicate);
+	add_test(test_case, io_prepare_initializes_stimulus_data_duplicate_again);
 	suite_add_tcase(suite, test_case);
 	return suite;
 }
