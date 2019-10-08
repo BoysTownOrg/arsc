@@ -114,13 +114,25 @@ static int32_t pLockAndLoadStub(int32_t device) {
 	return 1;
 }
 
+static void allocate_device(int device) {
+	*devices_(device) = calloc(1, sizeof(ARDEV));
+}
+
+static void assign_device_input_channels(int device, int32_t channels) {
+	devices(device)->ncad = channels;
+}
+
+static void assign_device_output_channels(int device, int32_t channels) {
+	devices(device)->ncda = channels;
+}
+
 static void setup(void) {
-	*devices_(0) = calloc(1, sizeof(ARDEV));
-	*devices_(1) = calloc(1, sizeof(ARDEV));
-	devices(0)->ncad = -2;
-	devices(0)->ncda = -2;
-	devices(1)->ncad = -2;
-	devices(1)->ncda = -2;
+	allocate_device(0);
+	allocate_device(1);
+	assign_device_input_channels(0, -2);
+	assign_device_input_channels(1, -2);
+	assign_device_output_channels(0, -2);
+	assign_device_output_channels(1, -2);
 	devices_restore = ar_asio_devices;
 	device_name_restore = ar_asio_device_name;
 	io_stop_restore = ar_asio_io_stop;
