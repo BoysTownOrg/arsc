@@ -301,14 +301,12 @@ static long bufferInfoChannelNumber(int i) {
 
 #define ASSERT_BUFFER_INFO_IS_INPUT_EQUALS(a, b) ASSERT_EQUAL_ANY(a, bufferInfoIsInput(b))
 
-#define FOR_INT_RANGE(a, b) for (int i = a; i < b; ++i)
-
 #define ASSERT_BUFFER_INFO_IS_INPUT_FOR_DEVICE_RANGE(a, b)\
-FOR_INT_RANGE(a, b)\
+for (int i = a; i < b; ++i)\
 	ASSERT_BUFFER_INFO_IS_INPUT_EQUALS(ASIOFalse, i)
 
 #define ASSERT_BUFFER_INFO_IS_OUTPUT_FOR_DEVICE_RANGE(a, b)\
-FOR_INT_RANGE(a, b)\
+for (int i = a; i < b; ++i)\
 	ASSERT_BUFFER_INFO_IS_INPUT_EQUALS(ASIOTrue, i)
 
 #define ASSERT_BUFFER_INFO_CHANNEL_NUMBER(a, b) ASSERT_EQUAL_ANY(a, bufferInfoChannelNumber(b))
