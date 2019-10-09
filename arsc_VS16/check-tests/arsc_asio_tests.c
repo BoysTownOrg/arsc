@@ -625,18 +625,34 @@ static ArAsioSegment* segment_at(ArAsioSegment* s, int i) {
 	return s + i;
 }
 
+static void assign_segment_data(ArAsioSegment* s, int i, int32_t* data) {
+	segment_at(s, i)->data = data;
+}
+
+static void assign_segment_size(ArAsioSegment* s, int i, int32_t size) {
+	segment_at(s, i)->size = size;
+}
+
+static void assign_segment_segment(ArAsioSegment* s, int i, int32_t segment) {
+	segment_at(s, i)->segment = segment;
+}
+
+static void initialize_segment(ArAsioSegment* s, int i) {
+	*segment_at(s, i) = initialized_segment();
+}
+
 START_TEST(write_device_buffer_tbd2) {
 	ArAsioSegment segment[2];
-	*segment_at(segment, 0) = initialized_segment();
+	initialize_segment(segment, 0);
 	int32_t stimulus1[3];
-	segment_at(segment, 0)->data = stimulus1;
-	segment_at(segment, 0)->size = 3;
-	segment_at(segment, 0)->segment = 0;
-	*segment_at(segment, 1) = initialized_segment();
+	assign_segment_data(segment, 0, stimulus1);
+	assign_segment_size(segment, 0, 3);
+	assign_segment_segment(segment, 0, 0);
+	initialize_segment(segment, 1);
 	int32_t stimulus2[4];
-	segment_at(segment, 1)->data = stimulus2;
-	segment_at(segment, 1)->size = 4;
-	segment_at(segment, 1)->segment = 1;
+	assign_segment_data(segment, 1, stimulus2);
+	assign_segment_size(segment, 1, 4);
+	assign_segment_segment(segment, 1, 1);
 	assign_device_segments(0, 2);
 
 	assign_integer_array(stimulus1, 0, 11);
