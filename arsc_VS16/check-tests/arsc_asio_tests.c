@@ -295,6 +295,10 @@ static int32_t *stimulusDataBlock(int i) {
 	return stimulusData_(i)->StimulusBlock;
 }
 
+static void set_device_desired_output_channels(int i, int32_t c) {
+	devices(i)->a_ncda = c;
+}
+
 #define ASSERT_EQUAL_INT(a, b) ck_assert_int_eq(a, b)
 #define ASSERT_EQUAL_ANY(a, b) ck_assert(a == b)
 
@@ -467,7 +471,7 @@ START_TEST(open_passes_device_to_list_rates) {
 }
 
 START_TEST(open_initializes_buffer_infos) {
-	devices(1)->a_ncda = 2;
+	set_device_desired_output_channels(1, 2);
 	devices(1)->a_ncad = 3;
 	open_device(1);
 	ASSERT_BUFFER_INFO_IS_INPUT_FOR_DEVICE_RANGE(0, 2);
@@ -574,7 +578,7 @@ START_TEST(io_prepare_initializes_stimulus_data_blocks) {
 
 START_TEST(pSendStimulusDataTbd) {
 	assign_device_output_channels(0, 1);
-	devices(0)->a_ncda = 1;
+	set_device_desired_output_channels(0, 1);
 	int32 other[3];
 	assign_output_buffer(0, other);
 	assign_output_buffer_size(0, sizeof other);
