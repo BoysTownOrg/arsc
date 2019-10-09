@@ -38,6 +38,6 @@ extern ARDEV* ar_current_device;
 
 int32_t _ar_asio_open(int32_t);
 int32_t _ar_asio_io_prepare(int32_t);
-int32_t pSendStimulusData(int32_t* buffer, int32_t aintBufferSize, ArAsioSegment* ptrStimulusData);
+int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t aintBufferSize, ArAsioSegment* ptrStimulusData);
 
 #endif

@@ -710,7 +710,7 @@ stimulus data.
 Each channel has its own StimulusData block, so this function does not worry
 about channels. A pointer to the correct StimulusData structure is passed.
 */
-int32_t pSendStimulusData(int32_t* buffer, int32_t buffer_size, ArAsioSegment* asio_segment) {
+int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsioSegment* asio_segment) {
 	int32_t output_channels = ar_current_device->a_ncda;			// shorthand
 	int32_t	intCurOutputSegment;
 	if (ar_current_device->a_ncad)
@@ -1466,7 +1466,7 @@ ASIOTime* bufferSwitchTimeInfo(ASIOTime* timeInfo, long index, ASIOBool processN
 				Tone - all of the cards tested here are Int32LSB, including:
 				CardDeluxe, Gina24, Layla24, and M-Audio Delta Audiophile 2496
 				*/
-				if (!pSendStimulusData(bufferInfos[i].buffers[index], lngAsioBufferSize, ptrStimulusData))
+				if (!ar_asio_write_device_buffer(bufferInfos[i].buffers[index], lngAsioBufferSize, ptrStimulusData))
 					break;	// ???
 		//		    return 0L;
 				break;

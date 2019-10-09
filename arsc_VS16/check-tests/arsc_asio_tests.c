@@ -287,12 +287,12 @@ static long bufferInfoChannelNumber(int i) {
 	return bufferInfo_(i)->channelNum;
 }
 
-static ArAsioSegment* stimulusData_(int i) {
+static ArAsioSegment* global_asio_segment_(int i) {
 	return global_asio_segment + i;
 }
 
-static int32_t *stimulusDataBlock(int i) {
-	return stimulusData_(i)->data;
+static int32_t *global_asio_segment_data(int i) {
+	return global_asio_segment_(i)->data;
 }
 
 static void set_device_desired_output_channels(int i, int32_t c) {
@@ -351,20 +351,20 @@ for (int i = a; i < b; ++i)\
 
 #define ASSERT_BUFFER_INFO_CHANNEL_NUMBER(a, b) ASSERT_EQUAL_ANY(a, bufferInfoChannelNumber(b))
 
-#define ASSERT_STIMULUS_DATA_BUFFER(a, b)\
-	ASSERT_EQUAL_ANY(a, stimulusDataBlock(b));
+#define ASSERT_SEGMENT_BUFFER(a, b)\
+	ASSERT_EQUAL_ANY(a, global_asio_segment_data(b));
 
-#define ASSERT_STIMULUS_DATA_SAMPLES(a, b)\
-	ASSERT_EQUAL_ANY(a, stimulusData_(b)->size)
+#define ASSERT_SEGMENT_SAMPLES(a, b)\
+	ASSERT_EQUAL_ANY(a, global_asio_segment_(b)->size)
 
-#define ASSERT_STIMULUS_DATA_SEGMENT(a, b)\
-	ASSERT_EQUAL_ANY(a, stimulusData_(b)->segment)
+#define ASSERT_SEGMENT_SEGMENT(a, b)\
+	ASSERT_EQUAL_ANY(a, global_asio_segment_(b)->segment)
 
-#define ASSERT_STIMULUS_DATA_CHANNEL(a, b)\
-	ASSERT_EQUAL_ANY(a, stimulusData_(b)->channel)
+#define ASSERT_SEGMENT_CHANNEL(a, b)\
+	ASSERT_EQUAL_ANY(a, global_asio_segment_(b)->channel)
 
-#define ASSERT_STIMULUS_DATA_INDEX(a, b)\
-	ASSERT_EQUAL_ANY(a, stimulusData_(b)->Index)
+#define ASSERT_SEGMENT_INDEX(a, b)\
+	ASSERT_EQUAL_ANY(a, global_asio_segment_(b)->Index)
 
 START_TEST(bind_returns_number_of_devices) {
 	set_devices(3);
@@ -530,7 +530,7 @@ static void assign_output_buffer(int i, void* buffer) {
 	assign_pointer_array(output_buffers, i, buffer);
 }
 
-START_TEST(io_prepare_initializes_stimulus_data) {
+START_TEST(io_prepare_initializes_segments) {
 	assign_device_output_channels(0, 2);
 	assign_device_segments(0, 3);
 	assign_output_buffer_size(0, 4);
@@ -539,49 +539,49 @@ START_TEST(io_prepare_initializes_stimulus_data) {
 
 	io_prepare();
 
-	ASSERT_STIMULUS_DATA_SAMPLES(4, 0);
-	ASSERT_STIMULUS_DATA_SAMPLES(4, 1);
-	ASSERT_STIMULUS_DATA_SAMPLES(5, 2);
-	ASSERT_STIMULUS_DATA_SAMPLES(5, 3);
-	ASSERT_STIMULUS_DATA_SAMPLES(6, 4);
-	ASSERT_STIMULUS_DATA_SAMPLES(6, 5);
+	ASSERT_SEGMENT_SAMPLES(4, 0);
+	ASSERT_SEGMENT_SAMPLES(4, 1);
+	ASSERT_SEGMENT_SAMPLES(5, 2);
+	ASSERT_SEGMENT_SAMPLES(5, 3);
+	ASSERT_SEGMENT_SAMPLES(6, 4);
+	ASSERT_SEGMENT_SAMPLES(6, 5);
 
-	ASSERT_STIMULUS_DATA_SEGMENT(0, 0);
-	ASSERT_STIMULUS_DATA_SEGMENT(0, 1);
-	ASSERT_STIMULUS_DATA_SEGMENT(1, 2);
-	ASSERT_STIMULUS_DATA_SEGMENT(1, 3);
-	ASSERT_STIMULUS_DATA_SEGMENT(2, 4);
-	ASSERT_STIMULUS_DATA_SEGMENT(2, 5);
+	ASSERT_SEGMENT_SEGMENT(0, 0);
+	ASSERT_SEGMENT_SEGMENT(0, 1);
+	ASSERT_SEGMENT_SEGMENT(1, 2);
+	ASSERT_SEGMENT_SEGMENT(1, 3);
+	ASSERT_SEGMENT_SEGMENT(2, 4);
+	ASSERT_SEGMENT_SEGMENT(2, 5);
 
-	ASSERT_STIMULUS_DATA_CHANNEL(0, 0);
-	ASSERT_STIMULUS_DATA_CHANNEL(1, 1);
-	ASSERT_STIMULUS_DATA_CHANNEL(0, 2);
-	ASSERT_STIMULUS_DATA_CHANNEL(1, 3);
-	ASSERT_STIMULUS_DATA_CHANNEL(0, 4);
-	ASSERT_STIMULUS_DATA_CHANNEL(1, 5);
+	ASSERT_SEGMENT_CHANNEL(0, 0);
+	ASSERT_SEGMENT_CHANNEL(1, 1);
+	ASSERT_SEGMENT_CHANNEL(0, 2);
+	ASSERT_SEGMENT_CHANNEL(1, 3);
+	ASSERT_SEGMENT_CHANNEL(0, 4);
+	ASSERT_SEGMENT_CHANNEL(1, 5);
 
-	ASSERT_STIMULUS_DATA_INDEX(0, 0);
-	ASSERT_STIMULUS_DATA_INDEX(0, 1);
-	ASSERT_STIMULUS_DATA_INDEX(0, 2);
-	ASSERT_STIMULUS_DATA_INDEX(0, 3);
-	ASSERT_STIMULUS_DATA_INDEX(0, 4);
-	ASSERT_STIMULUS_DATA_INDEX(0, 5);
+	ASSERT_SEGMENT_INDEX(0, 0);
+	ASSERT_SEGMENT_INDEX(0, 1);
+	ASSERT_SEGMENT_INDEX(0, 2);
+	ASSERT_SEGMENT_INDEX(0, 3);
+	ASSERT_SEGMENT_INDEX(0, 4);
+	ASSERT_SEGMENT_INDEX(0, 5);
 }
 
-START_TEST(io_prepare_initializes_stimulus_data_blocks) {
+START_TEST(io_prepare_initializes_segment_data) {
 	assign_device_output_channels(0, 3);
-	int32_t local_first;
-	assign_output_buffer(0, &local_first);
-	int32_t local_second;
-	assign_output_buffer(1, &local_second);
-	int32_t local_third;
-	assign_output_buffer(2, &local_third);
+	int32_t first;
+	assign_output_buffer(0, &first);
+	int32_t second;
+	assign_output_buffer(1, &second);
+	int32_t third;
+	assign_output_buffer(2, &third);
 
 	io_prepare();
 	
-	ASSERT_STIMULUS_DATA_BUFFER(&local_first, 0);
-	ASSERT_STIMULUS_DATA_BUFFER(&local_second, 1);
-	ASSERT_STIMULUS_DATA_BUFFER(&local_third, 2);
+	ASSERT_SEGMENT_BUFFER(&first, 0);
+	ASSERT_SEGMENT_BUFFER(&second, 1);
+	ASSERT_SEGMENT_BUFFER(&third, 2);
 }
 
 static void setupSendStimulusData(void) {
@@ -595,7 +595,7 @@ static void teardownSendStimulusData(void) {
 	free_device(0);
 }
 
-static ArAsioSegment initializedStimulusData() {
+static ArAsioSegment initialized_segment() {
 	ArAsioSegment s;
 	s.Magic = 0xBEEF;
 	s.Index = 0;
@@ -605,38 +605,38 @@ static ArAsioSegment initializedStimulusData() {
 	return s;
 }
 
-START_TEST(pSendStimulusDataTbd) {
+START_TEST(write_device_buffer_tbd) {
 	int32_t stimulus[3];
-	ArAsioSegment localStimulusData = initializedStimulusData();
-	localStimulusData.data = stimulus;
-	localStimulusData.size = 3;
+	ArAsioSegment segment = initialized_segment();
+	segment.data = stimulus;
+	segment.size = 3;
 
 	assign_integer_array(stimulus, 0, 5);
 	assign_integer_array(stimulus, 1, 6);
 	assign_integer_array(stimulus, 2, 7);
 	int32_t buffer[3];
-	pSendStimulusData(buffer, 3, &localStimulusData);
+	ar_asio_write_device_buffer(buffer, 3, &segment);
 	ASSERT_EQUAL_ANY(5, read_integer_array_at(buffer, 0));
 	ASSERT_EQUAL_ANY(6, read_integer_array_at(buffer, 1));
 	ASSERT_EQUAL_ANY(7, read_integer_array_at(buffer, 2));
 }
 
-static ArAsioSegment* stimulus_data_at(ArAsioSegment* s, int i) {
+static ArAsioSegment* segment_at(ArAsioSegment* s, int i) {
 	return s + i;
 }
 
-START_TEST(pSendStimulusDataTbd2) {
-	ArAsioSegment localStimulusData[2];
-	*stimulus_data_at(localStimulusData, 0) = initializedStimulusData();
+START_TEST(write_device_buffer_tbd2) {
+	ArAsioSegment segment[2];
+	*segment_at(segment, 0) = initialized_segment();
 	int32_t stimulus1[3];
-	stimulus_data_at(localStimulusData, 0)->data = stimulus1;
-	stimulus_data_at(localStimulusData, 0)->size = 3;
-	stimulus_data_at(localStimulusData, 0)->segment = 0;
-	*stimulus_data_at(localStimulusData, 1) = initializedStimulusData();
+	segment_at(segment, 0)->data = stimulus1;
+	segment_at(segment, 0)->size = 3;
+	segment_at(segment, 0)->segment = 0;
+	*segment_at(segment, 1) = initialized_segment();
 	int32_t stimulus2[4];
-	stimulus_data_at(localStimulusData, 1)->data = stimulus2;
-	stimulus_data_at(localStimulusData, 1)->size = 4;
-	stimulus_data_at(localStimulusData, 1)->segment = 1;
+	segment_at(segment, 1)->data = stimulus2;
+	segment_at(segment, 1)->size = 4;
+	segment_at(segment, 1)->segment = 1;
 	assign_device_segments(0, 2);
 
 	assign_integer_array(stimulus1, 0, 11);
@@ -649,7 +649,7 @@ START_TEST(pSendStimulusDataTbd2) {
 	assign_integer_array(stimulus2, 3, 17);
 
 	int32_t buffer[7];
-	pSendStimulusData(buffer, 7, localStimulusData);
+	ar_asio_write_device_buffer(buffer, 7, segment);
 	ASSERT_EQUAL_ANY(11, read_integer_array_at(buffer, 0));
 	ASSERT_EQUAL_ANY(12, read_integer_array_at(buffer, 1));
 	ASSERT_EQUAL_ANY(13, read_integer_array_at(buffer, 2));
@@ -696,13 +696,13 @@ Suite* arsc_asio_test_suite() {
 	suite_add_tcase(suite, test_case);
 	TCase* io_prepare_test_case = tcase_create("io_prepare");
 	tcase_add_checked_fixture(io_prepare_test_case, setup_io_prepare, teardown_io_prepare);
-	add_test(io_prepare_test_case, io_prepare_initializes_stimulus_data);
-	add_test(io_prepare_test_case, io_prepare_initializes_stimulus_data_blocks);
+	add_test(io_prepare_test_case, io_prepare_initializes_segments);
+	add_test(io_prepare_test_case, io_prepare_initializes_segment_data);
 	suite_add_tcase(suite, io_prepare_test_case);
 	TCase* sendStimulusDataTestCase = tcase_create("sendStimulusData");
 	tcase_add_checked_fixture(sendStimulusDataTestCase, setupSendStimulusData, teardownSendStimulusData);
-	add_test(sendStimulusDataTestCase, pSendStimulusDataTbd);
-	add_test(sendStimulusDataTestCase, pSendStimulusDataTbd2);
+	add_test(sendStimulusDataTestCase, write_device_buffer_tbd);
+	add_test(sendStimulusDataTestCase, write_device_buffer_tbd2);
 	suite_add_tcase(suite, sendStimulusDataTestCase);
 	return suite;
 }
