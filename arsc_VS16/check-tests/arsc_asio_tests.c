@@ -366,6 +366,9 @@ for (int i = a; i < b; ++i)\
 #define ASSERT_SEGMENT_INDEX(a, b)\
 	ASSERT_EQUAL_ANY(a, global_asio_segment_(b)->Index)
 
+#define ASSERT_INTEGER_ARRAY_AT_EQUALS(a, b, c)\
+	ASSERT_EQUAL_ANY(a, read_integer_array_at(b, c))
+
 START_TEST(bind_returns_number_of_devices) {
 	set_devices(3);
 	ASSERT_EQUAL_INT(3, bind_());
@@ -616,9 +619,9 @@ START_TEST(write_device_buffer_tbd) {
 	assign_integer_array(stimulus, 2, 7);
 	int32_t buffer[3];
 	ar_asio_write_device_buffer(buffer, 3, &segment);
-	ASSERT_EQUAL_ANY(5, read_integer_array_at(buffer, 0));
-	ASSERT_EQUAL_ANY(6, read_integer_array_at(buffer, 1));
-	ASSERT_EQUAL_ANY(7, read_integer_array_at(buffer, 2));
+	ASSERT_INTEGER_ARRAY_AT_EQUALS(5, buffer, 0);
+	ASSERT_INTEGER_ARRAY_AT_EQUALS(6, buffer, 1);
+	ASSERT_INTEGER_ARRAY_AT_EQUALS(7, buffer, 2);
 }
 
 static ArAsioSegment* segment_at(ArAsioSegment* s, int i) {
@@ -666,18 +669,17 @@ START_TEST(write_device_buffer_tbd2) {
 
 	int32_t buffer[7];
 	ar_asio_write_device_buffer(buffer, 7, segment);
-	ASSERT_EQUAL_ANY(11, read_integer_array_at(buffer, 0));
-	ASSERT_EQUAL_ANY(12, read_integer_array_at(buffer, 1));
-	ASSERT_EQUAL_ANY(13, read_integer_array_at(buffer, 2));
-	ASSERT_EQUAL_ANY(14, read_integer_array_at(buffer, 3));
-	ASSERT_EQUAL_ANY(15, read_integer_array_at(buffer, 4));
-	ASSERT_EQUAL_ANY(16, read_integer_array_at(buffer, 5));
-	ASSERT_EQUAL_ANY(17, read_integer_array_at(buffer, 6));
+	ASSERT_INTEGER_ARRAY_AT_EQUALS(11, buffer, 0);
+	ASSERT_INTEGER_ARRAY_AT_EQUALS(12, buffer, 1);
+	ASSERT_INTEGER_ARRAY_AT_EQUALS(13, buffer, 2);
+	ASSERT_INTEGER_ARRAY_AT_EQUALS(14, buffer, 3);
+	ASSERT_INTEGER_ARRAY_AT_EQUALS(15, buffer, 4);
+	ASSERT_INTEGER_ARRAY_AT_EQUALS(16, buffer, 5);
+	ASSERT_INTEGER_ARRAY_AT_EQUALS(17, buffer, 6);
 }
 
 START_TEST(write_device_buffer_tbd3) {
 	ArAsioSegment segment[2];
-	global_asio_segment = segment;
 	initialize_segment(segment, 0);
 	int32_t stimulus1[3];
 	assign_segment_data(segment, 0, stimulus1);
@@ -701,13 +703,13 @@ START_TEST(write_device_buffer_tbd3) {
 
 	int32_t buffer[7];
 	ar_asio_write_device_buffer(buffer, 7, segment + 1);
-	ASSERT_EQUAL_ANY(14, read_integer_array_at(buffer, 0));
-	ASSERT_EQUAL_ANY(15, read_integer_array_at(buffer, 1));
-	ASSERT_EQUAL_ANY(16, read_integer_array_at(buffer, 2));
-	ASSERT_EQUAL_ANY(17, read_integer_array_at(buffer, 3));
-	ASSERT_EQUAL_ANY(11, read_integer_array_at(buffer, 4));
-	ASSERT_EQUAL_ANY(12, read_integer_array_at(buffer, 5));
-	ASSERT_EQUAL_ANY(13, read_integer_array_at(buffer, 6));
+	ASSERT_INTEGER_ARRAY_AT_EQUALS(14, buffer, 0);
+	ASSERT_INTEGER_ARRAY_AT_EQUALS(15, buffer, 1);
+	ASSERT_INTEGER_ARRAY_AT_EQUALS(16, buffer, 2);
+	ASSERT_INTEGER_ARRAY_AT_EQUALS(17, buffer, 3);
+	ASSERT_INTEGER_ARRAY_AT_EQUALS(11, buffer, 4);
+	ASSERT_INTEGER_ARRAY_AT_EQUALS(12, buffer, 5);
+	ASSERT_INTEGER_ARRAY_AT_EQUALS(13, buffer, 6);
 }
 
 static void add_test(TCase* test_case, const TTest* test) {
