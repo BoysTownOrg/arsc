@@ -1,5 +1,5 @@
-#ifndef ARSC_ARSC_ASIO_ARSC_ASIO
-#define ARSC_ARSC_ASIO_ARSC_ASIO
+#ifndef ARSC_ARSC_ASIO_ARSC_ASIO_H_
+#define ARSC_ARSC_ASIO_ARSC_ASIO_H_
 
 #include "../arscdev.h"
 #include "../arsc_common.h"

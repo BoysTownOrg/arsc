@@ -10,35 +10,35 @@
 #define MAX_REGISTRY_KEY_LENGTH	255
 #define ASIO_PATH "software\\asio"  // For my example
 #define MAX_ASIO_DRIVERS 32  // PortAudio allows a max of 32, so we will too
-#define MAXDRVNAMELEN 40
+#define MAX_DRIVER_NAME_LENGTH 40
 
 typedef struct {
-	CLSID		clsid;					    // Direct from the registry
-	char		name[MAXDRVNAMELEN];
-	char		description[MAXDRVNAMELEN];
-	bool		valid;
-	int32_t		devices;				    // Number of ASIO output devices (or input if ARSC_PREF_IN )
+	CLSID clsid;
+	char name[MAX_DRIVER_NAME_LENGTH];
+	char description[MAX_DRIVER_NAME_LENGTH];
+	bool valid;
+	int32_t	devices;
 } TAsioDriver;
 
 // ASIO loads and intializes only one valid driver at a time.  To
 // make a full list of valid "devices" (in terms of waveopen functionality)
 // I created this structure to hold possible devices.
 typedef struct {
-	char		name[ARSC_NAMLEN];
-	int32_t		driver;					    // index back to TAsioDriver struct
-	int32_t		good_sampling_rates;
-	bool		IsOutput;
+	char name[ARSC_NAMLEN];
+	int32_t	driver; // index back to TAsioDriver struct
+	int32_t	good_sampling_rates;
+	bool IsOutput;
 } TVirtualDevice;
 
 typedef struct {
-	int32_t Magic;					    // Just an identifier for this structure
+	int32_t Magic; // Just an identifier for this structure
 	int32_t* data;
 	int32_t size;
 	int32_t Index;
 	int32_t channel;
 	int32_t segment;
-	int32_t SkippedSamples;				    // Skipped samples before Latency kicks in
-	bool LatencyReached;				    // For each channel, but only segment 0
+	int32_t SkippedSamples; // Skipped samples before Latency kicks in
+	bool LatencyReached; // For each channel, but only segment 0
 } TResponseData;
 
 // device identifier offset
@@ -66,7 +66,7 @@ static long	slngTotalPossibleChannels = 0;  // Total possible channels
 static long	slngInputLatency, slngOutputLatency;  // Latencies as polled from the card.
 static bool	sbolPostOutput = false;  // flag - true if driver uses ASIOOutputReady optimization
 static bool	sbolBuffersCreated = false; // flag - true if buffers have been created
-static bool	sbolIsStarted = false;  // flag - true if driver is started
+static bool	driver_has_started = false;  // flag - true if driver is started
 static int32_t sintTotalSamples = 0;  // Total samples processed
 static long	slngLatencyOffset = 0;  // LatencyOffset specified by app
 static int32_t sintSegmentFinished = 0; // semaphore-like variable to tell when segment is finished
@@ -78,9 +78,6 @@ static FILE* fhBD = NULL;
 static int32_t	good_sample_rates;
 ARDEV* ar_current_device;
 
-/*
-External prototypes to CPP functions
-*/
 bool SDKLoadAsioDriver(char* name);
 bool SDKAsioInit(ASIODriverInfo* info);
 bool SDKAsioExit(void);
@@ -102,7 +99,6 @@ bool SDKAsioDisposeBuffers(void);
 bool SDKAsioStop(void);
 bool SDKAsioStart(void);
 bool SDKAsioSetSampleRateImpl(ASIOSampleRate aSampleRate);
-
 bool (*SDKAsioSetSampleRate)(ASIOSampleRate aSampleRate) = SDKAsioSetSampleRateImpl;
 bool (*SDKAsioGetBufferSize)(
 	long* alngMinBufferSize,
@@ -110,19 +106,10 @@ bool (*SDKAsioGetBufferSize)(
 	long* aslngPreferredBufferSize,
 	long* alngGranularity
 	) = SDKAsioGetBufferSizeImpl;
-
-/*
-Callback prototypes
-*/
 void bufferSwitch(long index, ASIOBool processNow);
 ASIOTime* bufferSwitchTimeInfo(ASIOTime* timeInfo, long index, ASIOBool processNow);
 void sampleRateChanged(ASIOSampleRate sRate);
 long asioMessages(long selector, long value, void* message, double* opt);
-
-/*
-Internal prototypes
-*/
-
 static int32_t pFillResponseBlock(int32_t* buffer, int32_t aintBufferSize, TResponseData* ptrResponseData);
 static int32_t pWriteBufferDemarcation(int32_t aintChunkSize, int32_t aintAbsAmplitude);
 static int32_t pPollAsioDrivers(void);
@@ -140,16 +127,14 @@ ar_asio_devices_impl()
 	// Has the number of devices already been polled?
 	if (asio_device_count > 0) {
 		FDBUG((_arS, "_ar_asio_dev_name(): Already have number of devices [%d]\n", asio_device_count));
-		return (asio_device_count);
+		return asio_device_count;
 	}
 	else {
 		// Need to load the ASIO driver and get some details.
 		if (!pPollAsioDrivers())
 			return 0;
 	}
-
-	// Now we should have the number of devices
-	return (asio_device_count);
+	return asio_device_count;
 }
 
 int32_t(*ar_asio_devices)() = ar_asio_devices_impl;
@@ -160,14 +145,11 @@ _ar_asio_dev_name - return name of I/O device
 The original assumption was to just return the driver name.
 This doesn't work for Echo ASIO WDM, which is the same driver
 name for a number of Echo cards.
-
 */
 
 static char*
 _ar_asio_dev_name(int32_t di)
 {
-	int32_t		i;
-
 	// In case this is called before we are ready
 	if (asio_device_count == 0) {
 		FDBUG((_arS, "_ar_asio_dev_name(): Repoll\n"));
@@ -175,7 +157,7 @@ _ar_asio_dev_name(int32_t di)
 			return NULL;
 	}
 
-	for (i = 0; i < MAXDEV; i++) {
+	for (int32_t i = 0; i < MAXDEV; i++) {
 		if (i == (di - device_identifier_offset)) {
 			FDBUG((_arS, "_ar_asio_dev_name(): Found name [%s]\n", VirtualDevice[i].name));
 			return VirtualDevice[i].name;
@@ -196,8 +178,6 @@ _ar_asio_list_rates - return good sampling rates
 static int32_t
 _ar_asio_list_rates(int32_t di)
 {
-	int32_t		i;
-
 	// In case this is called before we are ready
 	if (asio_device_count == 0) {
 		FDBUG((_arS, "_ar_asio_dev_name(): Repoll\n"));
@@ -205,7 +185,7 @@ _ar_asio_list_rates(int32_t di)
 			return 0;
 	}
 
-	for (i = 0; i < MAXDEV; i++) {
+	for (int32_t i = 0; i < MAXDEV; i++) {
 		if (i == (di - device_identifier_offset)) {
 			FDBUG((_arS, "_ar_asio_list_rates(): good_sampling_rates=%0X\n", VirtualDevice[i].good_sampling_rates));
 			return VirtualDevice[i].good_sampling_rates;
@@ -224,12 +204,12 @@ int32_t(*ar_asio_list_rates)(int32_t) = _ar_asio_list_rates;
 static void
 _ar_asio_io_stop(int32_t di)
 {
-	ar_current_device = _ardev[di];			// get access to application parameters
+	ar_current_device = _ardev[di];
 
-	if (sbolIsStarted) {
+	if (driver_has_started) {
 		FDBUG((_arS, "_ar_asio_io_stop(): Calling SDKAsioStop().\n"));
 		SDKAsioStop();
-		sbolIsStarted = false;
+		driver_has_started = false;
 	}
 
 	// Let the calling window know that we are done.
@@ -259,9 +239,9 @@ _ar_asio_close(int32_t di) {
 		fclose(fhBD);
 
 	// Stop the driver if it is running
-	if (sbolIsStarted) {
+	if (driver_has_started) {
 		_ar_asio_io_stop(di);
-		sbolIsStarted = false;
+		driver_has_started = false;
 		Sleep(1);	// 1-ms delay delay before freeing buffers
 	}
 
@@ -313,11 +293,6 @@ void (*ar_asio_close)(int32_t) = _ar_asio_close;
 
 int32_t _ar_asio_open(int32_t di)
 {
-	long		lngMinBufferSize;
-	long		lngMaxBufferSize;
-	long		lngGranularity;
-	ASIOBufferInfo* ptrBufferInfo;			// handy pointer
-	int32_t		i;
 	bool		bolOutput;
 	int32_t		intChannelOffset = 0;
 
@@ -364,6 +339,9 @@ int32_t _ar_asio_open(int32_t di)
 	value is set in the ASIO control panel.  So far I haven't
 	found a need to deviate from the Preferred . . . .
 	*/
+	long lngMaxBufferSize;
+	long lngMinBufferSize;
+	long lngGranularity;
 	if (!SDKAsioGetBufferSize(&lngMinBufferSize,
 		&lngMaxBufferSize,
 		&preferred_buffer_size,
@@ -382,7 +360,7 @@ int32_t _ar_asio_open(int32_t di)
 
 	// Figure out the channel offset in case there are multiple ASIO cards.
 	// Count all "devices" up to the card in question.
-	for (i = 0; i < sintAsioIntializedDriver; i++) {
+	for (int32_t i = 0; i < sintAsioIntializedDriver; i++) {
 		if (asio_drivers[i].valid) {
 			intChannelOffset += asio_drivers[i].devices;
 		}
@@ -391,8 +369,8 @@ int32_t _ar_asio_open(int32_t di)
 	FDBUG((_arS, "Channel Offset [%d]\n", intChannelOffset));
 
 	// Allocate buffers
-	ptrBufferInfo = bufferInfos;		// Set a pointer
-	for (i = 0; i < ar_current_device->a_ncda; i++) {		// loop over output channels
+	ASIOBufferInfo* ptrBufferInfo = bufferInfos;		// Set a pointer
+	for (int32_t i = 0; i < ar_current_device->a_ncda; i++) {		// loop over output channels
 		ptrBufferInfo->isInput = ASIOFalse;	// create an output buffer
 		ptrBufferInfo->channelNum = i;		// (di - dio) handles channel offsets
 		ptrBufferInfo->buffers[0] = NULL;	// clear buffer 1/2 channels
@@ -401,7 +379,7 @@ int32_t _ar_asio_open(int32_t di)
 		ptrBufferInfo++;
 	}
 
-	for (i = 0; i < ar_current_device->a_ncad; i++) {		// loop over output channels
+	for (int32_t i = 0; i < ar_current_device->a_ncad; i++) {		// loop over output channels
 		ptrBufferInfo->isInput = ASIOTrue;	// create an input buffer
 		ptrBufferInfo->channelNum = i;		// (di - dio) handles channel offsets
 		ptrBufferInfo->buffers[0] = NULL;	// clear buffer 1/2 channels
@@ -416,11 +394,15 @@ int32_t _ar_asio_open(int32_t di)
 	asioCallbacks.asioMessage = &asioMessages;
 	asioCallbacks.bufferSwitchTimeInfo = &bufferSwitchTimeInfo;
 
-
 	/*
 	Create the ASIO buffers, both input and output.  Also set up the callbacks.
 	*/
-	sbolBuffersCreated = SDKAsioCreateBuffers(bufferInfos, total_input_and_output_channels, preferred_buffer_size, &asioCallbacks);
+	sbolBuffersCreated = SDKAsioCreateBuffers(
+		bufferInfos, 
+		total_input_and_output_channels, 
+		preferred_buffer_size, 
+		&asioCallbacks
+	);
 	if (!sbolBuffersCreated) {
 		FDBUG((_arS, "_ar_asio_open(): unable to create buffers\n"));
 		goto err;
@@ -436,7 +418,7 @@ int32_t _ar_asio_open(int32_t di)
 
 	// Clear the buffers because CardDeluxe has known issues
 	ptrBufferInfo = bufferInfos;
-	for (i = 0; i < total_input_and_output_channels; i++) {
+	for (int32_t i = 0; i < total_input_and_output_channels; i++) {
 		memset(ptrBufferInfo->buffers[0], 0, preferred_buffer_size * sizeof(int32_t));
 		memset(ptrBufferInfo->buffers[1], 0, preferred_buffer_size * sizeof(int32_t));
 		ptrBufferInfo++;
@@ -593,8 +575,8 @@ _ar_asio_chk_seg(int32_t di, int32_t b)
 
 	ar_current_device = _ardev[di];			// get access to application parameters
 
-	if (!sbolIsStarted) {
-		FDBUG((_arS, "sbolIsStarted is FALSE\n"));
+	if (!driver_has_started) {
+		FDBUG((_arS, "driver_has_started is FALSE\n"));
 		return -1;
 	}
 
@@ -643,7 +625,7 @@ _ar_asio_io_start(int32_t di)
 
 	FDBUG((_arS, "_ar_asio_io_start(): entered.\n"));
 
-	sbolIsStarted = SDKAsioStart();
+	driver_has_started = SDKAsioStart();
 
 }
 
@@ -1452,7 +1434,7 @@ ASIOTime* bufferSwitchTimeInfo(ASIOTime* timeInfo, long index, ASIOBool processN
 	ArAsioSegment* ptrStimulusData = current_asio_segment;	    // pointer to channel 0 of current segment stimulus
 	TResponseData* ptrResponseData = sptrCurSegmentResponse;	    // pointer to channel 0 of current segment response
 
-	if (!sbolIsStarted)
+	if (!driver_has_started)
 		return 0L;
 
 	// perform the processing
