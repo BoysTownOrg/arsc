@@ -577,18 +577,23 @@ START_TEST(io_prepare_initializes_stimulus_data_blocks) {
 }
 
 START_TEST(pSendStimulusDataTbd) {
-	assign_device_output_channels(0, 1);
+	int32 stimulus[3];
+	TStimulusData localStimulusData;
+	localStimulusData.Magic = 0xBEEF;
+	localStimulusData.Index = 0;
+	localStimulusData.ChannelNumber = 0;
+	localStimulusData.Samples = 3;
+	localStimulusData.SegmentNumber = 0;
+	localStimulusData.OutputDone = 0;
+	localStimulusData.StimulusBlock = stimulus;
 	set_device_desired_output_channels(0, 1);
-	int32 other[3];
-	assign_output_buffer(0, other);
-	assign_output_buffer_size(0, sizeof other);
+	ar_current_device = devices(0);
 
-	io_prepare();
-	assign_integer_array(other, 0, 5);
-	assign_integer_array(other, 1, 6);
-	assign_integer_array(other, 2, 7);
+	assign_integer_array(stimulus, 0, 5);
+	assign_integer_array(stimulus, 1, 6);
+	assign_integer_array(stimulus, 2, 7);
 	int32_t buffer[3];
-	pSendStimulusData(buffer, 3, stimulusData_(0));
+	pSendStimulusData(buffer, 3, &localStimulusData);
 	ASSERT_EQUAL_ANY(5, buffer[0]);
 	ASSERT_EQUAL_ANY(6, buffer[1]);
 	ASSERT_EQUAL_ANY(7, buffer[2]);

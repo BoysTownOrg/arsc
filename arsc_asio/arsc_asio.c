@@ -85,7 +85,7 @@ static FILE		*fhResponse1 = NULL;
 static FILE		*fhStimulus1 = NULL;
 static FILE		*fhBD = NULL;
 static int32		gdsr;					    // Good sample rates
-static ARDEV		*a;
+ARDEV *ar_current_device;
 
 #ifdef USE_MUTEX
 static HANDLE			hMutex;				    // mutex for synchronizaton between threads
@@ -241,7 +241,7 @@ int32_t(*ar_asio_list_rates)(int32_t) = _ar_asio_list_rates;
 static void
 _ar_asio_io_stop(int32_t di)
 {
-	a = _ardev[di];			// get access to application parameters
+	ar_current_device = _ardev[di];			// get access to application parameters
 
 	if (sbolIsStarted) {
 		FDBUG((_arS, "_ar_asio_io_stop(): Calling SDKAsioStop().\n"));
@@ -349,13 +349,13 @@ int32_t _ar_asio_open(int32_t di)
     bool		bolOutput;
     int32		intChannelOffset = 0;
 
-    a = _ardev[di];
+    ar_current_device = _ardev[di];
     // Loon test
-    if (intChannelOffset + a->ncda > sintMaxOutputChannels ) {
+    if (intChannelOffset + ar_current_device->ncda > sintMaxOutputChannels ) {
 	FDBUG ( ( _arS, "_ar_asio_open(): too many output channels requested for device\n" ) );
 	goto err;
     }
-    if (intChannelOffset + a->ncad > sintMaxInputChannels ) {
+    if (intChannelOffset + ar_current_device->ncad > sintMaxInputChannels ) {
 	FDBUG ( ( _arS, "_ar_asio_open(): too many input channels requested for device\n" ) );
 	goto err;
     }
@@ -368,18 +368,18 @@ int32_t _ar_asio_open(int32_t di)
 
     // This is always true for ASIO.  This lets the API code use the 
     // segments as is because of the ef (effective) flag.
-    a->nbps = 4;
-    a->ntlv = 0;
+    ar_current_device->nbps = 4;
+    ar_current_device->ntlv = 0;
 
     /* 
     Ensure a good sample rate, then set it.
     gdsr is a bitwise combintation of our list of 27 sample rates.
     Once known, we don't have to look it up again.
     */
-    if (!a->gdsr)
-	a->gdsr = ar_asio_list_rates(di);
-    a->rate = _ar_adjust_rate ( di, a->a_rate );
-    if ( ! SDKAsioSetSampleRate ( (double) a->rate ) )
+    if (!ar_current_device->gdsr)
+	ar_current_device->gdsr = ar_asio_list_rates(di);
+    ar_current_device->rate = _ar_adjust_rate ( di, ar_current_device->a_rate );
+    if ( ! SDKAsioSetSampleRate ( (double) ar_current_device->rate ) )
 	goto err;
 
     // check whether the driver requires the ASIOOutputReady() optimization
@@ -404,7 +404,7 @@ int32_t _ar_asio_open(int32_t di)
     /* 
     Allocate bufferInfos
     */
-    slngTotalUsedChannels = a->a_ncad + a->a_ncda;
+    slngTotalUsedChannels = ar_current_device->a_ncad + ar_current_device->a_ncda;
     if ( ( bufferInfos = (ASIOBufferInfo *) calloc ( slngTotalUsedChannels, sizeof ( ASIOBufferInfo ) ) ) == NULL )
 	goto err;
 
@@ -420,7 +420,7 @@ int32_t _ar_asio_open(int32_t di)
 
     // Allocate buffers
     ptrBufferInfo = bufferInfos;		// Set a pointer
-    for (i = 0; i < a->a_ncda; i++) {		// loop over output channels
+    for (i = 0; i < ar_current_device->a_ncda; i++) {		// loop over output channels
     	ptrBufferInfo->isInput = ASIOFalse;	// create an output buffer
 	ptrBufferInfo->channelNum = i;		// (di - dio) handles channel offsets
 	ptrBufferInfo->buffers[0] = NULL;	// clear buffer 1/2 channels
@@ -429,7 +429,7 @@ int32_t _ar_asio_open(int32_t di)
 	ptrBufferInfo++;
     }
 
-    for (i = 0; i < a->a_ncad; i++) {		// loop over output channels
+    for (i = 0; i < ar_current_device->a_ncad; i++) {		// loop over output channels
 	ptrBufferInfo->isInput = ASIOTrue;	// create an input buffer
 	ptrBufferInfo->channelNum = i;		// (di - dio) handles channel offsets
 	ptrBufferInfo->buffers[0] = NULL;	// clear buffer 1/2 channels
@@ -507,11 +507,11 @@ _ar_asio_io_prepare(int32_t di)
 
     FDBUG ( (_arS, "asio_io_prepare:\n") );
 
-    a = _ardev[di];				    // get access to application parameters
+    ar_current_device = _ardev[di];				    // get access to application parameters
 
-    intNumberSegments = a->segswp;		    // shorthand
-    out = (int32 **) a->o_data;			    // shorthand
-    in = (int32 **) a->i_data;			    // shorthand
+    intNumberSegments = ar_current_device->segswp;		    // shorthand
+    out = (int32 **) ar_current_device->o_data;			    // shorthand
+    in = (int32 **) ar_current_device->i_data;			    // shorthand
 
     /*
     Set up stimulus (OUTPUT) blocks
@@ -528,27 +528,27 @@ _ar_asio_io_prepare(int32_t di)
     The pointer "sptrCurSegmentStimulus" will point to the first (channel 0)
     stimulusData for the current segment.
     */
-    if ( ( stimulusData = (TStimulusData *) calloc ( a->ncda * intNumberSegments, sizeof ( TStimulusData ) ) ) == NULL )
+    if ( ( stimulusData = (TStimulusData *) calloc ( ar_current_device->ncda * intNumberSegments, sizeof ( TStimulusData ) ) ) == NULL )
 	return -1;
 
     /*
     Set up response (INPUT) blocks
     (see note above for details)
     */
-    if ( ( responseData = (TResponseData *) calloc ( a->ncad * intNumberSegments, sizeof ( TResponseData ) ) ) == NULL )
+    if ( ( responseData = (TResponseData *) calloc ( ar_current_device->ncad * intNumberSegments, sizeof ( TResponseData ) ) ) == NULL )
 	return -1;
 
     // Fill stimulusData (OUTPUT) blocks
     ptrStimulusData = stimulusData;										// Initialize
     sptrCurSegmentStimulus = stimulusData;			// Set to SEG0 CH0 to start.
-    for ( i = 0; i < a->ncda * intNumberSegments; i++ ) {
+    for ( i = 0; i < ar_current_device->ncda * intNumberSegments; i++ ) {
 
 	ptrStimulusData->Magic = 0xBEEF;			// Indentification for debugging
-	ptrStimulusData->ChannelNumber = i % a->ncda;		// e.g. 0, 1, 0, 1, . . . 
-	ptrStimulusData->SegmentNumber = i / a->ncda;		// segment number
+	ptrStimulusData->ChannelNumber = i % ar_current_device->ncda;		// e.g. 0, 1, 0, 1, . . . 
+	ptrStimulusData->SegmentNumber = i / ar_current_device->ncda;		// segment number
 	ptrStimulusData->StimulusBlock = out[i];
 	ptrStimulusData->Index = 0;										// initialize to the first sample
-	ptrStimulusData->Samples = a->sizptr[i / a->ncda];
+	ptrStimulusData->Samples = ar_current_device->sizptr[i / ar_current_device->ncda];
 
 	FDBUG ( ( _arS, "STM --> Magic [%2d] ch [%d] seg [%d] out [%p] samples [%d] end [%p]\n", 
 	    i, 
@@ -564,14 +564,14 @@ _ar_asio_io_prepare(int32_t di)
     // Fill responseData (INPUT) blocks
     ptrResponseData = responseData;				// Initialize
     sptrCurSegmentResponse = responseData;			// Set to SEG0 CH0 to start.
-    for ( i = 0; i < a->ncad * intNumberSegments; i++ ) {
+    for ( i = 0; i < ar_current_device->ncad * intNumberSegments; i++ ) {
 
 	ptrResponseData->Magic = 0xBEEF;			// Indentification number for debugging
-	ptrResponseData->ChannelNumber = i % a->ncad;		// e.g. 0, 1, 0, 1, . . . 
-	ptrResponseData->SegmentNumber = i / a->ncad;		// segment number
+	ptrResponseData->ChannelNumber = i % ar_current_device->ncad;		// e.g. 0, 1, 0, 1, . . . 
+	ptrResponseData->SegmentNumber = i / ar_current_device->ncad;		// segment number
 	ptrResponseData->ResponseBlock = in[i];
 	ptrResponseData->Index = 0;				// initialize to the first sample
-	ptrResponseData->Samples = a->sizptr[i / a->ncad];
+	ptrResponseData->Samples = ar_current_device->sizptr[i / ar_current_device->ncad];
 
 	FDBUG ( ( _arS, "RSP --> Magic [%2d] ch [%d] seg [%d] in [%p] samples [%d] end [%p]\n", 
 	    i, 
@@ -631,7 +631,7 @@ _ar_asio_chk_seg( int32_t di, int32_t b )
     static int32	sintHoldSegment = -1;
     bool		bolGotMutex = false;
 
-    a = _ardev[di];			// get access to application parameters
+    ar_current_device = _ardev[di];			// get access to application parameters
 
     if ( ! sbolIsStarted ) {
 	FDBUG ( ( _arS, "sbolIsStarted is FALSE\n" ) );
@@ -668,7 +668,7 @@ _ar_asio_chk_seg( int32_t di, int32_t b )
 	}
 #endif // USE_MUTEX
 
-	FDBUG ( ( _arS, "Got semaphore for segment [%d] [%d]\n", a->seg_ic, a->seg_oc ) );
+	FDBUG ( ( _arS, "Got semaphore for segment [%d] [%d]\n", ar_current_device->seg_ic, ar_current_device->seg_oc ) );
 	return true;
 	break;
     default:
@@ -680,7 +680,7 @@ _ar_asio_chk_seg( int32_t di, int32_t b )
 	if ( ( bolGotMutex = pGetMutex ( ) ) == true ) {
 #endif // USE_MUTEX
 	    //sintSegmentFinished = 0;	    // Need to handle overruns better [STN, Jan-2008]
-	    a->xrun++;			    // increment xrun count
+	    ar_current_device->xrun++;			    // increment xrun count
 #ifdef USE_MUTEX
 	    // Release the mutex
 	    if ( ! ReleaseMutex(hMutex)) { 
@@ -720,7 +720,7 @@ _ar_asio_latency(int32_t di, int32_t nsmp)
 {
     long max_latency;
 
-    a = _ardev[di];			// get access to application parameters
+    ar_current_device = _ardev[di];			// get access to application parameters
     if (nsmp != ARSC_GET_LATENCY) {
 	max_latency = slngInputLatency + slngOutputLatency; // sum of driver input/output latencies
 	max_latency -= max_latency % 256;		    // subtract impulse latency, if any
@@ -784,11 +784,11 @@ int32 pSendStimulusData ( int32 *buffer, int32 aintBufferSize, TStimulusData *pt
     int32	intNumWritten = 0;
     bool	bolGotMutex = false;
 
-    intOutputChannels = a->a_ncda;			// shorthand
-    if ( a->a_ncad )
-    	intCurOutputSegment = a->seg_oc;		// If there are output channels, use the correct counter.
+    intOutputChannels = ar_current_device->a_ncda;			// shorthand
+    if ( ar_current_device->a_ncad )
+    	intCurOutputSegment = ar_current_device->seg_oc;		// If there are output channels, use the correct counter.
     else						// Otherwise, use seg_ic because that is passed back to calling program.
-    	intCurOutputSegment = a->seg_ic;
+    	intCurOutputSegment = ar_current_device->seg_ic;
 
     // Loon test
     if ( ptrStimulusData->Magic != 0xBEEF )
@@ -859,7 +859,7 @@ int32 pSendStimulusData ( int32 *buffer, int32 aintBufferSize, TStimulusData *pt
 #endif // USE_MUTEX
 
 		// If there are no input channels, the out channel determines the segment end
-		if ( ! a->a_ncad ) {
+		if ( ! ar_current_device->a_ncad ) {
 		    sintSegmentFinished++;
 		    FDBUG ( ( _arS, "S %d\n", sintSegmentFinished ) );
 		}
@@ -868,10 +868,10 @@ int32 pSendStimulusData ( int32 *buffer, int32 aintBufferSize, TStimulusData *pt
 		/*
 		Global pointer code
 		*/
-		if ( ( ( intCurOutputSegment + 1 ) % a->segswp) != 0 ) {
+		if ( ( ( intCurOutputSegment + 1 ) % ar_current_device->segswp) != 0 ) {
 
 		    // Move the global stim block pointer 1
-		    if ( ptrStimulusData - stimulusData <= a->segswp + 1 ) {
+		    if ( ptrStimulusData - stimulusData <= ar_current_device->segswp + 1 ) {
 			sptrCurSegmentStimulus = ptrStimulusData + 1;		// On end channel, so move to channel 0 of next . . .
 			DBUG ( ( "all channels done . . . sptrCurSegmentStimulus incremented to [%p].\n", ptrStimulusData ) );
 		    } else {
@@ -902,11 +902,11 @@ int32 pSendStimulusData ( int32 *buffer, int32 aintBufferSize, TStimulusData *pt
 	    } /* fi last channel */
 
 	    // Any more segments to play for this (current) channel?
-	    if ( ptrStimulusData->SegmentNumber + 1 == a->segswp ) {
+	    if ( ptrStimulusData->SegmentNumber + 1 == ar_current_device->segswp ) {
 		// No more segments to play for this channel
 		DBUG_S ( ( "no more segments to play for channel [%d].\n", ptrStimulusData->ChannelNumber ) );
 		// Wrap back in case of sweeping
-		ptrStimulusData -= (intOutputChannels) * ( a->segswp - 1 );
+		ptrStimulusData -= (intOutputChannels) * ( ar_current_device->segswp - 1 );
 
 	    } else {
 		/*
@@ -955,9 +955,9 @@ int32 pFillResponseBlock ( int32 *buffer, int32 aintBufferSize, TResponseData *p
     bool	bolGotMutex = false;
 
 
-    intInputChannels = a->a_ncad;			// shorthand
-    intCurInputSegment = a->seg_ic;			// shorthand
-    intActualSegment = intCurInputSegment % a->segswp;	// shorthand
+    intInputChannels = ar_current_device->a_ncad;			// shorthand
+    intCurInputSegment = ar_current_device->seg_ic;			// shorthand
+    intActualSegment = intCurInputSegment % ar_current_device->segswp;	// shorthand
 
     // Loon test
     if ( ptrResponseData->Magic != 0xBEEF )
@@ -1087,7 +1087,7 @@ STN: Latency correction should enabled for consistency between the SYNC and ASIO
 		FDBUG ( ( _arS, "F %d\n", sintSegmentFinished ) );
 
 		// Are sweeps done?
-		if ( ( ( intCurInputSegment + 1 ) % a->segswp ) != 0 ) {
+		if ( ( ( intCurInputSegment + 1 ) % ar_current_device->segswp ) != 0 ) {
 
 		    // Move the global response block pointer 1 to get to the zeroeth channel of next segment.
 		    // (ptrResponseData already points to the last channel of the previous segment.)
@@ -1097,21 +1097,21 @@ STN: Latency correction should enabled for consistency between the SYNC and ASIO
 		    // All segments have been completed in this sweep.
 		    DBUG_R ( ( "*** All segments have been completed in this sweep. Moving sptrCurSegmentResponse to start. *** [%d] [%d] [%d]\n",
 			intCurInputSegment + 1,
-			a->segswp,
-			intCurInputSegment + 1 % a->segswp ) );
+			ar_current_device->segswp,
+			intCurInputSegment + 1 % ar_current_device->segswp ) );
 		    sptrCurSegmentResponse = responseData;			// Just sets it back to the beginning
 		}
 	    } // fi last channel
 
 	    // Any more segments to play for this (current) channel?
-	    if ( ptrResponseData->SegmentNumber + 1 == a->segswp ) {
+	    if ( ptrResponseData->SegmentNumber + 1 == ar_current_device->segswp ) {
 		// No more
 		DBUG_R ( ( "no more segments for m/seg/ch [%d]/[%d]/[%d].\n", 
 		    ptrResponseData->Magic,	
 		    intCurInputSegment, 
 		    ptrResponseData->ChannelNumber ) );
 		// Wrap back in case of sweeping
-		ptrResponseData -= (intInputChannels) * ( a->segswp - 1 );
+		ptrResponseData -= (intInputChannels) * ( ar_current_device->segswp - 1 );
 	    } else {
 		/*
 		There are more segments.
