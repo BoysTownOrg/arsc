@@ -711,12 +711,8 @@ Each channel has its own StimulusData block, so this function does not worry
 about channels. A pointer to the correct StimulusData structure is passed.
 */
 int32_t pSendStimulusData(int32_t* buffer, int32_t buffer_size, ArAsioSegment* asio_segment) {
+	int32_t output_channels = ar_current_device->a_ncda;			// shorthand
 	int32_t	intCurOutputSegment;
-	int32_t	intOutputChannels;
-	int32_t	intNumWritten = 0;
-	bool	bolGotMutex = false;
-
-	intOutputChannels = ar_current_device->a_ncda;			// shorthand
 	if (ar_current_device->a_ncad)
 		intCurOutputSegment = ar_current_device->seg_oc;		// If there are output channels, use the correct counter.
 	else						// Otherwise, use seg_ic because that is passed back to calling program.
@@ -727,7 +723,7 @@ int32_t pSendStimulusData(int32_t* buffer, int32_t buffer_size, ArAsioSegment* a
 		return 0;
 	if (asio_segment->size < 0 || asio_segment->size > 999000)
 		return 0;
-	if (asio_segment->channel < 0 || asio_segment->channel >= intOutputChannels)
+	if (asio_segment->channel < 0 || asio_segment->channel >= output_channels)
 		return 0;
 
 	int32_t *buffer_ = buffer;					// Set a pointer to passed 1/2 buffer
@@ -744,7 +740,6 @@ int32_t pSendStimulusData(int32_t* buffer, int32_t buffer_size, ArAsioSegment* a
 
 	// Loop over buffer size samples
 	for (int k = 0; k < buffer_size; k++) {
-
 		// -----------------------------------------------------------------------------------
 		// Fixed a problem that occurred when an ASIO buffer boundary and a segment boundary
 		// were the same.  For example, if there are 4410 samples total (index 0 - 4409), it 
@@ -755,13 +750,9 @@ int32_t pSendStimulusData(int32_t* buffer, int32_t buffer_size, ArAsioSegment* a
 		//
 		// The fix was to move these next three lines from the end of the for(k) loop to the
 		// top.
-		* buffer_ = *asio_segment_data;			// Set this sample value
-		asio_segment_data++;				// Move the sample pointer to the next sample
+		*buffer_ = *asio_segment_data++;			// Set this sample value
 		asio_segment->Index++;			// Increment the index for this channel
 
-		// -----------------------------------------------------------------------------------
-
-		// Input done?
 		if (asio_segment->OutputDone) {
 			*buffer_ = 0;
 			buffer_++;
@@ -775,25 +766,17 @@ int32_t pSendStimulusData(int32_t* buffer, int32_t buffer_size, ArAsioSegment* a
 
 			// LAST CHANNEL
 			// If last channel of finished segment, increment the global segment count
-			if (asio_segment->channel == intOutputChannels - 1) {
-
+			if (asio_segment->channel == output_channels - 1) {
 				// send a message to let 'em know . . . .
 				// Windows messages aren't currently enacted in this implementation
 				if (_arsc_wind)
 					PostMessage((HWND)_arsc_wind, WM_ARSC, AM_StimulusSent, device_identifier_offset);
-
 				// If there are no input channels, the out channel determines the segment end
 				if (!ar_current_device->a_ncad) {
 					sintSegmentFinished++;
 					FDBUG((_arS, "S %d\n", sintSegmentFinished));
 				}
-
-				// -------------------------------------------------
-						/*
-						Global pointer code
-						*/
 				if (((intCurOutputSegment + 1) % ar_current_device->segswp) != 0) {
-
 					// Move the global stim block pointer 1
 					if (asio_segment - stimulusData <= ar_current_device->segswp + 1) {
 						sptrCurSegmentStimulus = asio_segment + 1;		// On end channel, so move to channel 0 of next . . .
@@ -812,17 +795,14 @@ int32_t pSendStimulusData(int32_t* buffer, int32_t buffer_size, ArAsioSegment* a
 					// All segments have been completed in this sweep.
 					DBUG(("*** All segments have been completed in this sweep.  Moving sptrCurSegmentStimulus to start. ***\n"));
 					sptrCurSegmentStimulus = stimulusData;						// Just sets it back to the beginning in case of infinite sweep
-				} /* fi */
-
-			} /* fi last channel */
-
+				}
+			}
 			// Any more segments to play for this (current) channel?
 			if (asio_segment->segment + 1 == ar_current_device->segswp) {
 				// No more segments to play for this channel
 				DBUG_S(("no more segments to play for channel [%d].\n", asio_segment->channel));
 				// Wrap back in case of sweeping
-				asio_segment -= (intOutputChannels) * (ar_current_device->segswp - 1);
-
+				asio_segment -= (output_channels) * (ar_current_device->segswp - 1);
 			}
 			else {
 				/*
@@ -830,20 +810,14 @@ int32_t pSendStimulusData(int32_t* buffer, int32_t buffer_size, ArAsioSegment* a
 				Move to the next stimulus structure for the rest of this bufferswitch.
 				For example, if just finishing SEG0 CH1, need to jump to SEG1 CH1.
 				*/
-				DBUG_S(("incrementing asio_segment [%p] to [%p].\n", asio_segment, (asio_segment + intOutputChannels)));
-
-				asio_segment += intOutputChannels;		// Now pointing at next segment, same channel
+				DBUG_S(("incrementing asio_segment [%p] to [%p].\n", asio_segment, (asio_segment + output_channels)));
+				asio_segment += output_channels;		// Now pointing at next segment, same channel
 			} /* fi last segment */
-
 			asio_segment_data = asio_segment->data;	// Point to the appropriate Stim sample
 			asio_segment->Index = 0;				// Reset to beginning of block
-
-		} /* fi segment done */
-
+		}
 		buffer_++;														// Move the buffer pointer
-
-	} /* rof k */
-
+	}
 	return 1;
 }
 
