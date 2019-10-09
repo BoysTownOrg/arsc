@@ -618,14 +618,14 @@ static TStimulusData* stimulus_data_at(TStimulusData* s, int i) {
 }
 
 START_TEST(pSendStimulusDataTbd2) {
-	int32 stimulus1[3];
-	int32 stimulus2[4];
 	TStimulusData localStimulusData[2];
 	*stimulus_data_at(localStimulusData, 0) = initializedStimulusData();
+	int32 stimulus1[3];
 	stimulus_data_at(localStimulusData, 0)->StimulusBlock = stimulus1;
 	stimulus_data_at(localStimulusData, 0)->Samples = 3;
 	stimulus_data_at(localStimulusData, 0)->SegmentNumber = 0;
 	*stimulus_data_at(localStimulusData, 1) = initializedStimulusData();
+	int32 stimulus2[4];
 	stimulus_data_at(localStimulusData, 1)->StimulusBlock = stimulus2;
 	stimulus_data_at(localStimulusData, 1)->Samples = 4;
 	stimulus_data_at(localStimulusData, 1)->SegmentNumber = 1;
