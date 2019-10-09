@@ -483,13 +483,25 @@ static void assign_integer_array(int32_t* a, int i, int32_t what) {
 	a[i] = what;
 }
 
+enum {
+	sufficiently_large = 100
+};
+
+static void* output_buffers[sufficiently_large];
+
 static void setup_io_prepare(void) {
 	allocate_device(0);
 	assign_device_input_channels(0, 0);
+	assign_device_segments(0, 1);
+	assign_device_output_buffers(0, output_buffers);
 }
 
 static void teardown_io_prepare(void) {
 	free_device(0);
+}
+
+static void io_prepare(void) {
+	_ar_asio_io_prepare(0);
 }
 
 START_TEST(io_prepare_initializes_stimulus_data) {
@@ -497,13 +509,11 @@ START_TEST(io_prepare_initializes_stimulus_data) {
 	assign_device_output_channels(0, 2);
 	int32_t sizes[3];
 	assign_device_sizes(0, sizes);
-	void* output[3 * 2];
-	assign_device_output_buffers(0, output);
 
 	assign_integer_array(sizes, 0, 4);
 	assign_integer_array(sizes, 1, 5);
 	assign_integer_array(sizes, 2, 6);
-	_ar_asio_io_prepare(0);
+	io_prepare();
 	ASSERT_STIMULUS_DATA_SAMPLES(4, 0);
 	ASSERT_STIMULUS_DATA_SAMPLES(4, 1);
 	ASSERT_STIMULUS_DATA_SAMPLES(5, 2);
@@ -538,37 +548,31 @@ static void assign_pointer_array(void** a, int i, void* what) {
 }
 
 START_TEST(io_prepare_initializes_stimulus_data_blocks) {
-	assign_device_segments(0, 1);
 	assign_device_output_channels(0, 3);
-	void* output[3 * 1];
-	assign_device_output_buffers(0, output);
 	int32_t size;
 	assign_device_sizes(0, &size);
 	int32 local_first;
 	int32 local_second;
 	int32 local_third;
 
-	assign_pointer_array(output, 0, &local_first);
-	assign_pointer_array(output, 1, &local_second);
-	assign_pointer_array(output, 2, &local_third);
-	_ar_asio_io_prepare(0);
+	assign_pointer_array(output_buffers, 0, &local_first);
+	assign_pointer_array(output_buffers, 1, &local_second);
+	assign_pointer_array(output_buffers, 2, &local_third);
+	io_prepare();
 	ASSERT_STIMULUS_DATA_BUFFER(&local_first, 0);
 	ASSERT_STIMULUS_DATA_BUFFER(&local_second, 1);
 	ASSERT_STIMULUS_DATA_BUFFER(&local_third, 2);
 }
 
 START_TEST(pSendStimulusDataTbd) {
-	assign_device_segments(0, 1);
 	assign_device_output_channels(0, 1);
 	devices(0)->a_ncda = 1;
 	int32 other[3];
-	void* output[1];
-	assign_pointer_array(output, 0, other);
-	assign_device_output_buffers(0, output);
+	assign_pointer_array(output_buffers, 0, other);
 	int32_t size = sizeof other;
 	assign_device_sizes(0, &size);
 
-	_ar_asio_io_prepare(0);
+	io_prepare();
 	assign_integer_array(other, 0, 5);
 	assign_integer_array(other, 1, 6);
 	assign_integer_array(other, 2, 7);
