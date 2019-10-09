@@ -288,7 +288,7 @@ static long bufferInfoChannelNumber(int i) {
 }
 
 static ArAsioSegment* stimulusData_(int i) {
-	return stimulusData + i;
+	return global_asio_segment + i;
 }
 
 static int32_t *stimulusDataBlock(int i) {
