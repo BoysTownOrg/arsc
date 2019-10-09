@@ -488,12 +488,14 @@ enum {
 };
 
 static void* output_buffers[sufficiently_large];
+static int32_t output_buffer_size[sufficiently_large];
 
 static void setup_io_prepare(void) {
 	allocate_device(0);
 	assign_device_input_channels(0, 0);
 	assign_device_segments(0, 1);
 	assign_device_output_buffers(0, output_buffers);
+	assign_device_sizes(0, output_buffer_size);
 }
 
 static void teardown_io_prepare(void) {
@@ -505,15 +507,14 @@ static void io_prepare(void) {
 }
 
 START_TEST(io_prepare_initializes_stimulus_data) {
-	assign_device_segments(0, 3);
 	assign_device_output_channels(0, 2);
-	int32_t sizes[3];
-	assign_device_sizes(0, sizes);
+	assign_device_segments(0, 3);
+	assign_integer_array(output_buffer_size, 0, 4);
+	assign_integer_array(output_buffer_size, 1, 5);
+	assign_integer_array(output_buffer_size, 2, 6);
 
-	assign_integer_array(sizes, 0, 4);
-	assign_integer_array(sizes, 1, 5);
-	assign_integer_array(sizes, 2, 6);
 	io_prepare();
+
 	ASSERT_STIMULUS_DATA_SAMPLES(4, 0);
 	ASSERT_STIMULUS_DATA_SAMPLES(4, 1);
 	ASSERT_STIMULUS_DATA_SAMPLES(5, 2);
@@ -549,16 +550,15 @@ static void assign_pointer_array(void** a, int i, void* what) {
 
 START_TEST(io_prepare_initializes_stimulus_data_blocks) {
 	assign_device_output_channels(0, 3);
-	int32_t size;
-	assign_device_sizes(0, &size);
 	int32 local_first;
-	int32 local_second;
-	int32 local_third;
-
 	assign_pointer_array(output_buffers, 0, &local_first);
+	int32 local_second;
 	assign_pointer_array(output_buffers, 1, &local_second);
+	int32 local_third;
 	assign_pointer_array(output_buffers, 2, &local_third);
+
 	io_prepare();
+	
 	ASSERT_STIMULUS_DATA_BUFFER(&local_first, 0);
 	ASSERT_STIMULUS_DATA_BUFFER(&local_second, 1);
 	ASSERT_STIMULUS_DATA_BUFFER(&local_third, 2);
@@ -569,8 +569,7 @@ START_TEST(pSendStimulusDataTbd) {
 	devices(0)->a_ncda = 1;
 	int32 other[3];
 	assign_pointer_array(output_buffers, 0, other);
-	int32_t size = sizeof other;
-	assign_device_sizes(0, &size);
+	assign_integer_array(output_buffer_size, 0, sizeof other);
 
 	io_prepare();
 	assign_integer_array(other, 0, 5);
