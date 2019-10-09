@@ -483,8 +483,16 @@ START_TEST(open_initializes_buffer_infos) {
 	ASSERT_BUFFER_INFO_CHANNEL_NUMBER(2, 4);
 }
 
+static int32_t *integer_array_at(int32_t* a, int i) {
+	return a + i;
+}
+
+static int32_t read_integer_array_at(int32_t* a, int i) {
+	return *integer_array_at(a, i);
+}
+
 static void assign_integer_array(int32_t* a, int i, int32_t what) {
-	a[i] = what;
+	*integer_array_at(a, i) = what;
 }
 
 enum {
@@ -608,9 +616,9 @@ START_TEST(pSendStimulusDataTbd) {
 	assign_integer_array(stimulus, 2, 7);
 	int32_t buffer[3];
 	pSendStimulusData(buffer, 3, &localStimulusData);
-	ASSERT_EQUAL_ANY(5, buffer[0]);
-	ASSERT_EQUAL_ANY(6, buffer[1]);
-	ASSERT_EQUAL_ANY(7, buffer[2]);
+	ASSERT_EQUAL_ANY(5, read_integer_array_at(buffer, 0));
+	ASSERT_EQUAL_ANY(6, read_integer_array_at(buffer, 1));
+	ASSERT_EQUAL_ANY(7, read_integer_array_at(buffer, 2));
 }
 
 static TStimulusData* stimulus_data_at(TStimulusData* s, int i) {
@@ -642,13 +650,13 @@ START_TEST(pSendStimulusDataTbd2) {
 
 	int32_t buffer[7];
 	pSendStimulusData(buffer, 7, localStimulusData);
-	ASSERT_EQUAL_ANY(11, buffer[0]);
-	ASSERT_EQUAL_ANY(12, buffer[1]);
-	ASSERT_EQUAL_ANY(13, buffer[2]);
-	ASSERT_EQUAL_ANY(14, buffer[3]);
-	ASSERT_EQUAL_ANY(15, buffer[4]);
-	ASSERT_EQUAL_ANY(16, buffer[5]);
-	ASSERT_EQUAL_ANY(17, buffer[6]);
+	ASSERT_EQUAL_ANY(11, read_integer_array_at(buffer, 0));
+	ASSERT_EQUAL_ANY(12, read_integer_array_at(buffer, 1));
+	ASSERT_EQUAL_ANY(13, read_integer_array_at(buffer, 2));
+	ASSERT_EQUAL_ANY(14, read_integer_array_at(buffer, 3));
+	ASSERT_EQUAL_ANY(15, read_integer_array_at(buffer, 4));
+	ASSERT_EQUAL_ANY(16, read_integer_array_at(buffer, 5));
+	ASSERT_EQUAL_ANY(17, read_integer_array_at(buffer, 6));
 }
 
 static void add_test(TCase* test_case, const TTest* test) {
