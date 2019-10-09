@@ -47,12 +47,12 @@ typedef struct {
 // the ASIO devices are listed, e.g. 6.
 static int32_t device_identifier_offset = 0;
 
-static TAsioDriver	AsioDriverList[MAX_ASIO_DRIVERS];
-static TVirtualDevice	VirtualDevice[MAXDEV];			    // To hold the device names and the driver to which they associate
-static int32_t		sintAsioIntializedDriver = -1;		    // Index into the AsioDriverList[] for the loaded ASIO driver
-static int32_t		sintNumDevices = 0;			    // Number of valid ASIO devices
-static int32_t		sintMaxInputChannels = -1;		    // Maximum as reported by the driver
-static int32_t		sintMaxOutputChannels = -1;		    // Maximum as reported by the driver
+static TAsioDriver asio_drivers[MAX_ASIO_DRIVERS];
+static TVirtualDevice VirtualDevice[MAXDEV];			    // To hold the device names and the driver to which they associate
+static int32_t	sintAsioIntializedDriver = -1;		    // Index into the AsioDriverList[] for the loaded ASIO driver
+static int32_t	asio_device_count = 0;			    // Number of valid ASIO devices
+static int32_t	max_input_channels = -1;		    // Maximum as reported by the driver
+static int32_t	max_output_channels = -1;		    // Maximum as reported by the driver
 ASIOBufferInfo* bufferInfos = NULL;			    // Pointer to array of bufferInfos; one for each channel (input + output)
 static ASIOChannelInfo* channelInfos = NULL;			    // Pointer to array of channelInfos; one for each channel (input + output)
 static ASIOCallbacks	asioCallbacks;				    // structure that holds the pointers to the callback functions
@@ -60,8 +60,8 @@ ArAsioSegment* stimulusData;				    // pointer to the main stimulus block
 static ArAsioSegment* sptrCurSegmentStimulus;		    // Points to the current segment stimulus (channel 0)
 static TResponseData* responseData;				    // pointer to the main response block
 static TResponseData* sptrCurSegmentResponse;		    // Points to the current segment response (channel 0)
-static long		slngPreferredBufferSize;		    // Returned by the driver
-static long		slngTotalUsedChannels = 0;		    // Need the total number of used input and output channels
+static long		preferred_buffer_size;		    // Returned by the driver
+static long		total_input_and_output_channels = 0;		    // Need the total number of used input and output channels
 static long		slngTotalPossibleChannels = 0;		    // Total possible channels
 static long		slngInputLatency, slngOutputLatency;	    // Latencies as polled from the card.
 static bool		sbolPostOutput = false;			    // flag - true if driver uses ASIOOutputReady optimization
@@ -138,9 +138,9 @@ ar_asio_devices_impl()
 {
 
 	// Has the number of devices already been polled?
-	if (sintNumDevices > 0) {
-		FDBUG((_arS, "_ar_asio_dev_name(): Already have number of devices [%d]\n", sintNumDevices));
-		return (sintNumDevices);
+	if (asio_device_count > 0) {
+		FDBUG((_arS, "_ar_asio_dev_name(): Already have number of devices [%d]\n", asio_device_count));
+		return (asio_device_count);
 	}
 	else {
 		// Need to load the ASIO driver and get some details.
@@ -149,7 +149,7 @@ ar_asio_devices_impl()
 	}
 
 	// Now we should have the number of devices
-	return (sintNumDevices);
+	return (asio_device_count);
 }
 
 int32_t(*ar_asio_devices)() = ar_asio_devices_impl;
@@ -169,7 +169,7 @@ _ar_asio_dev_name(int32_t di)
 	int32_t		i;
 
 	// In case this is called before we are ready
-	if (sintNumDevices == 0) {
+	if (asio_device_count == 0) {
 		FDBUG((_arS, "_ar_asio_dev_name(): Repoll\n"));
 		if (!pPollAsioDrivers())
 			return NULL;
@@ -199,7 +199,7 @@ _ar_asio_list_rates(int32_t di)
 	int32_t		i;
 
 	// In case this is called before we are ready
-	if (sintNumDevices == 0) {
+	if (asio_device_count == 0) {
 		FDBUG((_arS, "_ar_asio_dev_name(): Repoll\n"));
 		if (!pPollAsioDrivers())
 			return 0;
@@ -323,11 +323,11 @@ int32_t _ar_asio_open(int32_t di)
 
 	ar_current_device = _ardev[di];
 	// Loon test
-	if (intChannelOffset + ar_current_device->ncda > sintMaxOutputChannels) {
+	if (intChannelOffset + ar_current_device->ncda > max_output_channels) {
 		FDBUG((_arS, "_ar_asio_open(): too many output channels requested for device\n"));
 		goto err;
 	}
-	if (intChannelOffset + ar_current_device->ncad > sintMaxInputChannels) {
+	if (intChannelOffset + ar_current_device->ncad > max_input_channels) {
 		FDBUG((_arS, "_ar_asio_open(): too many input channels requested for device\n"));
 		goto err;
 	}
@@ -366,25 +366,25 @@ int32_t _ar_asio_open(int32_t di)
 	*/
 	if (!SDKAsioGetBufferSize(&lngMinBufferSize,
 		&lngMaxBufferSize,
-		&slngPreferredBufferSize,
+		&preferred_buffer_size,
 		&lngGranularity))
 		goto err;
 	else {
-		FDBUG((_arS, "Preferred buffer size [%d]\n", slngPreferredBufferSize));
+		FDBUG((_arS, "Preferred buffer size [%d]\n", preferred_buffer_size));
 	}
 
 	/*
 	Allocate bufferInfos
 	*/
-	slngTotalUsedChannels = ar_current_device->a_ncad + ar_current_device->a_ncda;
-	if ((bufferInfos = (ASIOBufferInfo*)calloc(slngTotalUsedChannels, sizeof(ASIOBufferInfo))) == NULL)
+	total_input_and_output_channels = ar_current_device->a_ncad + ar_current_device->a_ncda;
+	if ((bufferInfos = (ASIOBufferInfo*)calloc(total_input_and_output_channels, sizeof(ASIOBufferInfo))) == NULL)
 		goto err;
 
 	// Figure out the channel offset in case there are multiple ASIO cards.
 	// Count all "devices" up to the card in question.
 	for (i = 0; i < sintAsioIntializedDriver; i++) {
-		if (AsioDriverList[i].valid) {
-			intChannelOffset += AsioDriverList[i].devices;
+		if (asio_drivers[i].valid) {
+			intChannelOffset += asio_drivers[i].devices;
 		}
 	}
 	intChannelOffset = (di - device_identifier_offset) - intChannelOffset;
@@ -420,7 +420,7 @@ int32_t _ar_asio_open(int32_t di)
 	/*
 	Create the ASIO buffers, both input and output.  Also set up the callbacks.
 	*/
-	sbolBuffersCreated = SDKAsioCreateBuffers(bufferInfos, slngTotalUsedChannels, slngPreferredBufferSize, &asioCallbacks);
+	sbolBuffersCreated = SDKAsioCreateBuffers(bufferInfos, total_input_and_output_channels, preferred_buffer_size, &asioCallbacks);
 	if (!sbolBuffersCreated) {
 		FDBUG((_arS, "_ar_asio_open(): unable to create buffers\n"));
 		goto err;
@@ -436,9 +436,9 @@ int32_t _ar_asio_open(int32_t di)
 
 	// Clear the buffers because CardDeluxe has known issues
 	ptrBufferInfo = bufferInfos;
-	for (i = 0; i < slngTotalUsedChannels; i++) {
-		memset(ptrBufferInfo->buffers[0], 0, slngPreferredBufferSize * sizeof(int32_t));
-		memset(ptrBufferInfo->buffers[1], 0, slngPreferredBufferSize * sizeof(int32_t));
+	for (i = 0; i < total_input_and_output_channels; i++) {
+		memset(ptrBufferInfo->buffers[0], 0, preferred_buffer_size * sizeof(int32_t));
+		memset(ptrBufferInfo->buffers[1], 0, preferred_buffer_size * sizeof(int32_t));
 		ptrBufferInfo++;
 	}
 
@@ -710,11 +710,7 @@ stimulus data.
 Each channel has its own StimulusData block, so this function does not worry
 about channels. A pointer to the correct StimulusData structure is passed.
 */
-int32_t pSendStimulusData(int32_t* buffer, int32_t aintBufferSize, ArAsioSegment* ptrStimulusData) {
-
-	int32_t	k;
-	int32_t* ptrBuffer;
-	int32_t* ptrCurStimSample;
+int32_t pSendStimulusData(int32_t* buffer, int32_t buffer_size, ArAsioSegment* asio_segment) {
 	int32_t	intCurOutputSegment;
 	int32_t	intOutputChannels;
 	int32_t	intNumWritten = 0;
@@ -727,59 +723,59 @@ int32_t pSendStimulusData(int32_t* buffer, int32_t aintBufferSize, ArAsioSegment
 		intCurOutputSegment = ar_current_device->seg_ic;
 
 	// Loon test
-	if (ptrStimulusData->Magic != 0xBEEF)
+	if (asio_segment->Magic != 0xBEEF)
 		return 0;
-	if (ptrStimulusData->size < 0 || ptrStimulusData->size > 999000)
+	if (asio_segment->size < 0 || asio_segment->size > 999000)
 		return 0;
-	if (ptrStimulusData->channel < 0 || ptrStimulusData->channel >= intOutputChannels)
+	if (asio_segment->channel < 0 || asio_segment->channel >= intOutputChannels)
 		return 0;
 
-	ptrBuffer = buffer;					// Set a pointer to passed 1/2 buffer
-	ptrCurStimSample = ptrStimulusData->data;	// Get pointer to stimulus data
-	ptrCurStimSample += ptrStimulusData->Index;		// Move pointer to current sample
+	int32_t *buffer_ = buffer;					// Set a pointer to passed 1/2 buffer
+	int32_t* asio_segment_data = asio_segment->data;	// Get pointer to stimulus data
+	asio_segment_data += asio_segment->Index;		// Move pointer to current sample
 
 	DBUG_S(("send: m/seg/ch [%d]/[%d]/[%d] index [%d] of [%d] TotalSamples [%d].\n",
-		ptrStimulusData->Magic,
-		ptrStimulusData->segment,
-		ptrStimulusData->channel,
-		ptrStimulusData->Index,
-		ptrStimulusData->size,
+		asio_segment->Magic,
+		asio_segment->segment,
+		asio_segment->channel,
+		asio_segment->Index,
+		asio_segment->size,
 		sintTotalSamples));
 
 	// Loop over buffer size samples
-	for (k = 0; k < aintBufferSize; k++) {
+	for (int k = 0; k < buffer_size; k++) {
 
 		// -----------------------------------------------------------------------------------
 		// Fixed a problem that occurred when an ASIO buffer boundary and a segment boundary
 		// were the same.  For example, if there are 4410 samples total (index 0 - 4409), it 
 		// was possible for the pointer to point one beyond, i.e. 4410, without causing a 
-		// switch to the next ptrStimulusData before exiting this function.  Then the 
+		// switch to the next asio_segment before exiting this function.  Then the 
 		// BufferSwitchTimeInfo() function returns you here causing an immediate switch, 
 		// but the global pointer sptrCurSegmentStimulus gets munged.
 		//
 		// The fix was to move these next three lines from the end of the for(k) loop to the
 		// top.
-		* ptrBuffer = *ptrCurStimSample;			// Set this sample value
-		ptrCurStimSample++;				// Move the sample pointer to the next sample
-		ptrStimulusData->Index++;			// Increment the index for this channel
+		* buffer_ = *asio_segment_data;			// Set this sample value
+		asio_segment_data++;				// Move the sample pointer to the next sample
+		asio_segment->Index++;			// Increment the index for this channel
 
 		// -----------------------------------------------------------------------------------
 
 		// Input done?
-		if (ptrStimulusData->OutputDone) {
-			*ptrBuffer = 0;
-			ptrBuffer++;
+		if (asio_segment->OutputDone) {
+			*buffer_ = 0;
+			buffer_++;
 			continue;
 		}
 
 		// SEGMENT DONE
 		// Is the current index of this segment beyond this channel's segment size?
-		if (ptrStimulusData->Index >= ptrStimulusData->size) {
-			DBUG_S(("m/seg/ch [%d]/[%d]/[%d] finished.\n", ptrStimulusData->Magic, ptrStimulusData->segment, ptrStimulusData->channel));
+		if (asio_segment->Index >= asio_segment->size) {
+			DBUG_S(("m/seg/ch [%d]/[%d]/[%d] finished.\n", asio_segment->Magic, asio_segment->segment, asio_segment->channel));
 
 			// LAST CHANNEL
 			// If last channel of finished segment, increment the global segment count
-			if (ptrStimulusData->channel == intOutputChannels - 1) {
+			if (asio_segment->channel == intOutputChannels - 1) {
 
 				// send a message to let 'em know . . . .
 				// Windows messages aren't currently enacted in this implementation
@@ -799,16 +795,16 @@ int32_t pSendStimulusData(int32_t* buffer, int32_t aintBufferSize, ArAsioSegment
 				if (((intCurOutputSegment + 1) % ar_current_device->segswp) != 0) {
 
 					// Move the global stim block pointer 1
-					if (ptrStimulusData - stimulusData <= ar_current_device->segswp + 1) {
-						sptrCurSegmentStimulus = ptrStimulusData + 1;		// On end channel, so move to channel 0 of next . . .
-						DBUG(("all channels done . . . sptrCurSegmentStimulus incremented to [%p].\n", ptrStimulusData));
+					if (asio_segment - stimulusData <= ar_current_device->segswp + 1) {
+						sptrCurSegmentStimulus = asio_segment + 1;		// On end channel, so move to channel 0 of next . . .
+						DBUG(("all channels done . . . sptrCurSegmentStimulus incremented to [%p].\n", asio_segment));
 					}
 					else {
 						// Ouch!  Some sort of overrun caused this.  Maybe by clicking on
 						// an external window or some such thing.  Just set back to zero.
 						PRINT(("O U C H\n"));
 						sptrCurSegmentStimulus = stimulusData;
-						ptrStimulusData = stimulusData;
+						asio_segment = stimulusData;
 						sintSegmentFinished = 0;
 					}
 				}
@@ -821,11 +817,11 @@ int32_t pSendStimulusData(int32_t* buffer, int32_t aintBufferSize, ArAsioSegment
 			} /* fi last channel */
 
 			// Any more segments to play for this (current) channel?
-			if (ptrStimulusData->segment + 1 == ar_current_device->segswp) {
+			if (asio_segment->segment + 1 == ar_current_device->segswp) {
 				// No more segments to play for this channel
-				DBUG_S(("no more segments to play for channel [%d].\n", ptrStimulusData->channel));
+				DBUG_S(("no more segments to play for channel [%d].\n", asio_segment->channel));
 				// Wrap back in case of sweeping
-				ptrStimulusData -= (intOutputChannels) * (ar_current_device->segswp - 1);
+				asio_segment -= (intOutputChannels) * (ar_current_device->segswp - 1);
 
 			}
 			else {
@@ -834,17 +830,17 @@ int32_t pSendStimulusData(int32_t* buffer, int32_t aintBufferSize, ArAsioSegment
 				Move to the next stimulus structure for the rest of this bufferswitch.
 				For example, if just finishing SEG0 CH1, need to jump to SEG1 CH1.
 				*/
-				DBUG_S(("incrementing ptrStimulusData [%p] to [%p].\n", ptrStimulusData, (ptrStimulusData + intOutputChannels)));
+				DBUG_S(("incrementing asio_segment [%p] to [%p].\n", asio_segment, (asio_segment + intOutputChannels)));
 
-				ptrStimulusData += intOutputChannels;		// Now pointing at next segment, same channel
+				asio_segment += intOutputChannels;		// Now pointing at next segment, same channel
 			} /* fi last segment */
 
-			ptrCurStimSample = ptrStimulusData->data;	// Point to the appropriate Stim sample
-			ptrStimulusData->Index = 0;				// Reset to beginning of block
+			asio_segment_data = asio_segment->data;	// Point to the appropriate Stim sample
+			asio_segment->Index = 0;				// Reset to beginning of block
 
 		} /* fi segment done */
 
-		ptrBuffer++;														// Move the buffer pointer
+		buffer_++;														// Move the buffer pointer
 
 	} /* rof k */
 
@@ -1158,13 +1154,13 @@ int32_t pGetChannelDetails(int32_t aintDriver) {
 	// Hold onto the number of "devices" for this driver.  This is used 
 	// later in calculating the channel offset from the device number.
 	if (bolOutput)
-		AsioDriverList[aintDriver].devices = sintMaxOutputChannels;
+		asio_drivers[aintDriver].devices = max_output_channels;
 	else
-		AsioDriverList[aintDriver].devices = sintMaxInputChannels;;
+		asio_drivers[aintDriver].devices = max_input_channels;;
 
 	// Channel details
 	ptrChannelInfo = channelInfos;
-	for (i = 0; i < sintMaxOutputChannels; i++) {
+	for (i = 0; i < max_output_channels; i++) {
 		ptrChannelInfo->isInput = ASIOFalse;
 		ptrChannelInfo->channel = i;
 
@@ -1175,17 +1171,17 @@ int32_t pGetChannelDetails(int32_t aintDriver) {
 
 		if (bolOutput) {
 			// Set the VirtualDevice information
-			VirtualDevice[sintNumDevices].driver = aintDriver;
-			sprintf(VirtualDevice[sintNumDevices].name, "%s ASIO", ptrChannelInfo->name);
-			VirtualDevice[sintNumDevices].IsOutput = true;
-			VirtualDevice[sintNumDevices].good_sampling_rates = check_rates();
-			sintNumDevices++;
+			VirtualDevice[asio_device_count].driver = aintDriver;
+			sprintf(VirtualDevice[asio_device_count].name, "%s ASIO", ptrChannelInfo->name);
+			VirtualDevice[asio_device_count].IsOutput = true;
+			VirtualDevice[asio_device_count].good_sampling_rates = check_rates();
+			asio_device_count++;
 		}
 
 		ptrChannelInfo++;
 	}
 
-	for (i = 0; i < sintMaxInputChannels; i++) {
+	for (i = 0; i < max_input_channels; i++) {
 		ptrChannelInfo->isInput = ASIOTrue;
 		ptrChannelInfo->channel = i;
 
@@ -1196,11 +1192,11 @@ int32_t pGetChannelDetails(int32_t aintDriver) {
 
 		if (!bolOutput) {
 			// Set the VirtualDevice information
-			VirtualDevice[sintNumDevices].driver = aintDriver;
-			sprintf(VirtualDevice[sintNumDevices].name, "%s (%s) ASIO %s", ptrChannelInfo->name, "In", ptrChannelInfo->isActive == ASIOTrue ? "*" : "");
-			VirtualDevice[sintNumDevices].IsOutput = false;
-			VirtualDevice[sintNumDevices].good_sampling_rates = check_rates();
-			sintNumDevices++;
+			VirtualDevice[asio_device_count].driver = aintDriver;
+			sprintf(VirtualDevice[asio_device_count].name, "%s (%s) ASIO %s", ptrChannelInfo->name, "In", ptrChannelInfo->isActive == ASIOTrue ? "*" : "");
+			VirtualDevice[asio_device_count].IsOutput = false;
+			VirtualDevice[asio_device_count].good_sampling_rates = check_rates();
+			asio_device_count++;
 		}
 
 		ptrChannelInfo++;
@@ -1247,7 +1243,7 @@ int32_t pPollAsioDrivers(void) {
 
 			// name
 			// The name is the key in the registry.
-			strcpy(AsioDriverList[index].name, keyname);
+			strcpy(asio_drivers[index].name, keyname);
 
 			// CLSID
 			size = MAX_KEY_LENGTH;
@@ -1260,7 +1256,7 @@ int32_t pPollAsioDrivers(void) {
 				if (strlen(ptrClsid) == 38) {		// Must be 38 long, including { }
 					MultiByteToWideChar(CP_ACP, 0, (LPCSTR)ptrClsid, -1, (LPWSTR)wData, 100);
 
-					if (CLSIDFromString((LPOLESTR)wData, (LPCLSID) & (AsioDriverList[index].clsid)) != S_OK) {
+					if (CLSIDFromString((LPOLESTR)wData, (LPCLSID) & (asio_drivers[index].clsid)) != S_OK) {
 						FDBUG((_arS, "CLSIDFromString() was not able to convert [%s]\n", ptrClsid));
 					}
 				}
@@ -1275,11 +1271,11 @@ int32_t pPollAsioDrivers(void) {
 			// The description is not necessarily the same as the name of the driver.
 			size = MAX_KEY_LENGTH;
 			if (RegQueryValueEx(hkDriver, "Description", 0, &type, (LPBYTE)value, &size) == ERROR_SUCCESS) {
-				strcpy(AsioDriverList[index].description, value);
+				strcpy(asio_drivers[index].description, value);
 			}
 			else {
 				// Some ASIO drivers don't have a description
-				strcpy(AsioDriverList[index].description, keyname);
+				strcpy(asio_drivers[index].description, keyname);
 			}
 
 			index++;
@@ -1295,17 +1291,17 @@ int32_t pPollAsioDrivers(void) {
 	The number of available drivers is not the same as the available ASIO devices.
 	Need to test each one out to see if it opens.
 	*/
-	sintNumDevices = 0;
+	asio_device_count = 0;
 	for (intDriver = 0; intDriver < MAX_ASIO_DRIVERS; intDriver++) {
-		if (strlen(AsioDriverList[intDriver].name) > 0) {
+		if (strlen(asio_drivers[intDriver].name) > 0) {
 
 			// In case multiple ASIO sound cards exist, terminate the AudioStreamIO.
 			// This may not be necessary.
 			if (sintAsioIntializedDriver > 0)
 				SDKAsioExit();
 
-			if (SDKLoadAsioDriver(AsioDriverList[intDriver].name)) {
-				FDBUG((_arS, "Success: Driver [%s] loaded fine\n", AsioDriverList[intDriver].name));
+			if (SDKLoadAsioDriver(asio_drivers[intDriver].name)) {
+				FDBUG((_arS, "Success: Driver [%s] loaded fine\n", asio_drivers[intDriver].name));
 
 				// But loading isn't enough.  The Echo Gina will load even if it isn't installed.
 				// Initialize the AudioStreamIO.
@@ -1315,8 +1311,8 @@ int32_t pPollAsioDrivers(void) {
 					// This ASIO driver can be used.  Although we can use only one
 					// ASIO driver at a time, there may be multiple sound cards in the same
 					// box, so we aren't done yet.
-					AsioDriverList[intDriver].valid = true;
-					FDBUG((_arS, "INIT Valid! Driver [%s] is ok to use\n", AsioDriverList[intDriver].name));
+					asio_drivers[intDriver].valid = true;
+					FDBUG((_arS, "INIT Valid! Driver [%s] is ok to use\n", asio_drivers[intDriver].name));
 
 					// For now, this sets the last ASIO driver as the one used.
 					sintAsioIntializedDriver = intDriver;
@@ -1327,11 +1323,11 @@ int32_t pPollAsioDrivers(void) {
 
 				}
 				else {
-					FDBUG((_arS, "INIT Failed: Driver [%s] did not init\n", AsioDriverList[intDriver].name));
+					FDBUG((_arS, "INIT Failed: Driver [%s] did not init\n", asio_drivers[intDriver].name));
 				}
 			}
 			else {
-				FDBUG((_arS, "Failed: Driver [%s] did not load\n", AsioDriverList[intDriver].name));
+				FDBUG((_arS, "Failed: Driver [%s] did not load\n", asio_drivers[intDriver].name));
 			} // fi SDKLoadAsioDriver
 		}
 		else {
@@ -1360,11 +1356,11 @@ The total possible channels is used to get full channel information from the car
 int32_t pBuildVirtualDevices(int32_t aintDriver) {
 
 	// Gets the number of channels for this card
-	if (!SDKAsioGetChannels(&sintMaxInputChannels, &sintMaxOutputChannels)) {
+	if (!SDKAsioGetChannels(&max_input_channels, &max_output_channels)) {
 		FDBUG((_arS, "GetChannels failed\n"));
 		return 0;
 	}
-	slngTotalPossibleChannels = sintMaxInputChannels + sintMaxOutputChannels;
+	slngTotalPossibleChannels = max_input_channels + max_output_channels;
 
 
 	// Allocate enough memory for every channel info, but only until we get the device information
@@ -1399,35 +1395,35 @@ int32_t pLockAndLoadImpl(int32_t aintDevice) {
 
 	FDBUG((_arS, "pLockAndLoad: Device [%d] dio [%d] driver [%d]\n", aintDevice, device_identifier_offset, intDriver));
 
-	if (SDKLoadAsioDriver(AsioDriverList[intDriver].name)) {
-		FDBUG((_arS, "pLockAndLoad: Driver [%s] loaded fine\n", AsioDriverList[intDriver].name));
+	if (SDKLoadAsioDriver(asio_drivers[intDriver].name)) {
+		FDBUG((_arS, "pLockAndLoad: Driver [%s] loaded fine\n", asio_drivers[intDriver].name));
 
 		asioDriverInfo.driverVersion = 2;				// ASIO 2.0
 		asioDriverInfo.sysRef = GetDesktopWindow();			// Application main window handle
 		if (SDKAsioInit(&asioDriverInfo) == true) {
-			FDBUG((_arS, "pLockAndLoad: Driver [%s] is intialized\n", AsioDriverList[intDriver].name));
+			FDBUG((_arS, "pLockAndLoad: Driver [%s] is intialized\n", asio_drivers[intDriver].name));
 
 			// Hold for later
 			sintAsioIntializedDriver = intDriver;
 		}
 		else {
-			FDBUG((_arS, "pLockAndLoad: Driver [%s] did not init\n", AsioDriverList[intDriver].name));
+			FDBUG((_arS, "pLockAndLoad: Driver [%s] did not init\n", asio_drivers[intDriver].name));
 			return 0;
 		}
 	}
 	else {
-		FDBUG((_arS, "pLockAndLoad: Driver [%s] did not load\n", AsioDriverList[intDriver].name));
+		FDBUG((_arS, "pLockAndLoad: Driver [%s] did not load\n", asio_drivers[intDriver].name));
 		return 0;
 	} // fi SDKLoadAsioDriver
 
 	// Gets the number of channels for this card
-	if (!SDKAsioGetChannels(&sintMaxInputChannels, &sintMaxOutputChannels)) {
+	if (!SDKAsioGetChannels(&max_input_channels, &max_output_channels)) {
 		FDBUG((_arS, "GetChannels failed\n"));
 	}
 	else {
-		FDBUG((_arS, "MaxInputChannels [%d] MaxOutputChannels [%d]\n", sintMaxInputChannels, sintMaxOutputChannels));
+		FDBUG((_arS, "MaxInputChannels [%d] MaxOutputChannels [%d]\n", max_input_channels, max_output_channels));
 	}
-	slngTotalPossibleChannels = sintMaxInputChannels + sintMaxOutputChannels;
+	slngTotalPossibleChannels = max_input_channels + max_output_channels;
 
 	// Allocate enough memory for every channel info
 	if ((channelInfos = (ASIOChannelInfo*)calloc(slngTotalPossibleChannels, sizeof(ASIOChannelInfo))) == NULL)
@@ -1435,7 +1431,7 @@ int32_t pLockAndLoadImpl(int32_t aintDevice) {
 
 	// Initialize channels
 	ptrChannelInfo = channelInfos;
-	for (i = 0; i < sintMaxOutputChannels; i++) {
+	for (i = 0; i < max_output_channels; i++) {
 		ptrChannelInfo->isInput = ASIOFalse;
 		ptrChannelInfo->channel = i;
 
@@ -1445,7 +1441,7 @@ int32_t pLockAndLoadImpl(int32_t aintDevice) {
 
 		ptrChannelInfo++;
 	}
-	for (i = 0; i < sintMaxInputChannels; i++) {
+	for (i = 0; i < max_input_channels; i++) {
 		ptrChannelInfo->isInput = ASIOTrue;
 		ptrChannelInfo->channel = i;
 
@@ -1478,7 +1474,7 @@ SDK Note:
 */
 ASIOTime* bufferSwitchTimeInfo(ASIOTime* timeInfo, long index, ASIOBool processNow) {
 	int32_t	    i;
-	long	    lngAsioBufferSize = slngPreferredBufferSize;    // shorthand to buffer size in samples
+	long	    lngAsioBufferSize = preferred_buffer_size;    // shorthand to buffer size in samples
 	ArAsioSegment* ptrStimulusData = sptrCurSegmentStimulus;	    // pointer to channel 0 of current segment stimulus
 	TResponseData* ptrResponseData = sptrCurSegmentResponse;	    // pointer to channel 0 of current segment response
 
@@ -1486,7 +1482,7 @@ ASIOTime* bufferSwitchTimeInfo(ASIOTime* timeInfo, long index, ASIOBool processN
 		return 0L;
 
 	// perform the processing
-	for (i = 0; i < slngTotalUsedChannels; i++) {
+	for (i = 0; i < total_input_and_output_channels; i++) {
 		if (bufferInfos[i].isInput == false) {
 			// OUTPUT (STIMULUS) buffer
 
