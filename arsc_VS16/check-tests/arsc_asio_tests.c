@@ -287,12 +287,12 @@ static long bufferInfoChannelNumber(int i) {
 	return bufferInfo_(i)->channelNum;
 }
 
-static TStimulusData* stimulusData_(int i) {
+static ArAsioSegment* stimulusData_(int i) {
 	return stimulusData + i;
 }
 
 static int32_t *stimulusDataBlock(int i) {
-	return stimulusData_(i)->StimulusBlock;
+	return stimulusData_(i)->data;
 }
 
 static void set_device_desired_output_channels(int i, int32_t c) {
@@ -355,13 +355,13 @@ for (int i = a; i < b; ++i)\
 	ASSERT_EQUAL_ANY(a, stimulusDataBlock(b));
 
 #define ASSERT_STIMULUS_DATA_SAMPLES(a, b)\
-	ASSERT_EQUAL_ANY(a, stimulusData_(b)->Samples)
+	ASSERT_EQUAL_ANY(a, stimulusData_(b)->size)
 
 #define ASSERT_STIMULUS_DATA_SEGMENT(a, b)\
-	ASSERT_EQUAL_ANY(a, stimulusData_(b)->SegmentNumber)
+	ASSERT_EQUAL_ANY(a, stimulusData_(b)->segment)
 
 #define ASSERT_STIMULUS_DATA_CHANNEL(a, b)\
-	ASSERT_EQUAL_ANY(a, stimulusData_(b)->ChannelNumber)
+	ASSERT_EQUAL_ANY(a, stimulusData_(b)->channel)
 
 #define ASSERT_STIMULUS_DATA_INDEX(a, b)\
 	ASSERT_EQUAL_ANY(a, stimulusData_(b)->Index)
@@ -595,21 +595,21 @@ static void teardownSendStimulusData(void) {
 	free_device(0);
 }
 
-static TStimulusData initializedStimulusData() {
-	TStimulusData s;
+static ArAsioSegment initializedStimulusData() {
+	ArAsioSegment s;
 	s.Magic = 0xBEEF;
 	s.Index = 0;
-	s.ChannelNumber = 0;
-	s.SegmentNumber = 0;
+	s.channel = 0;
+	s.segment = 0;
 	s.OutputDone = 0;
 	return s;
 }
 
 START_TEST(pSendStimulusDataTbd) {
 	int32 stimulus[3];
-	TStimulusData localStimulusData = initializedStimulusData();
-	localStimulusData.StimulusBlock = stimulus;
-	localStimulusData.Samples = 3;
+	ArAsioSegment localStimulusData = initializedStimulusData();
+	localStimulusData.data = stimulus;
+	localStimulusData.size = 3;
 
 	assign_integer_array(stimulus, 0, 5);
 	assign_integer_array(stimulus, 1, 6);
@@ -621,22 +621,22 @@ START_TEST(pSendStimulusDataTbd) {
 	ASSERT_EQUAL_ANY(7, read_integer_array_at(buffer, 2));
 }
 
-static TStimulusData* stimulus_data_at(TStimulusData* s, int i) {
+static ArAsioSegment* stimulus_data_at(ArAsioSegment* s, int i) {
 	return s + i;
 }
 
 START_TEST(pSendStimulusDataTbd2) {
-	TStimulusData localStimulusData[2];
+	ArAsioSegment localStimulusData[2];
 	*stimulus_data_at(localStimulusData, 0) = initializedStimulusData();
 	int32 stimulus1[3];
-	stimulus_data_at(localStimulusData, 0)->StimulusBlock = stimulus1;
-	stimulus_data_at(localStimulusData, 0)->Samples = 3;
-	stimulus_data_at(localStimulusData, 0)->SegmentNumber = 0;
+	stimulus_data_at(localStimulusData, 0)->data = stimulus1;
+	stimulus_data_at(localStimulusData, 0)->size = 3;
+	stimulus_data_at(localStimulusData, 0)->segment = 0;
 	*stimulus_data_at(localStimulusData, 1) = initializedStimulusData();
 	int32 stimulus2[4];
-	stimulus_data_at(localStimulusData, 1)->StimulusBlock = stimulus2;
-	stimulus_data_at(localStimulusData, 1)->Samples = 4;
-	stimulus_data_at(localStimulusData, 1)->SegmentNumber = 1;
+	stimulus_data_at(localStimulusData, 1)->data = stimulus2;
+	stimulus_data_at(localStimulusData, 1)->size = 4;
+	stimulus_data_at(localStimulusData, 1)->segment = 1;
 	assign_device_segments(0, 2);
 
 	assign_integer_array(stimulus1, 0, 11);

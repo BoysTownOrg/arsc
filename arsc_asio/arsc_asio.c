@@ -14,9 +14,9 @@
 
 typedef struct {
 	CLSID		clsid;					    // Direct from the registry
-	char		name[MAXDRVNAMELEN];			    // driver name
-	char		description[MAXDRVNAMELEN];		    // drivers sometimes give a description in the registry
-	bool		valid;					    // ASIO loaded and initializes and so is valid.
+	char		name[MAXDRVNAMELEN];
+	char		description[MAXDRVNAMELEN];
+	bool		valid;
 	int32		devices;				    // Number of ASIO output devices (or input if ARSC_PREF_IN )
 } TAsioDriver;
 
@@ -26,28 +26,27 @@ typedef struct {
 typedef struct {
 	char		name[ARSC_NAMLEN];
 	int32		driver;					    // index back to TAsioDriver struct
-	int32		good_rates;				    // good sampling rates
+	int32		good_sampling_rates;
 	bool		IsOutput;
 } TVirtualDevice;
 
-/*
-Response structure
-*/
 typedef struct {
-	int32		Magic;					    // Just an identifier for this structure
-	int32* ResponseBlock;				    // Pointer to a segment defined in calling program.
-	int32		Samples;				    // # of samples, e.g. 2048, in this segment
-	int32		Index;					    // Current position of this ResponseBlock
-	int32		ChannelNumber;				    // 0, 1, 2, . . . 
-	int32		SegmentNumber;				    // Current segment for this channel
-	int32		SkippedSamples;				    // Skipped samples before Latency kicks in
-	bool		LatencyReached;				    // For each channel, but only segment 0
+	int32 Magic;					    // Just an identifier for this structure
+	int32* data;
+	int32 size;
+	int32 Index;
+	int32 channel;
+	int32 segment;
+	int32 SkippedSamples;				    // Skipped samples before Latency kicks in
+	bool LatencyReached;				    // For each channel, but only segment 0
 } TResponseData;
 
-static int32		dio = 0;				    // device identifier offset
-									// for multiple platforms such as when WIND and ASIO are both set in the 
-									// compilation.  The WIND devices are listed first, for example 0 to 5, then 
-									// the ASIO devices are listed, e.g. 6.
+// device identifier offset
+// for multiple platforms such as when WIND and ASIO are both set in the 
+// compilation.  The WIND devices are listed first, for example 0 to 5, then 
+// the ASIO devices are listed, e.g. 6.
+static int32 device_identifier_offset = 0;
+
 static TAsioDriver	AsioDriverList[MAX_ASIO_DRIVERS];
 static TVirtualDevice	VirtualDevice[MAXDEV];			    // To hold the device names and the driver to which they associate
 static int32		sintAsioIntializedDriver = -1;		    // Index into the AsioDriverList[] for the loaded ASIO driver
@@ -57,8 +56,8 @@ static int32		sintMaxOutputChannels = -1;		    // Maximum as reported by the dri
 ASIOBufferInfo* bufferInfos = NULL;			    // Pointer to array of bufferInfos; one for each channel (input + output)
 static ASIOChannelInfo* channelInfos = NULL;			    // Pointer to array of channelInfos; one for each channel (input + output)
 static ASIOCallbacks	asioCallbacks;				    // structure that holds the pointers to the callback functions
-TStimulusData* stimulusData;				    // pointer to the main stimulus block
-static TStimulusData* sptrCurSegmentStimulus;		    // Points to the current segment stimulus (channel 0)
+ArAsioSegment* stimulusData;				    // pointer to the main stimulus block
+static ArAsioSegment* sptrCurSegmentStimulus;		    // Points to the current segment stimulus (channel 0)
 static TResponseData* responseData;				    // pointer to the main response block
 static TResponseData* sptrCurSegmentResponse;		    // Points to the current segment response (channel 0)
 static long		slngPreferredBufferSize;		    // Returned by the driver
@@ -76,7 +75,7 @@ static FILE* fhStimulus0 = NULL;
 static FILE* fhResponse1 = NULL;
 static FILE* fhStimulus1 = NULL;
 static FILE* fhBD = NULL;
-static int32		gdsr;					    // Good sample rates
+static int32		good_sample_rates;					    // Good sample rates
 ARDEV* ar_current_device;
 
 /*
@@ -179,13 +178,13 @@ _ar_asio_dev_name(int32_t di)
 	}
 
 	for (i = 0; i < MAXDEV; i++) {
-		if (i == (di - dio)) {
+		if (i == (di - device_identifier_offset)) {
 			FDBUG((_arS, "_ar_asio_dev_name(): Found name [%s]\n", VirtualDevice[i].name));
 			return VirtualDevice[i].name;
 		}
 	}
 
-	FDBUG((_arS, "_ar_asio_dev_name(): Could not find channel information for di [%d] dio [%d]\n", di, dio));
+	FDBUG((_arS, "_ar_asio_dev_name(): Could not find channel information for di [%d] dio [%d]\n", di, device_identifier_offset));
 
 	return NULL;
 }
@@ -209,13 +208,13 @@ _ar_asio_list_rates(int32_t di)
 	}
 
 	for (i = 0; i < MAXDEV; i++) {
-		if (i == (di - dio)) {
-			FDBUG((_arS, "_ar_asio_list_rates(): good_rates=%0X\n", VirtualDevice[i].good_rates));
-			return VirtualDevice[i].good_rates;
+		if (i == (di - device_identifier_offset)) {
+			FDBUG((_arS, "_ar_asio_list_rates(): good_sampling_rates=%0X\n", VirtualDevice[i].good_sampling_rates));
+			return VirtualDevice[i].good_sampling_rates;
 		}
 	}
 
-	FDBUG((_arS, "Could not find channel information for di [%d] dio [%d]\n", di, dio));
+	FDBUG((_arS, "Could not find channel information for di [%d] dio [%d]\n", di, device_identifier_offset));
 
 	return 0;
 }
@@ -237,7 +236,7 @@ _ar_asio_io_stop(int32_t di)
 
 	// Let the calling window know that we are done.
 	if (_arsc_wind)
-		PostMessage((HWND)_arsc_wind, WM_ARSC, AM_Stopped, dio);
+		PostMessage((HWND)_arsc_wind, WM_ARSC, AM_Stopped, device_identifier_offset);
 }
 
 void (*ar_asio_io_stop)(int32_t) = _ar_asio_io_stop;
@@ -390,7 +389,7 @@ int32_t _ar_asio_open(int32_t di)
 			intChannelOffset += AsioDriverList[i].devices;
 		}
 	}
-	intChannelOffset = (di - dio) - intChannelOffset;
+	intChannelOffset = (di - device_identifier_offset) - intChannelOffset;
 	FDBUG((_arS, "Channel Offset [%d]\n", intChannelOffset));
 
 	// Allocate buffers
@@ -464,7 +463,7 @@ _ar_asio_io_prepare(int32_t di)
 	int32		intNumberSegments;	    // Same for in and out
 	int32** out;
 	int32** in;
-	TStimulusData* ptrStimulusData;
+	ArAsioSegment* ptrStimulusData;
 	TResponseData* ptrResponseData;
 	int32		i;
 
@@ -491,7 +490,7 @@ _ar_asio_io_prepare(int32_t di)
 	The pointer "sptrCurSegmentStimulus" will point to the first (channel 0)
 	stimulusData for the current segment.
 	*/
-	if ((stimulusData = (TStimulusData*)calloc(ar_current_device->ncda * intNumberSegments, sizeof(TStimulusData))) == NULL)
+	if ((stimulusData = (ArAsioSegment*)calloc(ar_current_device->ncda * intNumberSegments, sizeof(ArAsioSegment))) == NULL)
 		return -1;
 
 	/*
@@ -507,19 +506,19 @@ _ar_asio_io_prepare(int32_t di)
 	for (i = 0; i < ar_current_device->ncda * intNumberSegments; i++) {
 
 		ptrStimulusData->Magic = 0xBEEF;			// Indentification for debugging
-		ptrStimulusData->ChannelNumber = i % ar_current_device->ncda;		// e.g. 0, 1, 0, 1, . . . 
-		ptrStimulusData->SegmentNumber = i / ar_current_device->ncda;		// segment number
-		ptrStimulusData->StimulusBlock = out[i];
+		ptrStimulusData->channel = i % ar_current_device->ncda;		// e.g. 0, 1, 0, 1, . . . 
+		ptrStimulusData->segment = i / ar_current_device->ncda;		// segment number
+		ptrStimulusData->data = out[i];
 		ptrStimulusData->Index = 0;										// initialize to the first sample
-		ptrStimulusData->Samples = ar_current_device->sizptr[i / ar_current_device->ncda];
+		ptrStimulusData->size = ar_current_device->sizptr[i / ar_current_device->ncda];
 
 		FDBUG((_arS, "STM --> Magic [%2d] ch [%d] seg [%d] out [%p] samples [%d] end [%p]\n",
 			i,
-			ptrStimulusData->ChannelNumber,
-			ptrStimulusData->SegmentNumber,
+			ptrStimulusData->channel,
+			ptrStimulusData->segment,
 			out[i],
-			ptrStimulusData->Samples,
-			out[i] + ptrStimulusData->Samples));
+			ptrStimulusData->size,
+			out[i] + ptrStimulusData->size));
 
 		ptrStimulusData++;
 	}
@@ -530,22 +529,22 @@ _ar_asio_io_prepare(int32_t di)
 	for (i = 0; i < ar_current_device->ncad * intNumberSegments; i++) {
 
 		ptrResponseData->Magic = 0xBEEF;			// Indentification number for debugging
-		ptrResponseData->ChannelNumber = i % ar_current_device->ncad;		// e.g. 0, 1, 0, 1, . . . 
-		ptrResponseData->SegmentNumber = i / ar_current_device->ncad;		// segment number
-		ptrResponseData->ResponseBlock = in[i];
+		ptrResponseData->channel = i % ar_current_device->ncad;		// e.g. 0, 1, 0, 1, . . . 
+		ptrResponseData->segment = i / ar_current_device->ncad;		// segment number
+		ptrResponseData->data = in[i];
 		ptrResponseData->Index = 0;				// initialize to the first sample
-		ptrResponseData->Samples = ar_current_device->sizptr[i / ar_current_device->ncad];
+		ptrResponseData->size = ar_current_device->sizptr[i / ar_current_device->ncad];
 
 		FDBUG((_arS, "RSP --> Magic [%2d] ch [%d] seg [%d] in [%p] samples [%d] end [%p]\n",
 			i,
-			ptrResponseData->ChannelNumber,
-			ptrResponseData->SegmentNumber,
+			ptrResponseData->channel,
+			ptrResponseData->segment,
 			in[i],
-			ptrResponseData->Samples,
-			in[i] + ptrResponseData->Samples));
+			ptrResponseData->size,
+			in[i] + ptrResponseData->size));
 
 		// Only segment 0 need be concerned with latency
-		ptrResponseData->LatencyReached = (ptrResponseData->SegmentNumber != 0);
+		ptrResponseData->LatencyReached = (ptrResponseData->segment != 0);
 
 		ptrResponseData++;
 	}
@@ -700,7 +699,7 @@ _ar_asio_bind(int32_t ndt, int32_t tnd)
 		device_type(ndt)->latency = ar_asio_latency;
 		device_type(ndt)->list_rates = ar_asio_list_rates;
 
-		dio = tnd;
+		device_identifier_offset = tnd;
 	}
 
 	return devices;
@@ -713,7 +712,7 @@ stimulus data.
 Each channel has its own StimulusData block, so this function does not worry
 about channels. A pointer to the correct StimulusData structure is passed.
 */
-int32 pSendStimulusData(int32* buffer, int32 aintBufferSize, TStimulusData* ptrStimulusData) {
+int32 pSendStimulusData(int32* buffer, int32 aintBufferSize, ArAsioSegment* ptrStimulusData) {
 
 	int32	k;
 	int32* ptrBuffer;
@@ -732,21 +731,21 @@ int32 pSendStimulusData(int32* buffer, int32 aintBufferSize, TStimulusData* ptrS
 	// Loon test
 	if (ptrStimulusData->Magic != 0xBEEF)
 		return 0;
-	if (ptrStimulusData->Samples < 0 || ptrStimulusData->Samples > 999000)
+	if (ptrStimulusData->size < 0 || ptrStimulusData->size > 999000)
 		return 0;
-	if (ptrStimulusData->ChannelNumber < 0 || ptrStimulusData->ChannelNumber >= intOutputChannels)
+	if (ptrStimulusData->channel < 0 || ptrStimulusData->channel >= intOutputChannels)
 		return 0;
 
 	ptrBuffer = buffer;					// Set a pointer to passed 1/2 buffer
-	ptrCurStimSample = ptrStimulusData->StimulusBlock;	// Get pointer to stimulus data
+	ptrCurStimSample = ptrStimulusData->data;	// Get pointer to stimulus data
 	ptrCurStimSample += ptrStimulusData->Index;		// Move pointer to current sample
 
 	DBUG_S(("send: m/seg/ch [%d]/[%d]/[%d] index [%d] of [%d] TotalSamples [%d].\n",
 		ptrStimulusData->Magic,
-		ptrStimulusData->SegmentNumber,
-		ptrStimulusData->ChannelNumber,
+		ptrStimulusData->segment,
+		ptrStimulusData->channel,
 		ptrStimulusData->Index,
-		ptrStimulusData->Samples,
+		ptrStimulusData->size,
 		sintTotalSamples));
 
 	// Loop over buffer size samples
@@ -777,17 +776,17 @@ int32 pSendStimulusData(int32* buffer, int32 aintBufferSize, TStimulusData* ptrS
 
 		// SEGMENT DONE
 		// Is the current index of this segment beyond this channel's segment size?
-		if (ptrStimulusData->Index >= ptrStimulusData->Samples) {
-			DBUG_S(("m/seg/ch [%d]/[%d]/[%d] finished.\n", ptrStimulusData->Magic, ptrStimulusData->SegmentNumber, ptrStimulusData->ChannelNumber));
+		if (ptrStimulusData->Index >= ptrStimulusData->size) {
+			DBUG_S(("m/seg/ch [%d]/[%d]/[%d] finished.\n", ptrStimulusData->Magic, ptrStimulusData->segment, ptrStimulusData->channel));
 
 			// LAST CHANNEL
 			// If last channel of finished segment, increment the global segment count
-			if (ptrStimulusData->ChannelNumber == intOutputChannels - 1) {
+			if (ptrStimulusData->channel == intOutputChannels - 1) {
 
 				// send a message to let 'em know . . . .
 				// Windows messages aren't currently enacted in this implementation
 				if (_arsc_wind)
-					PostMessage((HWND)_arsc_wind, WM_ARSC, AM_StimulusSent, dio);
+					PostMessage((HWND)_arsc_wind, WM_ARSC, AM_StimulusSent, device_identifier_offset);
 
 				// If there are no input channels, the out channel determines the segment end
 				if (!ar_current_device->a_ncad) {
@@ -824,9 +823,9 @@ int32 pSendStimulusData(int32* buffer, int32 aintBufferSize, TStimulusData* ptrS
 			} /* fi last channel */
 
 			// Any more segments to play for this (current) channel?
-			if (ptrStimulusData->SegmentNumber + 1 == ar_current_device->segswp) {
+			if (ptrStimulusData->segment + 1 == ar_current_device->segswp) {
 				// No more segments to play for this channel
-				DBUG_S(("no more segments to play for channel [%d].\n", ptrStimulusData->ChannelNumber));
+				DBUG_S(("no more segments to play for channel [%d].\n", ptrStimulusData->channel));
 				// Wrap back in case of sweeping
 				ptrStimulusData -= (intOutputChannels) * (ar_current_device->segswp - 1);
 
@@ -842,7 +841,7 @@ int32 pSendStimulusData(int32* buffer, int32 aintBufferSize, TStimulusData* ptrS
 				ptrStimulusData += intOutputChannels;		// Now pointing at next segment, same channel
 			} /* fi last segment */
 
-			ptrCurStimSample = ptrStimulusData->StimulusBlock;	// Point to the appropriate Stim sample
+			ptrCurStimSample = ptrStimulusData->data;	// Point to the appropriate Stim sample
 			ptrStimulusData->Index = 0;				// Reset to beginning of block
 
 		} /* fi segment done */
@@ -885,7 +884,7 @@ int32 pFillResponseBlock(int32* buffer, int32 aintBufferSize, TResponseData* ptr
 	// Loon test
 	if (ptrResponseData->Magic != 0xBEEF)
 		return 0;
-	if (ptrResponseData->ChannelNumber < 0 || ptrResponseData->ChannelNumber >= intInputChannels)
+	if (ptrResponseData->channel < 0 || ptrResponseData->channel >= intInputChannels)
 		return 0;
 
 	/*
@@ -904,15 +903,15 @@ int32 pFillResponseBlock(int32* buffer, int32 aintBufferSize, TResponseData* ptr
 #endif // NO_LATENCY_CORRECTION
 
 	ptrBuffer = buffer;						// Set a pointer to passed 1/2 buffer
-	ptrResponseSample = ptrResponseData->ResponseBlock;		// Get reference to Response Block that is currently being filled
+	ptrResponseSample = ptrResponseData->data;		// Get reference to Response Block that is currently being filled
 	ptrResponseSample += ptrResponseData->Index;		// Point to correct sample in Response Block
 
 	DBUG_R(("fill: m/seg/ch [%d]/[%d]/[%d] index [%d] of [%d] TotalSamples [%d] skipped [%d] bolLatency [%d].\n",
 		ptrResponseData->Magic,
-		ptrResponseData->SegmentNumber,
-		ptrResponseData->ChannelNumber,
+		ptrResponseData->segment,
+		ptrResponseData->channel,
 		ptrResponseData->Index,
-		ptrResponseData->Samples,
+		ptrResponseData->size,
 		sintTotalSamples,
 		ptrResponseData->SkippedSamples,
 		ptrResponseData->LatencyReached));
@@ -947,7 +946,7 @@ int32 pFillResponseBlock(int32* buffer, int32 aintBufferSize, TResponseData* ptr
 
 			// Check for abnormally large buffers
 			intRemainder = aintBufferSize - intDifference;
-			if (intRemainder < ptrResponseData->Samples) {
+			if (intRemainder < ptrResponseData->size) {
 				memcpy(ptrResponseSample, ptrBuffer, intRemainder * sizeof(int32));
 				ptrResponseData->Index += intRemainder;
 
@@ -970,7 +969,7 @@ int32 pFillResponseBlock(int32* buffer, int32 aintBufferSize, TResponseData* ptr
 
 		// Whole buffer or partial buffer?
 		// 2005 Apr 19 -- changed from 1 to 0
-		if (ptrResponseData->Index + aintBufferSize < ptrResponseData->Samples + 0) {
+		if (ptrResponseData->Index + aintBufferSize < ptrResponseData->size + 0) {
 
 			// Whole buffer will fit in block
 			memcpy(ptrResponseSample, ptrBuffer, aintBufferSize * sizeof(int32));
@@ -981,7 +980,7 @@ int32 pFillResponseBlock(int32* buffer, int32 aintBufferSize, TResponseData* ptr
 			// Partial buffer will fit in block.
 
 			// Calculate what it will take to fill rest of block from end of segment, then put it in
-			intDifference = ptrResponseData->Samples - ptrResponseData->Index - 0;
+			intDifference = ptrResponseData->size - ptrResponseData->Index - 0;
 			memcpy(ptrResponseSample, ptrBuffer, intDifference * sizeof(int32));
 			ptrResponseData->Index += intDifference;		// Brings us to the end
 			ptrBuffer += intDifference;				// Move the pointer
@@ -1003,11 +1002,11 @@ int32 pFillResponseBlock(int32* buffer, int32 aintBufferSize, TResponseData* ptr
 #endif // BLOCKDEMARCATION
 
 			// if this is the last channel, increment the global segment count
-			if (ptrResponseData->ChannelNumber == intInputChannels - 1) {
+			if (ptrResponseData->channel == intInputChannels - 1) {
 
-				DBUG_R(("Posting message to AM_ResponseFull for channel [%d]\n", ptrResponseData->ChannelNumber));
+				DBUG_R(("Posting message to AM_ResponseFull for channel [%d]\n", ptrResponseData->channel));
 				if (_arsc_wind)
-					PostMessage((HWND)_arsc_wind, WM_ARSC, AM_ResponseFull, dio);
+					PostMessage((HWND)_arsc_wind, WM_ARSC, AM_ResponseFull, device_identifier_offset);
 
 				// Increment a semaphore-like variable
 				sintSegmentFinished++;
@@ -1032,12 +1031,12 @@ int32 pFillResponseBlock(int32* buffer, int32 aintBufferSize, TResponseData* ptr
 			} // fi last channel
 
 			// Any more segments to play for this (current) channel?
-			if (ptrResponseData->SegmentNumber + 1 == ar_current_device->segswp) {
+			if (ptrResponseData->segment + 1 == ar_current_device->segswp) {
 				// No more
 				DBUG_R(("no more segments for m/seg/ch [%d]/[%d]/[%d].\n",
 					ptrResponseData->Magic,
 					intCurInputSegment,
-					ptrResponseData->ChannelNumber));
+					ptrResponseData->channel));
 				// Wrap back in case of sweeping
 				ptrResponseData -= (intInputChannels) * (ar_current_device->segswp - 1);
 			}
@@ -1053,7 +1052,7 @@ int32 pFillResponseBlock(int32* buffer, int32 aintBufferSize, TResponseData* ptr
 				ptrResponseData += intInputChannels;		    // Now pointing at next segment, same channel
 			} // fi any more segments
 
-			ptrResponseSample = ptrResponseData->ResponseBlock;	    // Point to the appropriate Response sample
+			ptrResponseSample = ptrResponseData->data;	    // Point to the appropriate Response sample
 			ptrResponseData->Index = 0;				    // Reset to beginning of block
 
 			// Remainder of RESPONSE data from sound card goes into next block
@@ -1062,7 +1061,7 @@ int32 pFillResponseBlock(int32* buffer, int32 aintBufferSize, TResponseData* ptr
 
 			// This should, at least, not cause a memory fault.  It does
 			// mean that data is thrown away.
-			if (intDifference < ptrResponseData->Samples) {
+			if (intDifference < ptrResponseData->size) {
 
 				memcpy(ptrResponseSample, ptrBuffer, intDifference * sizeof(int32));
 				ptrResponseData->Index = intDifference;
@@ -1126,15 +1125,15 @@ check_rates(void) {
 	used later to ensure the closest valid sample rate to the requested
 	rate is used.
 	*/
-	gdsr = 0;
+	good_sample_rates = 0;
 	for (i = 0; i < SRLSTSZ; i++) {
 		if (SDKAsioCanSampleRate(_ar_SRlist[i]) == true) {
-			gdsr |= 1 << i;
+			good_sample_rates |= 1 << i;
 			FDBUG((_arS, "Sample Rate [%ld] is supported.\n", _ar_SRlist[i]));
 		}
 	}
-	FDBUG((_arS, "gdsr is [%x]\n", gdsr));
-	return (gdsr);
+	FDBUG((_arS, "good_sample_rates is [%x]\n", good_sample_rates));
+	return (good_sample_rates);
 }
 
 // The sound card name is contained within the channel information.  
@@ -1181,7 +1180,7 @@ int32 pGetChannelDetails(int32 aintDriver) {
 			VirtualDevice[sintNumDevices].driver = aintDriver;
 			sprintf(VirtualDevice[sintNumDevices].name, "%s ASIO", ptrChannelInfo->name);
 			VirtualDevice[sintNumDevices].IsOutput = true;
-			VirtualDevice[sintNumDevices].good_rates = check_rates();
+			VirtualDevice[sintNumDevices].good_sampling_rates = check_rates();
 			sintNumDevices++;
 		}
 
@@ -1202,7 +1201,7 @@ int32 pGetChannelDetails(int32 aintDriver) {
 			VirtualDevice[sintNumDevices].driver = aintDriver;
 			sprintf(VirtualDevice[sintNumDevices].name, "%s (%s) ASIO %s", ptrChannelInfo->name, "In", ptrChannelInfo->isActive == ASIOTrue ? "*" : "");
 			VirtualDevice[sintNumDevices].IsOutput = false;
-			VirtualDevice[sintNumDevices].good_rates = check_rates();
+			VirtualDevice[sintNumDevices].good_sampling_rates = check_rates();
 			sintNumDevices++;
 		}
 
@@ -1394,13 +1393,13 @@ The driver is now known from the application's request.  Load
 the appropriate driver and initialize.
 */
 int32 pLockAndLoadImpl(int32 aintDevice) {
-	int32		intDriver = VirtualDevice[aintDevice - dio].driver;
+	int32		intDriver = VirtualDevice[aintDevice - device_identifier_offset].driver;
 	ASIODriverInfo	asioDriverInfo;			// needed for ASIOInit()
 	ASIOChannelInfo* ptrChannelInfo;		// handy pointer
 	int32		i;
 
 
-	FDBUG((_arS, "pLockAndLoad: Device [%d] dio [%d] driver [%d]\n", aintDevice, dio, intDriver));
+	FDBUG((_arS, "pLockAndLoad: Device [%d] dio [%d] driver [%d]\n", aintDevice, device_identifier_offset, intDriver));
 
 	if (SDKLoadAsioDriver(AsioDriverList[intDriver].name)) {
 		FDBUG((_arS, "pLockAndLoad: Driver [%s] loaded fine\n", AsioDriverList[intDriver].name));
@@ -1482,7 +1481,7 @@ SDK Note:
 ASIOTime* bufferSwitchTimeInfo(ASIOTime* timeInfo, long index, ASIOBool processNow) {
 	int32	    i;
 	long	    lngAsioBufferSize = slngPreferredBufferSize;    // shorthand to buffer size in samples
-	TStimulusData* ptrStimulusData = sptrCurSegmentStimulus;	    // pointer to channel 0 of current segment stimulus
+	ArAsioSegment* ptrStimulusData = sptrCurSegmentStimulus;	    // pointer to channel 0 of current segment stimulus
 	TResponseData* ptrResponseData = sptrCurSegmentResponse;	    // pointer to channel 0 of current segment response
 
 	if (!sbolIsStarted)
