@@ -506,12 +506,24 @@ static void io_prepare(void) {
 	_ar_asio_io_prepare(0);
 }
 
+static void assign_output_buffer_size(int i, int32_t size) {
+	assign_integer_array(output_buffer_size, i, size);
+}
+
+static void assign_pointer_array(void** a, int i, void* what) {
+	a[i] = what;
+}
+
+static void assign_output_buffer(int i, void* buffer) {
+	assign_pointer_array(output_buffers, i, buffer);
+}
+
 START_TEST(io_prepare_initializes_stimulus_data) {
 	assign_device_output_channels(0, 2);
 	assign_device_segments(0, 3);
-	assign_integer_array(output_buffer_size, 0, 4);
-	assign_integer_array(output_buffer_size, 1, 5);
-	assign_integer_array(output_buffer_size, 2, 6);
+	assign_output_buffer_size(0, 4);
+	assign_output_buffer_size(1, 5);
+	assign_output_buffer_size(2, 6);
 
 	io_prepare();
 
@@ -544,18 +556,14 @@ START_TEST(io_prepare_initializes_stimulus_data) {
 	ASSERT_STIMULUS_DATA_INDEX(0, 5);
 }
 
-static void assign_pointer_array(void** a, int i, void* what) {
-	a[i] = what;
-}
-
 START_TEST(io_prepare_initializes_stimulus_data_blocks) {
 	assign_device_output_channels(0, 3);
 	int32 local_first;
-	assign_pointer_array(output_buffers, 0, &local_first);
+	assign_output_buffer(0, &local_first);
 	int32 local_second;
-	assign_pointer_array(output_buffers, 1, &local_second);
+	assign_output_buffer(1, &local_second);
 	int32 local_third;
-	assign_pointer_array(output_buffers, 2, &local_third);
+	assign_output_buffer(2, &local_third);
 
 	io_prepare();
 	
@@ -568,8 +576,8 @@ START_TEST(pSendStimulusDataTbd) {
 	assign_device_output_channels(0, 1);
 	devices(0)->a_ncda = 1;
 	int32 other[3];
-	assign_pointer_array(output_buffers, 0, other);
-	assign_integer_array(output_buffer_size, 0, sizeof other);
+	assign_output_buffer(0, other);
+	assign_output_buffer_size(0, sizeof other);
 
 	io_prepare();
 	assign_integer_array(other, 0, 5);
