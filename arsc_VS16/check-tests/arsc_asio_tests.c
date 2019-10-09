@@ -675,6 +675,41 @@ START_TEST(write_device_buffer_tbd2) {
 	ASSERT_EQUAL_ANY(17, read_integer_array_at(buffer, 6));
 }
 
+START_TEST(write_device_buffer_tbd3) {
+	ArAsioSegment segment[2];
+	global_asio_segment = segment;
+	initialize_segment(segment, 0);
+	int32_t stimulus1[3];
+	assign_segment_data(segment, 0, stimulus1);
+	assign_segment_size(segment, 0, 3);
+	assign_segment_segment(segment, 0, 0);
+	initialize_segment(segment, 1);
+	int32_t stimulus2[4];
+	assign_segment_data(segment, 1, stimulus2);
+	assign_segment_size(segment, 1, 4);
+	assign_segment_segment(segment, 1, 1);
+	assign_device_segments(0, 2);
+
+	assign_integer_array(stimulus1, 0, 11);
+	assign_integer_array(stimulus1, 1, 12);
+	assign_integer_array(stimulus1, 2, 13);
+
+	assign_integer_array(stimulus2, 0, 14);
+	assign_integer_array(stimulus2, 1, 15);
+	assign_integer_array(stimulus2, 2, 16);
+	assign_integer_array(stimulus2, 3, 17);
+
+	int32_t buffer[7];
+	ar_asio_write_device_buffer(buffer, 7, segment + 1);
+	ASSERT_EQUAL_ANY(14, read_integer_array_at(buffer, 0));
+	ASSERT_EQUAL_ANY(15, read_integer_array_at(buffer, 1));
+	ASSERT_EQUAL_ANY(16, read_integer_array_at(buffer, 2));
+	ASSERT_EQUAL_ANY(17, read_integer_array_at(buffer, 3));
+	ASSERT_EQUAL_ANY(11, read_integer_array_at(buffer, 4));
+	ASSERT_EQUAL_ANY(12, read_integer_array_at(buffer, 5));
+	ASSERT_EQUAL_ANY(13, read_integer_array_at(buffer, 6));
+}
+
 static void add_test(TCase* test_case, const TTest* test) {
 	tcase_add_test(test_case, test);
 }
@@ -719,6 +754,7 @@ Suite* arsc_asio_test_suite() {
 	tcase_add_checked_fixture(sendStimulusDataTestCase, setupSendStimulusData, teardownSendStimulusData);
 	add_test(sendStimulusDataTestCase, write_device_buffer_tbd);
 	add_test(sendStimulusDataTestCase, write_device_buffer_tbd2);
+	add_test(sendStimulusDataTestCase, write_device_buffer_tbd3);
 	suite_add_tcase(suite, sendStimulusDataTestCase);
 	return suite;
 }
