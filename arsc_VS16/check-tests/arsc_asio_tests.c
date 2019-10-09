@@ -587,14 +587,14 @@ START_TEST(io_prepare_initializes_segment_data) {
 	ASSERT_SEGMENT_BUFFER(&third, 2);
 }
 
-static void setupSendStimulusData(void) {
+static void setup_write_device_buffer(void) {
 	allocate_device(0);
 	assign_device_segments(0, 1);
 	set_device_desired_output_channels(0, 1);
 	ar_current_device = devices(0);
 }
 
-static void teardownSendStimulusData(void) {
+static void teardown_write_device_buffer(void) {
 	free_device(0);
 }
 
@@ -608,7 +608,7 @@ static ArAsioSegment initialized_segment() {
 	return s;
 }
 
-START_TEST(write_device_buffer_tbd) {
+START_TEST(write_device_buffer_one_segment) {
 	int32_t stimulus[3];
 	ArAsioSegment segment = initialized_segment();
 	segment.data = stimulus;
@@ -644,7 +644,7 @@ static void initialize_segment(ArAsioSegment* s, int i) {
 	*segment_at(s, i) = initialized_segment();
 }
 
-START_TEST(write_device_buffer_tbd2) {
+START_TEST(write_device_buffer_two_segments) {
 	ArAsioSegment segment[2];
 	initialize_segment(segment, 0);
 	int32_t stimulus1[3];
@@ -678,7 +678,7 @@ START_TEST(write_device_buffer_tbd2) {
 	ASSERT_INTEGER_ARRAY_AT_EQUALS(17, buffer, 6);
 }
 
-START_TEST(write_device_buffer_tbd3) {
+START_TEST(write_device_buffer_wrap_segments) {
 	ArAsioSegment segment[2];
 	initialize_segment(segment, 0);
 	int32_t stimulus1[3];
@@ -718,45 +718,45 @@ static void add_test(TCase* test_case, const TTest* test) {
 
 Suite* arsc_asio_test_suite() {
 	Suite* suite = suite_create("arsc_asio");
-	TCase* test_case = tcase_create("idk");
-	tcase_add_checked_fixture(test_case, setup, teardown);
-	add_test(test_case, bind_returns_number_of_devices);
-	add_test(test_case, bind_assigns_devices_impl_to_device_type_zero_when_nonzero_devices);
-	add_test(test_case, bind_assigns_devices_impl_to_device_type_one_when_nonzero_devices);
-	add_test(test_case, bind_assigns_device_name_impl_to_device_type_zero_when_nonzero_devices);
-	add_test(test_case, bind_assigns_device_name_impl_to_device_type_one_when_nonzero_devices);
-	add_test(test_case, bind_assigns_io_stop_impl_to_device_type_zero_when_nonzero_devices);
-	add_test(test_case, bind_assigns_io_stop_impl_to_device_type_one_when_nonzero_devices);
-	add_test(test_case, bind_assigns_close_to_device_type_zero_when_nonzero_devices);
-	add_test(test_case, bind_assigns_close_to_device_type_one_when_nonzero_devices);
-	add_test(test_case, bind_assigns_open_to_device_type_zero_when_nonzero_devices);
-	add_test(test_case, bind_assigns_open_to_device_type_one_when_nonzero_devices);
-	add_test(test_case, bind_assigns_io_prepare_to_device_type_zero_when_nonzero_devices);
-	add_test(test_case, bind_assigns_io_prepare_to_device_type_one_when_nonzero_devices);
-	add_test(test_case, bind_assigns_list_rates_to_device_type_zero_when_nonzero_devices);
-	add_test(test_case, bind_assigns_list_rates_to_device_type_one_when_nonzero_devices);
-	add_test(test_case, bind_assigns_io_start_to_device_type_zero_when_nonzero_devices);
-	add_test(test_case, bind_assigns_io_start_to_device_type_one_when_nonzero_devices);
-	add_test(test_case, bind_assigns_transfer_segment_to_device_type_zero_when_nonzero_devices);
-	add_test(test_case, bind_assigns_transfer_segment_to_device_type_one_when_nonzero_devices);
-	add_test(test_case, bind_assigns_check_segment_to_device_type_zero_when_nonzero_devices);
-	add_test(test_case, bind_assigns_check_segment_to_device_type_one_when_nonzero_devices);
-	add_test(test_case, bind_assigns_latency_to_device_type_zero_when_nonzero_devices);
-	add_test(test_case, bind_assigns_latency_to_device_type_one_when_nonzero_devices);
-	add_test(test_case, open_assigns_good_sample_rates);
-	add_test(test_case, open_passes_device_to_list_rates);
-	add_test(test_case, open_initializes_buffer_infos);
-	suite_add_tcase(suite, test_case);
+	TCase* bind_test_case = tcase_create("bind");
+	tcase_add_checked_fixture(bind_test_case, setup, teardown);
+	add_test(bind_test_case, bind_returns_number_of_devices);
+	add_test(bind_test_case, bind_assigns_devices_impl_to_device_type_zero_when_nonzero_devices);
+	add_test(bind_test_case, bind_assigns_devices_impl_to_device_type_one_when_nonzero_devices);
+	add_test(bind_test_case, bind_assigns_device_name_impl_to_device_type_zero_when_nonzero_devices);
+	add_test(bind_test_case, bind_assigns_device_name_impl_to_device_type_one_when_nonzero_devices);
+	add_test(bind_test_case, bind_assigns_io_stop_impl_to_device_type_zero_when_nonzero_devices);
+	add_test(bind_test_case, bind_assigns_io_stop_impl_to_device_type_one_when_nonzero_devices);
+	add_test(bind_test_case, bind_assigns_close_to_device_type_zero_when_nonzero_devices);
+	add_test(bind_test_case, bind_assigns_close_to_device_type_one_when_nonzero_devices);
+	add_test(bind_test_case, bind_assigns_open_to_device_type_zero_when_nonzero_devices);
+	add_test(bind_test_case, bind_assigns_open_to_device_type_one_when_nonzero_devices);
+	add_test(bind_test_case, bind_assigns_io_prepare_to_device_type_zero_when_nonzero_devices);
+	add_test(bind_test_case, bind_assigns_io_prepare_to_device_type_one_when_nonzero_devices);
+	add_test(bind_test_case, bind_assigns_list_rates_to_device_type_zero_when_nonzero_devices);
+	add_test(bind_test_case, bind_assigns_list_rates_to_device_type_one_when_nonzero_devices);
+	add_test(bind_test_case, bind_assigns_io_start_to_device_type_zero_when_nonzero_devices);
+	add_test(bind_test_case, bind_assigns_io_start_to_device_type_one_when_nonzero_devices);
+	add_test(bind_test_case, bind_assigns_transfer_segment_to_device_type_zero_when_nonzero_devices);
+	add_test(bind_test_case, bind_assigns_transfer_segment_to_device_type_one_when_nonzero_devices);
+	add_test(bind_test_case, bind_assigns_check_segment_to_device_type_zero_when_nonzero_devices);
+	add_test(bind_test_case, bind_assigns_check_segment_to_device_type_one_when_nonzero_devices);
+	add_test(bind_test_case, bind_assigns_latency_to_device_type_zero_when_nonzero_devices);
+	add_test(bind_test_case, bind_assigns_latency_to_device_type_one_when_nonzero_devices);
+	add_test(bind_test_case, open_assigns_good_sample_rates);
+	add_test(bind_test_case, open_passes_device_to_list_rates);
+	add_test(bind_test_case, open_initializes_buffer_infos);
+	suite_add_tcase(suite, bind_test_case);
 	TCase* io_prepare_test_case = tcase_create("io_prepare");
 	tcase_add_checked_fixture(io_prepare_test_case, setup_io_prepare, teardown_io_prepare);
 	add_test(io_prepare_test_case, io_prepare_initializes_segments);
 	add_test(io_prepare_test_case, io_prepare_initializes_segment_data);
 	suite_add_tcase(suite, io_prepare_test_case);
-	TCase* sendStimulusDataTestCase = tcase_create("sendStimulusData");
-	tcase_add_checked_fixture(sendStimulusDataTestCase, setupSendStimulusData, teardownSendStimulusData);
-	add_test(sendStimulusDataTestCase, write_device_buffer_tbd);
-	add_test(sendStimulusDataTestCase, write_device_buffer_tbd2);
-	add_test(sendStimulusDataTestCase, write_device_buffer_tbd3);
-	suite_add_tcase(suite, sendStimulusDataTestCase);
+	TCase* write_device_buffer_test_case = tcase_create("write_device_buffer");
+	tcase_add_checked_fixture(write_device_buffer_test_case, setup_write_device_buffer, teardown_write_device_buffer);
+	add_test(write_device_buffer_test_case, write_device_buffer_one_segment);
+	add_test(write_device_buffer_test_case, write_device_buffer_two_segments);
+	add_test(write_device_buffer_test_case, write_device_buffer_wrap_segments);
+	suite_add_tcase(suite, write_device_buffer_test_case);
 	return suite;
 }
