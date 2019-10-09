@@ -483,9 +483,17 @@ static void assign_integer_array(int32_t* a, int i, int32_t what) {
 	a[i] = what;
 }
 
+static void setup_io_prepare(void) {
+	allocate_device(0);
+	assign_device_input_channels(0, 0);
+}
+
+static void teardown_io_prepare(void) {
+	free_device(0);
+}
+
 START_TEST(io_prepare_initializes_stimulus_data) {
 	assign_device_segments(0, 3);
-	assign_device_input_channels(0, 0);
 	assign_device_output_channels(0, 2);
 	int32_t sizes[3];
 	assign_device_sizes(0, sizes);
@@ -531,7 +539,6 @@ static void assign_pointer_array(void** a, int i, void* what) {
 
 START_TEST(io_prepare_initializes_stimulus_data_blocks) {
 	assign_device_segments(0, 1);
-	assign_device_input_channels(0, 0);
 	assign_device_output_channels(0, 3);
 	void* output[3 * 1];
 	assign_device_output_buffers(0, output);
@@ -551,7 +558,6 @@ START_TEST(io_prepare_initializes_stimulus_data_blocks) {
 }
 
 START_TEST(pSendStimulusDataTbd) {
-	assign_device_input_channels(0, 0);
 	assign_device_segments(0, 1);
 	assign_device_output_channels(0, 1);
 	devices(0)->a_ncda = 1;
@@ -607,9 +613,12 @@ Suite* arsc_asio_test_suite() {
 	add_test(test_case, open_assigns_good_sample_rates);
 	add_test(test_case, open_passes_device_to_list_rates);
 	add_test(test_case, open_initializes_buffer_infos);
-	add_test(test_case, io_prepare_initializes_stimulus_data);
-	add_test(test_case, io_prepare_initializes_stimulus_data_blocks);
-	add_test(test_case, pSendStimulusDataTbd);
 	suite_add_tcase(suite, test_case);
+	TCase* io_prepare_test_case = tcase_create("io_prepare");
+	tcase_add_checked_fixture(io_prepare_test_case, setup_io_prepare, teardown_io_prepare);
+	add_test(io_prepare_test_case, io_prepare_initializes_stimulus_data);
+	add_test(io_prepare_test_case, io_prepare_initializes_stimulus_data_blocks);
+	add_test(io_prepare_test_case, pSendStimulusDataTbd);
+	suite_add_tcase(suite, io_prepare_test_case);
 	return suite;
 }
