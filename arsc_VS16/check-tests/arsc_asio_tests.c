@@ -588,13 +588,13 @@ static void teardownSendStimulusData(void) {
 START_TEST(pSendStimulusDataTbd) {
 	int32 stimulus[3];
 	TStimulusData localStimulusData;
+	localStimulusData.StimulusBlock = stimulus;
+	localStimulusData.Samples = 3;
 	localStimulusData.Magic = 0xBEEF;
 	localStimulusData.Index = 0;
 	localStimulusData.ChannelNumber = 0;
-	localStimulusData.Samples = 3;
 	localStimulusData.SegmentNumber = 0;
 	localStimulusData.OutputDone = 0;
-	localStimulusData.StimulusBlock = stimulus;
 	set_device_desired_output_channels(0, 1);
 	ar_current_device = devices(0);
 
@@ -606,6 +606,48 @@ START_TEST(pSendStimulusDataTbd) {
 	ASSERT_EQUAL_ANY(5, buffer[0]);
 	ASSERT_EQUAL_ANY(6, buffer[1]);
 	ASSERT_EQUAL_ANY(7, buffer[2]);
+}
+
+START_TEST(pSendStimulusDataTbd2) {
+	int32 stimulus1[3];
+	int32 stimulus2[4];
+	TStimulusData localStimulusData[2];
+	localStimulusData[0].StimulusBlock = stimulus1;
+	localStimulusData[0].Samples = 3;
+	localStimulusData[0].Magic = 0xBEEF;
+	localStimulusData[0].Index = 0;
+	localStimulusData[0].ChannelNumber = 0;
+	localStimulusData[0].SegmentNumber = 0;
+	localStimulusData[0].OutputDone = 0;
+	localStimulusData[1].StimulusBlock = stimulus2;
+	localStimulusData[1].Samples = 4;
+	localStimulusData[1].Magic = 0xBEEF;
+	localStimulusData[1].Index = 0;
+	localStimulusData[1].ChannelNumber = 0;
+	localStimulusData[1].SegmentNumber = 1;
+	localStimulusData[1].OutputDone = 0;
+	set_device_desired_output_channels(0, 1);
+	assign_device_segments(0, 2);
+	ar_current_device = devices(0);
+
+	assign_integer_array(stimulus1, 0, 11);
+	assign_integer_array(stimulus1, 1, 12);
+	assign_integer_array(stimulus1, 2, 13);
+
+	assign_integer_array(stimulus2, 0, 14);
+	assign_integer_array(stimulus2, 1, 15);
+	assign_integer_array(stimulus2, 2, 16);
+	assign_integer_array(stimulus2, 3, 17);
+
+	int32_t buffer[7];
+	pSendStimulusData(buffer, 7, localStimulusData);
+	ASSERT_EQUAL_ANY(11, buffer[0]);
+	ASSERT_EQUAL_ANY(12, buffer[1]);
+	ASSERT_EQUAL_ANY(13, buffer[2]);
+	ASSERT_EQUAL_ANY(14, buffer[3]);
+	ASSERT_EQUAL_ANY(15, buffer[4]);
+	ASSERT_EQUAL_ANY(16, buffer[5]);
+	ASSERT_EQUAL_ANY(17, buffer[6]);
 }
 
 static void add_test(TCase* test_case, const TTest* test) {
@@ -651,6 +693,7 @@ Suite* arsc_asio_test_suite() {
 	TCase* sendStimulusDataTestCase = tcase_create("sendStimulusData");
 	tcase_add_checked_fixture(sendStimulusDataTestCase, setupSendStimulusData, teardownSendStimulusData);
 	add_test(sendStimulusDataTestCase, pSendStimulusDataTbd);
+	add_test(sendStimulusDataTestCase, pSendStimulusDataTbd2);
 	suite_add_tcase(suite, sendStimulusDataTestCase);
 	return suite;
 }
