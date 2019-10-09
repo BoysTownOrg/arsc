@@ -576,6 +576,15 @@ START_TEST(io_prepare_initializes_stimulus_data_blocks) {
 	ASSERT_STIMULUS_DATA_BUFFER(&local_third, 2);
 }
 
+static void setupSendStimulusData(void) {
+	allocate_device(0);
+	assign_device_segments(0, 1);
+}
+
+static void teardownSendStimulusData(void) {
+	free_device(0);
+}
+
 START_TEST(pSendStimulusDataTbd) {
 	int32 stimulus[3];
 	TStimulusData localStimulusData;
@@ -638,7 +647,10 @@ Suite* arsc_asio_test_suite() {
 	tcase_add_checked_fixture(io_prepare_test_case, setup_io_prepare, teardown_io_prepare);
 	add_test(io_prepare_test_case, io_prepare_initializes_stimulus_data);
 	add_test(io_prepare_test_case, io_prepare_initializes_stimulus_data_blocks);
-	add_test(io_prepare_test_case, pSendStimulusDataTbd);
 	suite_add_tcase(suite, io_prepare_test_case);
+	TCase* sendStimulusDataTestCase = tcase_create("sendStimulusData");
+	tcase_add_checked_fixture(sendStimulusDataTestCase, setupSendStimulusData, teardownSendStimulusData);
+	add_test(sendStimulusDataTestCase, pSendStimulusDataTbd);
+	suite_add_tcase(suite, sendStimulusDataTestCase);
 	return suite;
 }
