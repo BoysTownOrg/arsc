@@ -17,7 +17,7 @@ typedef struct {
 	char		name[MAXDRVNAMELEN];
 	char		description[MAXDRVNAMELEN];
 	bool		valid;
-	int32		devices;				    // Number of ASIO output devices (or input if ARSC_PREF_IN )
+	int32_t		devices;				    // Number of ASIO output devices (or input if ARSC_PREF_IN )
 } TAsioDriver;
 
 // ASIO loads and intializes only one valid driver at a time.  To
@@ -25,19 +25,19 @@ typedef struct {
 // I created this structure to hold possible devices.
 typedef struct {
 	char		name[ARSC_NAMLEN];
-	int32		driver;					    // index back to TAsioDriver struct
-	int32		good_sampling_rates;
+	int32_t		driver;					    // index back to TAsioDriver struct
+	int32_t		good_sampling_rates;
 	bool		IsOutput;
 } TVirtualDevice;
 
 typedef struct {
-	int32 Magic;					    // Just an identifier for this structure
-	int32* data;
-	int32 size;
-	int32 Index;
-	int32 channel;
-	int32 segment;
-	int32 SkippedSamples;				    // Skipped samples before Latency kicks in
+	int32_t Magic;					    // Just an identifier for this structure
+	int32_t* data;
+	int32_t size;
+	int32_t Index;
+	int32_t channel;
+	int32_t segment;
+	int32_t SkippedSamples;				    // Skipped samples before Latency kicks in
 	bool LatencyReached;				    // For each channel, but only segment 0
 } TResponseData;
 
@@ -45,14 +45,14 @@ typedef struct {
 // for multiple platforms such as when WIND and ASIO are both set in the 
 // compilation.  The WIND devices are listed first, for example 0 to 5, then 
 // the ASIO devices are listed, e.g. 6.
-static int32 device_identifier_offset = 0;
+static int32_t device_identifier_offset = 0;
 
 static TAsioDriver	AsioDriverList[MAX_ASIO_DRIVERS];
 static TVirtualDevice	VirtualDevice[MAXDEV];			    // To hold the device names and the driver to which they associate
-static int32		sintAsioIntializedDriver = -1;		    // Index into the AsioDriverList[] for the loaded ASIO driver
-static int32		sintNumDevices = 0;			    // Number of valid ASIO devices
-static int32		sintMaxInputChannels = -1;		    // Maximum as reported by the driver
-static int32		sintMaxOutputChannels = -1;		    // Maximum as reported by the driver
+static int32_t		sintAsioIntializedDriver = -1;		    // Index into the AsioDriverList[] for the loaded ASIO driver
+static int32_t		sintNumDevices = 0;			    // Number of valid ASIO devices
+static int32_t		sintMaxInputChannels = -1;		    // Maximum as reported by the driver
+static int32_t		sintMaxOutputChannels = -1;		    // Maximum as reported by the driver
 ASIOBufferInfo* bufferInfos = NULL;			    // Pointer to array of bufferInfos; one for each channel (input + output)
 static ASIOChannelInfo* channelInfos = NULL;			    // Pointer to array of channelInfos; one for each channel (input + output)
 static ASIOCallbacks	asioCallbacks;				    // structure that holds the pointers to the callback functions
@@ -67,15 +67,15 @@ static long		slngInputLatency, slngOutputLatency;	    // Latencies as polled fro
 static bool		sbolPostOutput = false;			    // flag - true if driver uses ASIOOutputReady optimization
 static bool		sbolBuffersCreated = false;		    // flag - true if buffers have been created
 static bool		sbolIsStarted = false;			    // flag - true if driver is started
-static int32		sintTotalSamples = 0;			    // Total samples processed
+static int32_t		sintTotalSamples = 0;			    // Total samples processed
 static long		slngLatencyOffset = 0;			    // LatencyOffset specified by app
-static int32		sintSegmentFinished = 0;		    // semaphore-like variable to tell when segment is finished
+static int32_t		sintSegmentFinished = 0;		    // semaphore-like variable to tell when segment is finished
 static FILE* fhResponse0 = NULL;
 static FILE* fhStimulus0 = NULL;
 static FILE* fhResponse1 = NULL;
 static FILE* fhStimulus1 = NULL;
 static FILE* fhBD = NULL;
-static int32		good_sample_rates;					    // Good sample rates
+static int32_t		good_sample_rates;					    // Good sample rates
 ARDEV* ar_current_device;
 
 /*
@@ -123,13 +123,11 @@ long asioMessages(long selector, long value, void* message, double* opt);
 Internal prototypes
 */
 
-static int32 pFillResponseBlock(int32* buffer, int32 aintBufferSize, TResponseData* ptrResponseData);
-static int32 pWriteBufferDemarcation(int32 aintChunkSize, int32 aintAbsAmplitude);
-static int32 pPollAsioDrivers(void);
-static int32 pLockAndLoadImpl(int32 aintDevice);
-static int32 pBuildVirtualDevices(int32 aintDriver);
-
-/***************************************************************************/
+static int32_t pFillResponseBlock(int32_t* buffer, int32_t aintBufferSize, TResponseData* ptrResponseData);
+static int32_t pWriteBufferDemarcation(int32_t aintChunkSize, int32_t aintAbsAmplitude);
+static int32_t pPollAsioDrivers(void);
+static int32_t pLockAndLoadImpl(int32_t aintDevice);
+static int32_t pBuildVirtualDevices(int32_t aintDriver);
 
 /*
 _ar_asio_num_dev_impl - return number of ASIO devices
@@ -168,7 +166,7 @@ name for a number of Echo cards.
 static char*
 _ar_asio_dev_name(int32_t di)
 {
-	int32		i;
+	int32_t		i;
 
 	// In case this is called before we are ready
 	if (sintNumDevices == 0) {
@@ -198,7 +196,7 @@ _ar_asio_list_rates - return good sampling rates
 static int32_t
 _ar_asio_list_rates(int32_t di)
 {
-	int32		i;
+	int32_t		i;
 
 	// In case this is called before we are ready
 	if (sintNumDevices == 0) {
@@ -319,9 +317,9 @@ int32_t _ar_asio_open(int32_t di)
 	long		lngMaxBufferSize;
 	long		lngGranularity;
 	ASIOBufferInfo* ptrBufferInfo;			// handy pointer
-	int32		i;
+	int32_t		i;
 	bool		bolOutput;
-	int32		intChannelOffset = 0;
+	int32_t		intChannelOffset = 0;
 
 	ar_current_device = _ardev[di];
 	// Loon test
@@ -439,8 +437,8 @@ int32_t _ar_asio_open(int32_t di)
 	// Clear the buffers because CardDeluxe has known issues
 	ptrBufferInfo = bufferInfos;
 	for (i = 0; i < slngTotalUsedChannels; i++) {
-		memset(ptrBufferInfo->buffers[0], 0, slngPreferredBufferSize * sizeof(int32));
-		memset(ptrBufferInfo->buffers[1], 0, slngPreferredBufferSize * sizeof(int32));
+		memset(ptrBufferInfo->buffers[0], 0, slngPreferredBufferSize * sizeof(int32_t));
+		memset(ptrBufferInfo->buffers[1], 0, slngPreferredBufferSize * sizeof(int32_t));
 		ptrBufferInfo++;
 	}
 
@@ -460,20 +458,20 @@ int32_t(*ar_asio_open)(int32_t) = _ar_asio_open;
 int32_t
 _ar_asio_io_prepare(int32_t di)
 {
-	int32		intNumberSegments;	    // Same for in and out
-	int32** out;
-	int32** in;
+	int32_t		intNumberSegments;	    // Same for in and out
+	int32_t** out;
+	int32_t** in;
 	ArAsioSegment* ptrStimulusData;
 	TResponseData* ptrResponseData;
-	int32		i;
+	int32_t		i;
 
 	FDBUG((_arS, "asio_io_prepare:\n"));
 
 	ar_current_device = _ardev[di];				    // get access to application parameters
 
 	intNumberSegments = ar_current_device->segswp;		    // shorthand
-	out = (int32**)ar_current_device->o_data;			    // shorthand
-	in = (int32**)ar_current_device->i_data;			    // shorthand
+	out = (int32_t**)ar_current_device->o_data;			    // shorthand
+	in = (int32_t**)ar_current_device->i_data;			    // shorthand
 
 	/*
 	Set up stimulus (OUTPUT) blocks
@@ -590,7 +588,7 @@ _ar_asio_chk_seg(int32_t di, int32_t b)
 	current segment that is needed.
 	*/
 
-	static int32	sintHoldSegment = -1;
+	static int32_t	sintHoldSegment = -1;
 	bool		bolGotMutex = false;
 
 	ar_current_device = _ardev[di];			// get access to application parameters
@@ -712,14 +710,14 @@ stimulus data.
 Each channel has its own StimulusData block, so this function does not worry
 about channels. A pointer to the correct StimulusData structure is passed.
 */
-int32 pSendStimulusData(int32* buffer, int32 aintBufferSize, ArAsioSegment* ptrStimulusData) {
+int32_t pSendStimulusData(int32_t* buffer, int32_t aintBufferSize, ArAsioSegment* ptrStimulusData) {
 
-	int32	k;
-	int32* ptrBuffer;
-	int32* ptrCurStimSample;
-	int32	intCurOutputSegment;
-	int32	intOutputChannels;
-	int32	intNumWritten = 0;
+	int32_t	k;
+	int32_t* ptrBuffer;
+	int32_t* ptrCurStimSample;
+	int32_t	intCurOutputSegment;
+	int32_t	intOutputChannels;
+	int32_t	intNumWritten = 0;
 	bool	bolGotMutex = false;
 
 	intOutputChannels = ar_current_device->a_ncda;			// shorthand
@@ -862,18 +860,18 @@ Any samples due to device latency are skipped.
 The BYPASS compiler directive will send the raw INPUT data.  This is
 only for testing, only.
 */
-int32 pFillResponseBlock(int32* buffer, int32 aintBufferSize, TResponseData* ptrResponseData) {
+int32_t pFillResponseBlock(int32_t* buffer, int32_t aintBufferSize, TResponseData* ptrResponseData) {
 
-	int32* ptrBuffer;
-	int32	intDifference;
-	int32	intRemainder;
-	//    int32	intNumWritten;
-	int32	intImpulseLatency;
-	int32	intLoopbackLatency;
-	int32* ptrResponseSample;
-	int32	intCurInputSegment;
-	int32	intInputChannels;
-	int32	intActualSegment;			// after mod
+	int32_t* ptrBuffer;
+	int32_t	intDifference;
+	int32_t	intRemainder;
+	//    int32_t	intNumWritten;
+	int32_t	intImpulseLatency;
+	int32_t	intLoopbackLatency;
+	int32_t* ptrResponseSample;
+	int32_t	intCurInputSegment;
+	int32_t	intInputChannels;
+	int32_t	intActualSegment;			// after mod
 	bool	bolGotMutex = false;
 
 
@@ -947,7 +945,7 @@ int32 pFillResponseBlock(int32* buffer, int32 aintBufferSize, TResponseData* ptr
 			// Check for abnormally large buffers
 			intRemainder = aintBufferSize - intDifference;
 			if (intRemainder < ptrResponseData->size) {
-				memcpy(ptrResponseSample, ptrBuffer, intRemainder * sizeof(int32));
+				memcpy(ptrResponseSample, ptrBuffer, intRemainder * sizeof(int32_t));
 				ptrResponseData->Index += intRemainder;
 
 			}
@@ -972,7 +970,7 @@ int32 pFillResponseBlock(int32* buffer, int32 aintBufferSize, TResponseData* ptr
 		if (ptrResponseData->Index + aintBufferSize < ptrResponseData->size + 0) {
 
 			// Whole buffer will fit in block
-			memcpy(ptrResponseSample, ptrBuffer, aintBufferSize * sizeof(int32));
+			memcpy(ptrResponseSample, ptrBuffer, aintBufferSize * sizeof(int32_t));
 			ptrResponseData->Index += aintBufferSize;
 
 		}
@@ -981,7 +979,7 @@ int32 pFillResponseBlock(int32* buffer, int32 aintBufferSize, TResponseData* ptr
 
 			// Calculate what it will take to fill rest of block from end of segment, then put it in
 			intDifference = ptrResponseData->size - ptrResponseData->Index - 0;
-			memcpy(ptrResponseSample, ptrBuffer, intDifference * sizeof(int32));
+			memcpy(ptrResponseSample, ptrBuffer, intDifference * sizeof(int32_t));
 			ptrResponseData->Index += intDifference;		// Brings us to the end
 			ptrBuffer += intDifference;				// Move the pointer
 
@@ -1063,7 +1061,7 @@ int32 pFillResponseBlock(int32* buffer, int32 aintBufferSize, TResponseData* ptr
 			// mean that data is thrown away.
 			if (intDifference < ptrResponseData->size) {
 
-				memcpy(ptrResponseSample, ptrBuffer, intDifference * sizeof(int32));
+				memcpy(ptrResponseSample, ptrBuffer, intDifference * sizeof(int32_t));
 				ptrResponseData->Index = intDifference;
 			}
 			else {
@@ -1087,18 +1085,18 @@ of input and output waveforms.
 Typically aintAbsAmplitude is SCALE_32BIT, but sometimes needs to be dropped
 down to SCALE_24BIT depending upon the input/output waveform amplitude(s).
 */
-int32 pWriteBufferDemarcation(int32 aintChunkSize, int32 aintAbsAmplitude) {
+int32_t pWriteBufferDemarcation(int32_t aintChunkSize, int32_t aintAbsAmplitude) {
 
-	int32* ptrBlock;
-	int32* ptrInteger;
-	int32		intNumWritten;
+	int32_t* ptrBlock;
+	int32_t* ptrInteger;
+	int32_t		intNumWritten;
 
 	// Allocate memory for exactly one buffer-width chunk.
-	if ((ptrBlock = (int32*)calloc(aintChunkSize, sizeof(int32))) == NULL)
+	if ((ptrBlock = (int32_t*)calloc(aintChunkSize, sizeof(int32_t))) == NULL)
 		return -1;
 
 	// Fill this memory with zeros
-	memset(ptrBlock, 0, aintChunkSize * sizeof(int32));
+	memset(ptrBlock, 0, aintChunkSize * sizeof(int32_t));
 
 	// Give the first one a large value
 	ptrInteger = ptrBlock;
@@ -1108,7 +1106,7 @@ int32 pWriteBufferDemarcation(int32 aintChunkSize, int32 aintAbsAmplitude) {
 	//Inc ( ptrInteger, aintChunkSize - 1 );
 	//ptrInteger^ := - aintAbsAmplitude;
 
-	intNumWritten = (int32)fwrite(ptrBlock, sizeof(int32), aintChunkSize, fhBD);
+	intNumWritten = (int32_t)fwrite(ptrBlock, sizeof(int32_t), aintChunkSize, fhBD);
 
 	free(ptrBlock);
 
@@ -1147,9 +1145,9 @@ check_rates(void) {
 // differentiate between cards.
 //
 // The SYNC code only gets the OUT devices, unless only input is given.
-int32 pGetChannelDetails(int32 aintDriver) {
+int32_t pGetChannelDetails(int32_t aintDriver) {
 
-	int32		    i;
+	int32_t		    i;
 	ASIOChannelInfo* ptrChannelInfo;
 	bool		    bolOutput;
 
@@ -1212,7 +1210,7 @@ int32 pGetChannelDetails(int32 aintDriver) {
 }
 
 // This loads the ASIO driver and acquires some details.
-int32 pPollAsioDrivers(void) {
+int32_t pPollAsioDrivers(void) {
 
 	long		lRet;
 	HKEY		hkEnum = 0;
@@ -1222,7 +1220,7 @@ int32 pPollAsioDrivers(void) {
 	DWORD		type, size;
 	char		strFullKeyPath[MAX_KEY_LENGTH];
 	char		value[MAX_KEY_LENGTH];		// Arbitrary value type
-	int32		intDriver;			// looping variable
+	int32_t		intDriver;			// looping variable
 	ASIODriverInfo	asioDriverInfo;			// needed for ASIOInit()
 
 	// Open the main key to the ASIO drivers
@@ -1359,7 +1357,7 @@ channel information to derive virtual device ids (for the SYNC analog).
 
 The total possible channels is used to get full channel information from the card.
 */
-int32 pBuildVirtualDevices(int32 aintDriver) {
+int32_t pBuildVirtualDevices(int32_t aintDriver) {
 
 	// Gets the number of channels for this card
 	if (!SDKAsioGetChannels(&sintMaxInputChannels, &sintMaxOutputChannels)) {
@@ -1392,11 +1390,11 @@ int32 pBuildVirtualDevices(int32 aintDriver) {
 The driver is now known from the application's request.  Load
 the appropriate driver and initialize.
 */
-int32 pLockAndLoadImpl(int32 aintDevice) {
-	int32		intDriver = VirtualDevice[aintDevice - device_identifier_offset].driver;
+int32_t pLockAndLoadImpl(int32_t aintDevice) {
+	int32_t		intDriver = VirtualDevice[aintDevice - device_identifier_offset].driver;
 	ASIODriverInfo	asioDriverInfo;			// needed for ASIOInit()
 	ASIOChannelInfo* ptrChannelInfo;		// handy pointer
-	int32		i;
+	int32_t		i;
 
 
 	FDBUG((_arS, "pLockAndLoad: Device [%d] dio [%d] driver [%d]\n", aintDevice, device_identifier_offset, intDriver));
@@ -1461,7 +1459,7 @@ int32 pLockAndLoadImpl(int32 aintDevice) {
 	return 1;
 }
 
-int32(*pLockAndLoad)(int32 aintDevice) = pLockAndLoadImpl;
+int32_t(*pLockAndLoad)(int32_t aintDevice) = pLockAndLoadImpl;
 
 /*
 --------------------------------------- CALLBACKS ------------------------------------------
@@ -1479,7 +1477,7 @@ SDK Note:
 	take care about thread synchronization. This is omitted here for simplicity.
 */
 ASIOTime* bufferSwitchTimeInfo(ASIOTime* timeInfo, long index, ASIOBool processNow) {
-	int32	    i;
+	int32_t	    i;
 	long	    lngAsioBufferSize = slngPreferredBufferSize;    // shorthand to buffer size in samples
 	ArAsioSegment* ptrStimulusData = sptrCurSegmentStimulus;	    // pointer to channel 0 of current segment stimulus
 	TResponseData* ptrResponseData = sptrCurSegmentResponse;	    // pointer to channel 0 of current segment response

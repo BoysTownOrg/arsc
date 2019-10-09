@@ -570,11 +570,11 @@ START_TEST(io_prepare_initializes_stimulus_data) {
 
 START_TEST(io_prepare_initializes_stimulus_data_blocks) {
 	assign_device_output_channels(0, 3);
-	int32 local_first;
+	int32_t local_first;
 	assign_output_buffer(0, &local_first);
-	int32 local_second;
+	int32_t local_second;
 	assign_output_buffer(1, &local_second);
-	int32 local_third;
+	int32_t local_third;
 	assign_output_buffer(2, &local_third);
 
 	io_prepare();
@@ -606,7 +606,7 @@ static ArAsioSegment initializedStimulusData() {
 }
 
 START_TEST(pSendStimulusDataTbd) {
-	int32 stimulus[3];
+	int32_t stimulus[3];
 	ArAsioSegment localStimulusData = initializedStimulusData();
 	localStimulusData.data = stimulus;
 	localStimulusData.size = 3;
@@ -628,12 +628,12 @@ static ArAsioSegment* stimulus_data_at(ArAsioSegment* s, int i) {
 START_TEST(pSendStimulusDataTbd2) {
 	ArAsioSegment localStimulusData[2];
 	*stimulus_data_at(localStimulusData, 0) = initializedStimulusData();
-	int32 stimulus1[3];
+	int32_t stimulus1[3];
 	stimulus_data_at(localStimulusData, 0)->data = stimulus1;
 	stimulus_data_at(localStimulusData, 0)->size = 3;
 	stimulus_data_at(localStimulusData, 0)->segment = 0;
 	*stimulus_data_at(localStimulusData, 1) = initializedStimulusData();
-	int32 stimulus2[4];
+	int32_t stimulus2[4];
 	stimulus_data_at(localStimulusData, 1)->data = stimulus2;
 	stimulus_data_at(localStimulusData, 1)->size = 4;
 	stimulus_data_at(localStimulusData, 1)->segment = 1;
