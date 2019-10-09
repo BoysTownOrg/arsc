@@ -656,8 +656,7 @@ int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsio
 		intCurOutputSegment = ar_current_device->seg_ic;
 
 	int32_t *buffer_ = buffer;
-	int32_t* asio_segment_data = asio_segment->data;
-	asio_segment_data += asio_segment->Index;
+	int32_t* asio_segment_data = asio_segment->data + asio_segment->Index;
 
 	DBUG_S(("send: m/seg/ch [%d]/[%d]/[%d] index [%d] of [%d] TotalSamples [%d].\n",
 		asio_segment->Magic,
