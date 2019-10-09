@@ -614,6 +614,10 @@ static ArAsioSegment initialized_segment() {
 	return s;
 }
 
+static void write_device_buffer(int32_t n, ArAsioSegment* s) {
+	ar_asio_write_device_buffer(device_buffer, n, s);
+}
+
 START_TEST(write_device_buffer_one_segment) {
 	int32_t stimulus[3];
 	ArAsioSegment segment = initialized_segment();
@@ -623,7 +627,7 @@ START_TEST(write_device_buffer_one_segment) {
 	assign_integer_array(stimulus, 0, 5);
 	assign_integer_array(stimulus, 1, 6);
 	assign_integer_array(stimulus, 2, 7);
-	ar_asio_write_device_buffer(device_buffer, 3, &segment);
+	write_device_buffer(3, &segment);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(0, 5);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(1, 6);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(2, 7);
@@ -639,7 +643,7 @@ START_TEST(write_device_buffer_one_segment_offset) {
 	assign_integer_array(stimulus, 1, 5);
 	assign_integer_array(stimulus, 2, 6);
 	assign_integer_array(stimulus, 3, 7);
-	ar_asio_write_device_buffer(device_buffer, 3, &segment);
+	write_device_buffer(3, &segment);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(0, 5);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(1, 6);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(2, 7);
@@ -688,7 +692,7 @@ START_TEST(write_device_buffer_two_segments) {
 	assign_integer_array(stimulus2, 2, 16);
 	assign_integer_array(stimulus2, 3, 17);
 
-	ar_asio_write_device_buffer(device_buffer, 7, segment);
+	write_device_buffer(7, segment);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(0, 11);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(1, 12);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(2, 13);
@@ -721,7 +725,7 @@ START_TEST(write_device_buffer_wrap_segments) {
 	assign_integer_array(stimulus2, 2, 16);
 	assign_integer_array(stimulus2, 3, 17);
 
-	ar_asio_write_device_buffer(device_buffer, 7, segment + 1);
+	write_device_buffer(7, segment + 1);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(0, 14);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(1, 15);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(2, 16);
