@@ -579,24 +579,29 @@ START_TEST(io_prepare_initializes_stimulus_data_blocks) {
 static void setupSendStimulusData(void) {
 	allocate_device(0);
 	assign_device_segments(0, 1);
+	set_device_desired_output_channels(0, 1);
+	ar_current_device = devices(0);
 }
 
 static void teardownSendStimulusData(void) {
 	free_device(0);
 }
 
+static TStimulusData initializedStimulusData() {
+	TStimulusData s;
+	s.Magic = 0xBEEF;
+	s.Index = 0;
+	s.ChannelNumber = 0;
+	s.SegmentNumber = 0;
+	s.OutputDone = 0;
+	return s;
+}
+
 START_TEST(pSendStimulusDataTbd) {
 	int32 stimulus[3];
-	TStimulusData localStimulusData;
+	TStimulusData localStimulusData = initializedStimulusData();
 	localStimulusData.StimulusBlock = stimulus;
 	localStimulusData.Samples = 3;
-	localStimulusData.Magic = 0xBEEF;
-	localStimulusData.Index = 0;
-	localStimulusData.ChannelNumber = 0;
-	localStimulusData.SegmentNumber = 0;
-	localStimulusData.OutputDone = 0;
-	set_device_desired_output_channels(0, 1);
-	ar_current_device = devices(0);
 
 	assign_integer_array(stimulus, 0, 5);
 	assign_integer_array(stimulus, 1, 6);
@@ -608,27 +613,23 @@ START_TEST(pSendStimulusDataTbd) {
 	ASSERT_EQUAL_ANY(7, buffer[2]);
 }
 
+static TStimulusData* stimulus_data_at(TStimulusData* s, int i) {
+	return s + i;
+}
+
 START_TEST(pSendStimulusDataTbd2) {
 	int32 stimulus1[3];
 	int32 stimulus2[4];
 	TStimulusData localStimulusData[2];
-	localStimulusData[0].StimulusBlock = stimulus1;
-	localStimulusData[0].Samples = 3;
-	localStimulusData[0].Magic = 0xBEEF;
-	localStimulusData[0].Index = 0;
-	localStimulusData[0].ChannelNumber = 0;
-	localStimulusData[0].SegmentNumber = 0;
-	localStimulusData[0].OutputDone = 0;
-	localStimulusData[1].StimulusBlock = stimulus2;
-	localStimulusData[1].Samples = 4;
-	localStimulusData[1].Magic = 0xBEEF;
-	localStimulusData[1].Index = 0;
-	localStimulusData[1].ChannelNumber = 0;
-	localStimulusData[1].SegmentNumber = 1;
-	localStimulusData[1].OutputDone = 0;
-	set_device_desired_output_channels(0, 1);
+	*stimulus_data_at(localStimulusData, 0) = initializedStimulusData();
+	stimulus_data_at(localStimulusData, 0)->StimulusBlock = stimulus1;
+	stimulus_data_at(localStimulusData, 0)->Samples = 3;
+	stimulus_data_at(localStimulusData, 0)->SegmentNumber = 0;
+	*stimulus_data_at(localStimulusData, 1) = initializedStimulusData();
+	stimulus_data_at(localStimulusData, 1)->StimulusBlock = stimulus2;
+	stimulus_data_at(localStimulusData, 1)->Samples = 4;
+	stimulus_data_at(localStimulusData, 1)->SegmentNumber = 1;
 	assign_device_segments(0, 2);
-	ar_current_device = devices(0);
 
 	assign_integer_array(stimulus1, 0, 11);
 	assign_integer_array(stimulus1, 1, 12);
