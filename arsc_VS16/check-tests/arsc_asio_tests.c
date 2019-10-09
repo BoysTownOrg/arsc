@@ -624,6 +624,23 @@ START_TEST(write_device_buffer_one_segment) {
 	ASSERT_INTEGER_ARRAY_AT_EQUALS(7, buffer, 2);
 }
 
+START_TEST(write_device_buffer_one_segment_offset) {
+	int32_t stimulus[4];
+	ArAsioSegment segment = initialized_segment();
+	segment.data = stimulus;
+	segment.size = 4;
+	segment.Index = 1;
+
+	assign_integer_array(stimulus, 1, 5);
+	assign_integer_array(stimulus, 2, 6);
+	assign_integer_array(stimulus, 3, 7);
+	int32_t buffer[3];
+	ar_asio_write_device_buffer(buffer, 3, &segment);
+	ASSERT_INTEGER_ARRAY_AT_EQUALS(5, buffer, 0);
+	ASSERT_INTEGER_ARRAY_AT_EQUALS(6, buffer, 1);
+	ASSERT_INTEGER_ARRAY_AT_EQUALS(7, buffer, 2);
+}
+
 static ArAsioSegment* segment_at(ArAsioSegment* s, int i) {
 	return s + i;
 }
@@ -755,6 +772,7 @@ Suite* arsc_asio_test_suite() {
 	TCase* write_device_buffer_test_case = tcase_create("write_device_buffer");
 	tcase_add_checked_fixture(write_device_buffer_test_case, setup_write_device_buffer, teardown_write_device_buffer);
 	add_test(write_device_buffer_test_case, write_device_buffer_one_segment);
+	add_test(write_device_buffer_test_case, write_device_buffer_one_segment_offset);
 	add_test(write_device_buffer_test_case, write_device_buffer_two_segments);
 	add_test(write_device_buffer_test_case, write_device_buffer_wrap_segments);
 	suite_add_tcase(suite, write_device_buffer_test_case);
