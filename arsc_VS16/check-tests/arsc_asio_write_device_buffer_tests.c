@@ -1,11 +1,6 @@
 #include "arsc_asio_tests_common.h"
 #include "arsc_asio_write_device_buffer_tests.h"
-#include <arsc_asio.h>
 #include <stdlib.h>
-
-static void assign_device_segments(int device, int32_t segments) {
-	devices(device)->segswp = segments;
-}
 
 enum {
 	sufficiently_large = 100
@@ -25,6 +20,22 @@ static void teardown_write_device_buffer(void) {
 	free_device(0);
 }
 
+static ArAsioSegment* segment_at(ArAsioSegment* s, int i) {
+	return s + i;
+}
+
+static void assign_segment_data(ArAsioSegment* s, int i, int32_t* data) {
+	segment_at(s, i)->data = data;
+}
+
+static void assign_segment_size(ArAsioSegment* s, int i, int32_t size) {
+	segment_at(s, i)->size = size;
+}
+
+static void assign_segment_segment(ArAsioSegment* s, int i, int32_t segment) {
+	segment_at(s, i)->segment = segment;
+}
+
 static ArAsioSegment initialized_segment() {
 	ArAsioSegment s;
 	s.Magic = 0xBEEF;
@@ -33,6 +44,10 @@ static ArAsioSegment initialized_segment() {
 	s.segment = 0;
 	s.OutputDone = 0;
 	return s;
+}
+
+static void initialize_segment(ArAsioSegment* s, int i) {
+	*segment_at(s, i) = initialized_segment();
 }
 
 static void write_device_buffer(int32_t n, ArAsioSegment* s) {
@@ -74,26 +89,6 @@ START_TEST(write_device_buffer_one_segment_offset) {
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(0, 5);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(1, 6);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(2, 7);
-}
-
-static ArAsioSegment* segment_at(ArAsioSegment* s, int i) {
-	return s + i;
-}
-
-static void assign_segment_data(ArAsioSegment* s, int i, int32_t* data) {
-	segment_at(s, i)->data = data;
-}
-
-static void assign_segment_size(ArAsioSegment* s, int i, int32_t size) {
-	segment_at(s, i)->size = size;
-}
-
-static void assign_segment_segment(ArAsioSegment* s, int i, int32_t segment) {
-	segment_at(s, i)->segment = segment;
-}
-
-static void initialize_segment(ArAsioSegment* s, int i) {
-	*segment_at(s, i) = initialized_segment();
 }
 
 START_TEST(write_device_buffer_two_segments) {
@@ -160,10 +155,6 @@ START_TEST(write_device_buffer_wrap_segments) {
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(4, 11);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(5, 12);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(6, 13);
-}
-
-static void add_test(TCase* test_case, const TTest* test) {
-	tcase_add_test(test_case, test);
 }
 
 Suite* arsc_asio_write_device_buffer_suite() {

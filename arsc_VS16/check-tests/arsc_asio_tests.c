@@ -1,6 +1,5 @@
 #include "arsc_asio_tests_common.h"
 #include "arsc_asio_tests.h"
-#include <arsc_asio.h>
 #include <arsc_asio_wrappers.h>
 #include <stdlib.h>
 
@@ -112,10 +111,6 @@ static void assign_device_input_channels(int device, int32_t channels) {
 
 static void assign_device_output_channels(int device, int32_t channels) {
 	devices(device)->ncda = channels;
-}
-
-static void assign_device_segments(int device, int32_t segments) {
-	devices(device)->segswp = segments;
 }
 
 static void assign_device_output_buffers(int device, void **buffers) {
@@ -555,10 +550,6 @@ START_TEST(io_prepare_initializes_segment_data) {
 	ASSERT_SEGMENT_BUFFER(&first, 0);
 	ASSERT_SEGMENT_BUFFER(&second, 1);
 	ASSERT_SEGMENT_BUFFER(&third, 2);
-}
-
-static void add_test(TCase* test_case, const TTest* test) {
-	tcase_add_test(test_case, test);
 }
 
 Suite* arsc_asio_test_suite() {
