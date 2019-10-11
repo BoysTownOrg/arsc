@@ -20,6 +20,10 @@ void assign_integer_array(int32_t* a, int i, int32_t what) {
 	*integer_array_at(a, i) = what;
 }
 
+void set_device_desired_output_channels(int i, int32_t c) {
+	devices(i)->a_ncda = c;
+}
+
 int32_t read_integer_array_at(int32_t* a, int i) {
 	return *integer_array_at(a, i);
 }

@@ -279,10 +279,6 @@ static int32_t *global_asio_segment_data(int i) {
 	return global_asio_segment_(i)->data;
 }
 
-static void set_device_desired_output_channels(int i, int32_t c) {
-	devices(i)->a_ncda = c;
-}
-
 #define ASSERT_EQUAL_INT(a, b) ck_assert_int_eq(a, b)
 
 #define ASSERT_BIND_ASSIGNS_IMPL_WHEN_NONZERO_DEVICES(device_type, stub, impl)\

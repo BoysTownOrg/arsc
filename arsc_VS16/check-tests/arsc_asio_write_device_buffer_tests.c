@@ -3,17 +3,13 @@
 #include <arsc_asio.h>
 #include <stdlib.h>
 
-enum {
-	sufficiently_large = 100
-};
-
 static void assign_device_segments(int device, int32_t segments) {
 	devices(device)->segswp = segments;
 }
 
-static void set_device_desired_output_channels(int i, int32_t c) {
-	devices(i)->a_ncda = c;
-}
+enum {
+	sufficiently_large = 100
+};
 
 static int32_t device_buffer[sufficiently_large];
 
