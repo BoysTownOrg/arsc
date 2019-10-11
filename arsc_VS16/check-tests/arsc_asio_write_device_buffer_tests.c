@@ -1,3 +1,4 @@
+#include "arsc_asio_tests_common.h"
 #include "arsc_asio_write_device_buffer_tests.h"
 #include <arsc_asio.h>
 #include <stdlib.h>
@@ -16,14 +17,6 @@ static int32_t read_integer_array_at(int32_t* a, int i) {
 
 static void assign_integer_array(int32_t* a, int i, int32_t what) {
 	*integer_array_at(a, i) = what;
-}
-
-static ARDEV** devices_(int32_t device) {
-	return &_ardev[device];
-}
-
-static ARDEV* devices(int32_t device) {
-	return *devices_(device);
 }
 
 static void allocate_device(int device) {

@@ -1,5 +1,5 @@
+#include "arsc_asio_tests_common.h"
 #include "arsc_asio_tests.h"
-#define ASIO
 #include <arsc_asio.h>
 #include <arsc_asio_wrappers.h>
 #include <stdlib.h>
@@ -99,14 +99,6 @@ static bool SDKAsioGetBufferSizeStub(
 	aslngPreferredBufferSize;
 	alngGranularity;
 	return 1;
-}
-
-static ARDEV** devices_(int32_t device) {
-	return &_ardev[device];
-}
-
-static ARDEV* devices(int32_t device) {
-	return *devices_(device);
 }
 
 static int32_t pLockAndLoadStub(int32_t device) {

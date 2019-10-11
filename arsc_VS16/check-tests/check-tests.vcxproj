@@ -72,18 +72,22 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>C:/Program Files (x86)/check/include;$(SolutionDir)/..;$(SolutionDir)/../arsc_asio;$(IncludePath)</IncludePath>
     <LibraryPath>C:/Program Files (x86)/check/lib;$(LibraryPath)</LibraryPath>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>C:/Program Files (x86)/check/include;$(SolutionDir)/..;$(SolutionDir)/../arsc_asio;$(IncludePath)</IncludePath>
     <LibraryPath>C:/Program Files (x86)/check/lib;$(LibraryPath)</LibraryPath>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>C:/Program Files (x86)/check/include;$(SolutionDir)/..;$(SolutionDir)/../arsc_asio;$(IncludePath)</IncludePath>
     <LibraryPath>C:/Program Files (x86)/check/lib;$(LibraryPath)</LibraryPath>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>C:/Program Files (x86)/check/include;$(SolutionDir)/..;$(SolutionDir)/../arsc_asio;$(IncludePath)</IncludePath>
     <LibraryPath>C:/Program Files (x86)/check/lib;$(LibraryPath)</LibraryPath>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -151,11 +155,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="arsc_asio_tests.c" />
+    <ClCompile Include="arsc_asio_tests_common.c" />
     <ClCompile Include="arsc_asio_write_device_buffer_tests.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="arsc_asio_tests.h" />
+    <ClInclude Include="arsc_asio_tests_common.h" />
     <ClInclude Include="arsc_asio_write_device_buffer_tests.h" />
   </ItemGroup>
   <ItemGroup>

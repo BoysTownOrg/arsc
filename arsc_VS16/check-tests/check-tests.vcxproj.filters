@@ -24,12 +24,18 @@
     <ClCompile Include="arsc_asio_write_device_buffer_tests.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="arsc_asio_tests_common.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="arsc_asio_tests.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="arsc_asio_write_device_buffer_tests.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="arsc_asio_tests_common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
