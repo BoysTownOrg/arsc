@@ -113,14 +113,6 @@ static void assign_device_output_channels(int device, int32_t channels) {
 	devices(device)->ncda = channels;
 }
 
-static void assign_device_output_buffers(int device, void **buffers) {
-	devices(device)->o_data = buffers;
-}
-
-static void assign_device_sizes(int device, int32_t *sizes) {
-	devices(device)->sizptr = sizes;
-}
-
 static void setup(void) {
 	allocate_device(0);
 	allocate_device(1);
@@ -266,14 +258,6 @@ static long bufferInfoChannelNumber(int i) {
 	return bufferInfo_(i)->channelNum;
 }
 
-static ArAsioSegment* global_asio_segment_(int i) {
-	return global_asio_segment + i;
-}
-
-static int32_t *global_asio_segment_data(int i) {
-	return global_asio_segment_(i)->data;
-}
-
 #define ASSERT_EQUAL_INT(a, b) ck_assert_int_eq(a, b)
 
 #define ASSERT_BIND_ASSIGNS_IMPL_WHEN_NONZERO_DEVICES(device_type, stub, impl)\
@@ -324,27 +308,6 @@ for (int i = a; i < b; ++i)\
 	ASSERT_BUFFER_INFO_IS_INPUT_EQUALS(ASIOTrue, i)
 
 #define ASSERT_BUFFER_INFO_CHANNEL_NUMBER(a, b) ASSERT_EQUAL_ANY(a, bufferInfoChannelNumber(b))
-
-#define ASSERT_SEGMENT_BUFFER(a, b)\
-	ASSERT_EQUAL_ANY(a, global_asio_segment_data(b));
-
-#define ASSERT_SEGMENT_SAMPLES(a, b)\
-	ASSERT_EQUAL_ANY(a, global_asio_segment_(b)->size)
-
-#define ASSERT_SEGMENT_SEGMENT(a, b)\
-	ASSERT_EQUAL_ANY(a, global_asio_segment_(b)->segment)
-
-#define ASSERT_SEGMENT_CHANNEL(a, b)\
-	ASSERT_EQUAL_ANY(a, global_asio_segment_(b)->channel)
-
-#define ASSERT_SEGMENT_INDEX(a, b)\
-	ASSERT_EQUAL_ANY(a, global_asio_segment_(b)->Index)
-
-#define ASSERT_INTEGER_ARRAY_AT_EQUALS(a, b, c)\
-	ASSERT_EQUAL_ANY(a, read_integer_array_at(b, c))
-
-#define ASSERT_DEVICE_BUFFER_AT_EQUALS(a, b)\
-	ASSERT_INTEGER_ARRAY_AT_EQUALS(b, device_buffer, a)
 
 START_TEST(bind_returns_number_of_devices) {
 	set_devices(3);

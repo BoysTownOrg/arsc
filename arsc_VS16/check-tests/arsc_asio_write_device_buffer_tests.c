@@ -161,12 +161,12 @@ START_TEST(write_device_buffer_wrap_segments) {
 
 Suite* arsc_asio_write_device_buffer_suite() {
 	Suite* suite = suite_create("arsc_asio_write_device_buffer");
-	TCase* write_device_buffer_test_case = tcase_create("write_device_buffer");
-	tcase_add_checked_fixture(write_device_buffer_test_case, setup_write_device_buffer, teardown_write_device_buffer);
-	add_test(write_device_buffer_test_case, write_device_buffer_one_segment);
-	add_test(write_device_buffer_test_case, write_device_buffer_one_segment_offset);
-	add_test(write_device_buffer_test_case, write_device_buffer_two_segments);
-	add_test(write_device_buffer_test_case, write_device_buffer_wrap_segments);
-	suite_add_tcase(suite, write_device_buffer_test_case);
+	TCase* test_case = tcase_create("write_device_buffer");
+	tcase_add_checked_fixture(test_case, setup_write_device_buffer, teardown_write_device_buffer);
+	add_test(test_case, write_device_buffer_one_segment);
+	add_test(test_case, write_device_buffer_one_segment_offset);
+	add_test(test_case, write_device_buffer_two_segments);
+	add_test(test_case, write_device_buffer_wrap_segments);
+	suite_add_tcase(suite, test_case);
 	return suite;
 }
