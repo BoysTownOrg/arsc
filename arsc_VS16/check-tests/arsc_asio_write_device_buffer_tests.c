@@ -19,20 +19,12 @@ static void assign_integer_array(int32_t* a, int i, int32_t what) {
 	*integer_array_at(a, i) = what;
 }
 
-static void allocate_device(int device) {
-	*devices_(device) = calloc(1, sizeof(ARDEV));
-}
-
 static void assign_device_segments(int device, int32_t segments) {
 	devices(device)->segswp = segments;
 }
 
 static void set_device_desired_output_channels(int i, int32_t c) {
 	devices(i)->a_ncda = c;
-}
-
-static void free_device(int device) {
-	free(devices(device));
 }
 
 static int32_t device_buffer[sufficiently_large];
@@ -62,8 +54,6 @@ static ArAsioSegment initialized_segment() {
 static void write_device_buffer(int32_t n, ArAsioSegment* s) {
 	ar_asio_write_device_buffer(device_buffer, n, s);
 }
-
-#define ASSERT_EQUAL_ANY(a, b) ck_assert(a == b)
 
 #define ASSERT_INTEGER_ARRAY_AT_EQUALS(a, b, c)\
 	ASSERT_EQUAL_ANY(a, read_integer_array_at(b, c))

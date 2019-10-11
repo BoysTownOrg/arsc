@@ -106,10 +106,6 @@ static int32_t pLockAndLoadStub(int32_t device) {
 	return 1;
 }
 
-static void allocate_device(int device) {
-	*devices_(device) = calloc(1, sizeof(ARDEV));
-}
-
 static void assign_device_input_channels(int device, int32_t channels) {
 	devices(device)->ncad = channels;
 }
@@ -128,10 +124,6 @@ static void assign_device_output_buffers(int device, void **buffers) {
 
 static void assign_device_sizes(int device, int32_t *sizes) {
 	devices(device)->sizptr = sizes;
-}
-
-static void free_device(int device) {
-	free(devices(device));
 }
 
 static void setup(void) {
@@ -292,7 +284,6 @@ static void set_device_desired_output_channels(int i, int32_t c) {
 }
 
 #define ASSERT_EQUAL_INT(a, b) ck_assert_int_eq(a, b)
-#define ASSERT_EQUAL_ANY(a, b) ck_assert(a == b)
 
 #define ASSERT_BIND_ASSIGNS_IMPL_WHEN_NONZERO_DEVICES(device_type, stub, impl)\
 	bind_nonzero_devices_with_device_type(device_type);\
