@@ -472,18 +472,6 @@ START_TEST(open_initializes_buffer_infos) {
 	ASSERT_BUFFER_INFO_CHANNEL_NUMBER(2, 4);
 }
 
-static int32_t *integer_array_at(int32_t* a, int i) {
-	return a + i;
-}
-
-static int32_t read_integer_array_at(int32_t* a, int i) {
-	return *integer_array_at(a, i);
-}
-
-static void assign_integer_array(int32_t* a, int i, int32_t what) {
-	*integer_array_at(a, i) = what;
-}
-
 enum {
 	sufficiently_large = 100
 };

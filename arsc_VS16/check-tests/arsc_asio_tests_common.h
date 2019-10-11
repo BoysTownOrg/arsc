@@ -11,5 +11,8 @@ ARDEV** devices_(int32_t device);
 ARDEV* devices(int32_t device);
 void free_device(int device);
 void allocate_device(int device);
+int32_t* integer_array_at(int32_t* a, int i);
+int32_t read_integer_array_at(int32_t* a, int i);
+void assign_integer_array(int32_t* a, int i, int32_t what);
 
 #endif

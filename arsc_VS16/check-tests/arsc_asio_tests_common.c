@@ -15,3 +15,15 @@ void free_device(int device) {
 void allocate_device(int device) {
 	*devices_(device) = calloc(1, sizeof(ARDEV));
 }
+
+void assign_integer_array(int32_t* a, int i, int32_t what) {
+	*integer_array_at(a, i) = what;
+}
+
+int32_t read_integer_array_at(int32_t* a, int i) {
+	return *integer_array_at(a, i);
+}
+
+int32_t* integer_array_at(int32_t* a, int i) {
+	return a + i;
+}

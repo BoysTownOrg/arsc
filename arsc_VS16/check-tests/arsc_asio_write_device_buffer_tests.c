@@ -7,18 +7,6 @@ enum {
 	sufficiently_large = 100
 };
 
-static int32_t* integer_array_at(int32_t* a, int i) {
-	return a + i;
-}
-
-static int32_t read_integer_array_at(int32_t* a, int i) {
-	return *integer_array_at(a, i);
-}
-
-static void assign_integer_array(int32_t* a, int i, int32_t what) {
-	*integer_array_at(a, i) = what;
-}
-
 static void assign_device_segments(int device, int32_t segments) {
 	devices(device)->segswp = segments;
 }
