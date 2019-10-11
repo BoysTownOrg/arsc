@@ -93,6 +93,7 @@ START_TEST(write_device_buffer_one_segment_offset) {
 
 START_TEST(write_device_buffer_two_segments) {
 	ArAsioSegment segment[2];
+	global_asio_segment = segment;
 	initialize_segment(segment, 0);
 	int32_t stimulus1[3];
 	assign_segment_data(segment, 0, stimulus1);
@@ -126,6 +127,7 @@ START_TEST(write_device_buffer_two_segments) {
 
 START_TEST(write_device_buffer_wrap_segments) {
 	ArAsioSegment segment[2];
+	global_asio_segment = segment;
 	initialize_segment(segment, 0);
 	int32_t stimulus1[3];
 	assign_segment_data(segment, 0, stimulus1);

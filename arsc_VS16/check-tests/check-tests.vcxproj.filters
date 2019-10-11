@@ -27,6 +27,9 @@
     <ClCompile Include="arsc_asio_tests_common.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="arsc_asio_io_prepare_tests.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="arsc_asio_tests.h">
@@ -36,6 +39,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="arsc_asio_tests_common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="arsc_asio_io_prepare_tests.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
