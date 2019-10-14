@@ -136,24 +136,18 @@ START_TEST(write_device_buffer_two_segments) {
 }
 
 START_TEST(write_device_buffer_wrap_segments) {
-	int32_t stimulus1[3];
-	assign_segment_data(segments, 0, stimulus1);
-	assign_segment_size(segments, 0, 3);
-	assign_segment_segment(segments, 0, 0);
-	int32_t stimulus2[4];
-	assign_segment_data(segments, 1, stimulus2);
-	assign_segment_size(segments, 1, 4);
-	assign_segment_segment(segments, 1, 1);
 	assign_device_segments(0, 2);
 
-	assign_integer_array(stimulus1, 0, 11);
-	assign_integer_array(stimulus1, 1, 12);
-	assign_integer_array(stimulus1, 2, 13);
+	assign_segment_size(segments, 0, 3);
+	assign_first_stimulus(0, 11);
+	assign_first_stimulus(1, 12);
+	assign_first_stimulus(2, 13);
 
-	assign_integer_array(stimulus2, 0, 14);
-	assign_integer_array(stimulus2, 1, 15);
-	assign_integer_array(stimulus2, 2, 16);
-	assign_integer_array(stimulus2, 3, 17);
+	assign_segment_size(segments, 1, 4);
+	assign_second_stimulus(0, 14);
+	assign_second_stimulus(1, 15);
+	assign_second_stimulus(2, 16);
+	assign_second_stimulus(3, 17);
 
 	write_device_buffer(7, segments + 1);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(0, 14);
