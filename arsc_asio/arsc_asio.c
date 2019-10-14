@@ -641,11 +641,11 @@ about channels. A pointer to the correct StimulusData structure is passed.
 */
 int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsioChannelBuffer* asio_channel_buffer) {
 	int32_t output_channels = ar_current_device->a_ncda;
-	int32_t	intCurOutputSegment;
+	int32_t	output_segment;
 	if (ar_current_device->a_ncda)
-		intCurOutputSegment = ar_current_device->seg_oc;		// If there are output channels, use the correct counter.
+		output_segment = ar_current_device->seg_oc;		// If there are output channels, use the correct counter.
 	else						// Otherwise, use seg_ic because that is passed back to calling program.
-		intCurOutputSegment = ar_current_device->seg_ic;
+		output_segment = ar_current_device->seg_ic;
 
 	int32_t *buffer_ = buffer;
 	int32_t* audio_buffer = asio_channel_buffer->data + asio_channel_buffer->Index;
@@ -677,7 +677,7 @@ int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsio
 					sintSegmentFinished++;
 					FDBUG((_arS, "S %d\n", sintSegmentFinished));
 				}
-				if (((intCurOutputSegment + 1) % ar_current_device->segswp) != 0) {
+				if (((output_segment + 1) % ar_current_device->segswp) != 0) {
 					// Move the global stim block pointer 1
 					if (asio_channel_buffer - global_asio_channel_buffers <= ar_current_device->segswp + 1) {
 						current_asio_channel_buffer = asio_channel_buffer + 1;		// On end channel, so move to channel 0 of next . . .
