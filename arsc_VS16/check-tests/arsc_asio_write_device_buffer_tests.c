@@ -8,6 +8,7 @@ enum {
 
 static int32_t device_buffer[sufficiently_large];
 static ArAsioSegment segments[2];
+static int32_t stimuli[2][sufficiently_large];
 
 static ArAsioSegment initialized_segment() {
 	ArAsioSegment s;
@@ -27,22 +28,6 @@ static void initialize_segment(ArAsioSegment* s, int i) {
 	*segment_at(s, i) = initialized_segment();
 }
 
-static void setup_write_device_buffer(void) {
-	initialize_segment(segments, 0);
-	initialize_segment(segments, 1);
-	allocate_device(0);
-	assign_device_segments(0, 1);
-	set_device_desired_output_channels(0, 1);
-	ar_current_device = devices(0);
-	global_asio_segment = segments;
-}
-
-static void teardown_write_device_buffer(void) {
-	memset(device_buffer, 0, sizeof device_buffer);
-	memset(segments, 0, sizeof segments);
-	free_device(0);
-}
-
 static void assign_segment_data(ArAsioSegment* s, int i, int32_t* data) {
 	segment_at(s, i)->data = data;
 }
@@ -59,6 +44,25 @@ static void assign_segment_index(ArAsioSegment* s, int i, int32_t index) {
 	segment_at(s, i)->Index = index;
 }
 
+static void setup_write_device_buffer(void) {
+	initialize_segment(segments, 0);
+	initialize_segment(segments, 1);
+	assign_segment_data(segments, 0, stimuli[0]);
+	assign_segment_size(segments, 0, sizeof stimuli[0] / sizeof stimuli[0][0]);
+	allocate_device(0);
+	assign_device_segments(0, 1);
+	set_device_desired_output_channels(0, 1);
+	ar_current_device = devices(0);
+	global_asio_segment = segments;
+}
+
+static void teardown_write_device_buffer(void) {
+	memset(device_buffer, 0, sizeof device_buffer);
+	memset(segments, 0, sizeof segments);
+	memset(stimuli, 0, sizeof stimuli);
+	free_device(0);
+}
+
 static void write_device_buffer(int32_t n, ArAsioSegment* s) {
 	ar_asio_write_device_buffer(device_buffer, n, s);
 }
@@ -70,13 +74,9 @@ static void write_device_buffer(int32_t n, ArAsioSegment* s) {
 	ASSERT_INTEGER_ARRAY_AT_EQUALS(b, device_buffer, a)
 
 START_TEST(write_device_buffer_one_segment) {
-	int32_t stimulus[3];
-	assign_segment_data(segments, 0, stimulus);
-	assign_segment_size(segments, 0, 3);
-
-	assign_integer_array(stimulus, 0, 5);
-	assign_integer_array(stimulus, 1, 6);
-	assign_integer_array(stimulus, 2, 7);
+	assign_integer_array(stimuli[0], 0, 5);
+	assign_integer_array(stimuli[0], 1, 6);
+	assign_integer_array(stimuli[0], 2, 7);
 	write_device_buffer(3, segments);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(0, 5);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(1, 6);
@@ -84,14 +84,11 @@ START_TEST(write_device_buffer_one_segment) {
 }
 
 START_TEST(write_device_buffer_one_segment_offset) {
-	int32_t stimulus[4];
-	assign_segment_data(segments, 0, stimulus);
-	assign_segment_size(segments, 0, 4);
 	assign_segment_index(segments, 0, 1);
 
-	assign_integer_array(stimulus, 1, 5);
-	assign_integer_array(stimulus, 2, 6);
-	assign_integer_array(stimulus, 3, 7);
+	assign_integer_array(stimuli[0], 1, 5);
+	assign_integer_array(stimuli[0], 2, 6);
+	assign_integer_array(stimuli[0], 3, 7);
 	write_device_buffer(3, segments);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(0, 5);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(1, 6);
