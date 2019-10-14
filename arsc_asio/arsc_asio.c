@@ -458,7 +458,7 @@ _ar_asio_io_prepare(int32_t di)
 	global_asio_channel_buffers for the current segment.
 	*/
 	int32_t segments = ar_current_device->segswp;
-	if ((global_asio_channel_buffers = (ArAsioChannelBuffer*)calloc(ar_current_device->ncda * segments, sizeof(ArAsioChannelBuffer))) == NULL)
+	if ((global_asio_channel_buffers = calloc(ar_current_device->ncda * segments, sizeof(ArAsioChannelBuffer))) == NULL)
 		return -1;
 
 	if ((responseData = (TResponseData*)calloc(ar_current_device->ncad * segments, sizeof(TResponseData))) == NULL)
@@ -469,7 +469,6 @@ _ar_asio_io_prepare(int32_t di)
 	current_asio_channel_buffer = global_asio_channel_buffers;			// Set to SEG0 CH0 to start.
 	for (int32_t i = 0; i < ar_current_device->ncda * segments; i++) {
 
-		asio_segment->Magic = 0xBEEF;			// Indentification for debugging
 		asio_segment->channel = i % ar_current_device->ncda;		// e.g. 0, 1, 0, 1, . . . 
 		asio_segment->segment = i / ar_current_device->ncda;		// segment number
 		asio_segment->data = ar_current_device->o_data[i];
@@ -661,32 +660,18 @@ int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsio
 
 	// Loop over buffer size samples
 	for (int k = 0; k < buffer_size; k++) {
-		// -----------------------------------------------------------------------------------
-		// Fixed a problem that occurred when an ASIO buffer boundary and a segment boundary
-		// were the same.  For example, if there are 4410 samples total (index 0 - 4409), it 
-		// was possible for the pointer to point one beyond, i.e. 4410, without causing a 
-		// switch to the next asio_segment before exiting this function.  Then the 
-		// BufferSwitchTimeInfo() function returns you here causing an immediate switch, 
-		// but the global pointer current_asio_channel_buffer gets munged.
-		//
-		// The fix was to move these next three lines from the end of the for(k) loop to the
-		// top.
-		*buffer_ = *audio_buffer++;			// Set this sample value
-		asio_channel_buffer->Index++;			// Increment the index for this channel
-
-		// SEGMENT DONE
-		// Is the current index of this segment beyond this channel's segment size?
+		*buffer_ = *audio_buffer++;
+		asio_channel_buffer->Index++;
 		if (asio_channel_buffer->Index == asio_channel_buffer->size) {
+			// SEGMENT DONE
 			DBUG_S(("m/seg/ch [%d]/[%d]/[%d] finished.\n", 
 				asio_channel_buffer->Magic, 
 				asio_channel_buffer->segment, 
 				asio_channel_buffer->channel
 			));
-
-			// LAST CHANNEL
-			// If last channel of finished segment, increment the global segment count
 			int32_t last_channel = output_channels - 1;
 			if (asio_channel_buffer->channel == last_channel) {
+				// LAST CHANNEL
 				// If there are no input channels, the out channel determines the segment end
 				if (!ar_current_device->a_ncad) {
 					sintSegmentFinished++;
