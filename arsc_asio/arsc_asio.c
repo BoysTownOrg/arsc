@@ -646,19 +646,10 @@ static int is_exhausted(ArAsioChannelBuffer* asio_channel_buffer) {
 	return asio_channel_buffer->Index == asio_channel_buffer->size;
 }
 
-/*
-Sends a stimulus, piece-meal, by filling the passed ASIO buffer with
-stimulus data.
-
-Each channel has its own StimulusData block, so this function does not worry
-about channels. A pointer to the correct StimulusData structure is passed.
-*/
 int32_t ar_asio_write_device_buffer(int32_t* destination, int32_t size, ArAsioChannelBuffer* asio_channel_buffer) {
-	int32_t output_channels = ar_current_device->a_ncda;
-	int32_t* source = asio_channel_buffer->data + asio_channel_buffer->Index;
-	// Loop over buffer size samples
 	for (int k = 0; k < size; k++) {
-		*destination++ = *source++;
+		int32_t* source = asio_channel_buffer->data + asio_channel_buffer->Index;
+		*destination++ = *source;
 		asio_channel_buffer->Index++;
 		if (is_exhausted(asio_channel_buffer)) {
 			if (is_last_channel(asio_channel_buffer)) {
@@ -669,10 +660,10 @@ int32_t ar_asio_write_device_buffer(int32_t* destination, int32_t size, ArAsioCh
 					? global_asio_channel_buffers 
 					: asio_channel_buffer + 1;
 			}
+			int32_t output_channels = ar_current_device->a_ncda;
 			asio_channel_buffer = is_last_segment(asio_channel_buffer)
 				? global_asio_channel_buffers + asio_channel_buffer->channel
 				: asio_channel_buffer + output_channels;
-			source = asio_channel_buffer->data;
 			asio_channel_buffer->Index = 0;
 		}
 	}
