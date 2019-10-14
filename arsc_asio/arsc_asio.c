@@ -640,13 +640,13 @@ stimulus data.
 Each channel has its own StimulusData block, so this function does not worry
 about channels. A pointer to the correct StimulusData structure is passed.
 */
-int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsioChannelBuffer* asio_segment) {
-	if (asio_segment->Magic != 0xBEEF)
+int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsioChannelBuffer* asio_channel_buffer) {
+	if (asio_channel_buffer->Magic != 0xBEEF)
 		return 0;
-	if (asio_segment->size < 0 || asio_segment->size > 999000)
+	if (asio_channel_buffer->size < 0 || asio_channel_buffer->size > 999000)
 		return 0;
 	int32_t output_channels = ar_current_device->a_ncda;
-	if (asio_segment->channel < 0 || asio_segment->channel >= output_channels)
+	if (asio_channel_buffer->channel < 0 || asio_channel_buffer->channel >= output_channels)
 		return 0;
 
 	int32_t	intCurOutputSegment;
@@ -656,14 +656,14 @@ int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsio
 		intCurOutputSegment = ar_current_device->seg_ic;
 
 	int32_t *buffer_ = buffer;
-	int32_t* asio_segment_data = asio_segment->data + asio_segment->Index;
+	int32_t* audio_buffer = asio_channel_buffer->data + asio_channel_buffer->Index;
 
 	DBUG_S(("send: m/seg/ch [%d]/[%d]/[%d] index [%d] of [%d] TotalSamples [%d].\n",
-		asio_segment->Magic,
-		asio_segment->segment,
-		asio_segment->channel,
-		asio_segment->Index,
-		asio_segment->size,
+		asio_channel_buffer->Magic,
+		asio_channel_buffer->segment,
+		asio_channel_buffer->channel,
+		asio_channel_buffer->Index,
+		asio_channel_buffer->size,
 		sintTotalSamples));
 
 	// Loop over buffer size samples
@@ -678,10 +678,10 @@ int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsio
 		//
 		// The fix was to move these next three lines from the end of the for(k) loop to the
 		// top.
-		*buffer_ = *asio_segment_data++;			// Set this sample value
-		asio_segment->Index++;			// Increment the index for this channel
+		*buffer_ = *audio_buffer++;			// Set this sample value
+		asio_channel_buffer->Index++;			// Increment the index for this channel
 
-		if (asio_segment->OutputDone) {
+		if (asio_channel_buffer->OutputDone) {
 			*buffer_ = 0;
 			buffer_++;
 			continue;
@@ -689,17 +689,17 @@ int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsio
 
 		// SEGMENT DONE
 		// Is the current index of this segment beyond this channel's segment size?
-		if (asio_segment->Index >= asio_segment->size) {
+		if (asio_channel_buffer->Index >= asio_channel_buffer->size) {
 			DBUG_S(("m/seg/ch [%d]/[%d]/[%d] finished.\n", 
-				asio_segment->Magic, 
-				asio_segment->segment, 
-				asio_segment->channel
+				asio_channel_buffer->Magic, 
+				asio_channel_buffer->segment, 
+				asio_channel_buffer->channel
 			));
 
 			// LAST CHANNEL
 			// If last channel of finished segment, increment the global segment count
 			int32_t last_channel = output_channels - 1;
-			if (asio_segment->channel == last_channel) {
+			if (asio_channel_buffer->channel == last_channel) {
 				// Windows messages aren't currently enacted in this implementation
 				if (_arsc_wind)
 					PostMessage((HWND)_arsc_wind, WM_ARSC, AM_StimulusSent, device_identifier_offset);
@@ -710,16 +710,16 @@ int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsio
 				}
 				if (((intCurOutputSegment + 1) % ar_current_device->segswp) != 0) {
 					// Move the global stim block pointer 1
-					if (asio_segment - global_asio_channel_buffers <= ar_current_device->segswp + 1) {
-						current_asio_channel_buffer = asio_segment + 1;		// On end channel, so move to channel 0 of next . . .
-						DBUG(("all channels done . . . current_asio_channel_buffer incremented to [%p].\n", asio_segment));
+					if (asio_channel_buffer - global_asio_channel_buffers <= ar_current_device->segswp + 1) {
+						current_asio_channel_buffer = asio_channel_buffer + 1;		// On end channel, so move to channel 0 of next . . .
+						DBUG(("all channels done . . . current_asio_channel_buffer incremented to [%p].\n", asio_channel_buffer));
 					}
 					else {
 						// Ouch!  Some sort of overrun caused this.  Maybe by clicking on
 						// an external window or some such thing.  Just set back to zero.
 						PRINT(("O U C H\n"));
 						current_asio_channel_buffer = global_asio_channel_buffers;
-						asio_segment = global_asio_channel_buffers;
+						asio_channel_buffer = global_asio_channel_buffers;
 						sintSegmentFinished = 0;
 					}
 				}
@@ -730,10 +730,10 @@ int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsio
 				}
 			}
 			// Any more segments to play for this (current) channel?
-			if (asio_segment->segment + 1 == ar_current_device->segswp) {
-				DBUG_S(("no more segments to play for channel [%d].\n", asio_segment->channel));
+			if (asio_channel_buffer->segment + 1 == ar_current_device->segswp) {
+				DBUG_S(("no more segments to play for channel [%d].\n", asio_channel_buffer->channel));
 				// Wrap back in case of sweeping
-				asio_segment -= (output_channels) * (ar_current_device->segswp - 1);
+				asio_channel_buffer -= (output_channels) * (ar_current_device->segswp - 1);
 			}
 			else {
 				/*
@@ -741,11 +741,11 @@ int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsio
 				Move to the next stimulus structure for the rest of this bufferswitch.
 				For example, if just finishing SEG0 CH1, need to jump to SEG1 CH1.
 				*/
-				DBUG_S(("incrementing asio_segment [%p] to [%p].\n", asio_segment, (asio_segment + output_channels)));
-				asio_segment += output_channels;		// Now pointing at next segment, same channel
+				DBUG_S(("incrementing asio_segment [%p] to [%p].\n", asio_channel_buffer, (asio_channel_buffer + output_channels)));
+				asio_channel_buffer += output_channels;		// Now pointing at next segment, same channel
 			}
-			asio_segment_data = asio_segment->data;
-			asio_segment->Index = 0;
+			audio_buffer = asio_channel_buffer->data;
+			asio_channel_buffer->Index = 0;
 		}
 		buffer_++;
 	}
