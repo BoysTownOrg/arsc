@@ -45,14 +45,12 @@ static void assign_segment_index(ArAsioSegment* s, int i, int32_t index) {
 }
 
 static void setup_write_device_buffer(void) {
-	initialize_segment(segments, 0);
-	initialize_segment(segments, 1);
-	assign_segment_data(segments, 0, stimuli[0]);
-	assign_segment_data(segments, 1, stimuli[1]);
-	assign_segment_size(segments, 0, sizeof stimuli[0] / sizeof stimuli[0][0]);
-	assign_segment_size(segments, 1, sizeof stimuli[1] / sizeof stimuli[1][0]);
-	assign_segment_segment(segments, 0, 0);
-	assign_segment_segment(segments, 1, 1);
+	for (int i = 0; i < 2; ++i) {
+		initialize_segment(segments, i);
+		assign_segment_data(segments, i, stimuli[i]);
+		assign_segment_size(segments, i, sizeof stimuli[i] / sizeof stimuli[i][0]);
+		assign_segment_segment(segments, i, i);
+	}
 	allocate_device(0);
 	assign_device_segments(0, 1);
 	set_device_desired_output_channels(0, 1);
