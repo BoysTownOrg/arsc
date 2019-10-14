@@ -48,7 +48,6 @@ static void setup_write_device_buffer(void) {
 		initialize_channel_buffer(channel_buffers, i);
 		assign_channel_buffer_data(channel_buffers, i, audio_buffers[i]);
 		assign_channel_buffer_size(channel_buffers, i, sizeof audio_buffers[i] / sizeof audio_buffers[i][0]);
-		assign_channel_buffer_segment(channel_buffers, i, i);
 	}
 	allocate_device(0);
 	assign_device_segments(0, 1);
@@ -120,8 +119,6 @@ START_TEST(write_device_buffer_one_segment_wrap_two_channels) {
 
 	channel_buffers[0].channel = 0;
 	channel_buffers[1].channel = 1;
-	assign_channel_buffer_segment(channel_buffers, 0, 0);
-	assign_channel_buffer_segment(channel_buffers, 1, 0);
 
 	assign_channel_buffer_size(channel_buffers, 0, 3);
 	assign_first_audio_buffer(0, 11);
@@ -141,8 +138,6 @@ START_TEST(write_device_buffer_one_segment_wrap_second_channel) {
 
 	channel_buffers[0].channel = 0;
 	channel_buffers[1].channel = 1;
-	assign_channel_buffer_segment(channel_buffers, 0, 0);
-	assign_channel_buffer_segment(channel_buffers, 1, 0);
 
 	assign_channel_buffer_size(channel_buffers, 1, 3);
 	assign_second_audio_buffer(0, 11);
@@ -194,6 +189,8 @@ START_TEST(write_device_buffer_two_segments_one_channel) {
 
 START_TEST(write_device_buffer_two_segments_wrap_one_channel) {
 	assign_device_segments(0, 2);
+	assign_channel_buffer_segment(channel_buffers, 0, 0);
+	assign_channel_buffer_segment(channel_buffers, 1, 1);
 
 	assign_channel_buffer_size(channel_buffers, 1, 4);
 	assign_second_audio_buffer(0, 14);
