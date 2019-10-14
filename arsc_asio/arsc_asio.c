@@ -57,7 +57,7 @@ ASIOBufferInfo* bufferInfos = NULL;  // Pointer to array of bufferInfos; one for
 static ASIOChannelInfo* channelInfos = NULL; // Pointer to array of channelInfos; one for each channel (input + output)
 static ASIOCallbacks	asioCallbacks;  // structure that holds the pointers to the callback functions
 ArAsioChannelBuffer* global_asio_channel_buffers;   // pointer to the main stimulus block
-static ArAsioChannelBuffer* current_asio_channel_buffer;   // Points to the current segment stimulus (channel 0)
+static ArAsioChannelBuffer* first_channel_buffer_of_current_segment;   // Points to the current segment stimulus (channel 0)
 static TResponseData* responseData;   // pointer to the main response block
 static TResponseData* sptrCurSegmentResponse;   // Points to the current segment response (channel 0)
 static long	preferred_buffer_size;   // Returned by the driver
@@ -454,7 +454,7 @@ _ar_asio_io_prepare(int32_t di)
 		1		    1
 		2		    0
 			. . .
-	The pointer "current_asio_channel_buffer" will point to the first (channel 0)
+	The pointer "first_channel_buffer_of_current_segment" will point to the first (channel 0)
 	global_asio_channel_buffers for the current segment.
 	*/
 	int32_t segments = ar_current_device->segswp;
@@ -466,7 +466,7 @@ _ar_asio_io_prepare(int32_t di)
 
 	// Fill global_asio_channel_buffers (OUTPUT) blocks
 	ArAsioChannelBuffer* asio_segment = global_asio_channel_buffers;										// Initialize
-	current_asio_channel_buffer = global_asio_channel_buffers;			// Set to SEG0 CH0 to start.
+	first_channel_buffer_of_current_segment = global_asio_channel_buffers;			// Set to SEG0 CH0 to start.
 	for (int32_t i = 0; i < ar_current_device->ncda * segments; i++) {
 
 		asio_segment->channel = i % ar_current_device->ncda;		// e.g. 0, 1, 0, 1, . . . 
@@ -641,17 +641,10 @@ about channels. A pointer to the correct StimulusData structure is passed.
 */
 int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsioChannelBuffer* asio_channel_buffer) {
 	int32_t output_channels = ar_current_device->a_ncda;
-	int32_t	output_segment;
-	if (ar_current_device->a_ncda)
-		output_segment = ar_current_device->seg_oc;		// If there are output channels, use the correct counter.
-	else						// Otherwise, use seg_ic because that is passed back to calling program.
-		output_segment = ar_current_device->seg_ic;
-
-	int32_t *buffer_ = buffer;
 	int32_t* audio_buffer = asio_channel_buffer->data + asio_channel_buffer->Index;
 	// Loop over buffer size samples
 	for (int k = 0; k < buffer_size; k++) {
-		*buffer_ = *audio_buffer++;
+		*buffer++ = *audio_buffer++;
 		asio_channel_buffer->Index++;
 		if (asio_channel_buffer->Index == asio_channel_buffer->size) {
 			// SEGMENT DONE
@@ -659,15 +652,14 @@ int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsio
 			if (asio_channel_buffer->channel == last_channel) {
 				// LAST CHANNEL
 				// If there are no input channels, the out channel determines the segment end
-				if (!ar_current_device->a_ncad) {
+				if (!ar_current_device->a_ncad)
 					sintSegmentFinished++;
-				}
-				if (((output_segment + 1) % ar_current_device->segswp) != 0)
-					// Move the global stim block pointer 1
-					current_asio_channel_buffer = asio_channel_buffer + 1; // On end channel, so move to channel 0 of next . . .
-				else
+				if (asio_channel_buffer->segment + 1 == ar_current_device->segswp)
 					// All segments have been completed in this sweep.
-					current_asio_channel_buffer = global_asio_channel_buffers; // Just sets it back to the beginning in case of infinite sweep
+					first_channel_buffer_of_current_segment = global_asio_channel_buffers; // Just sets it back to the beginning in case of infinite sweep
+				else
+					// Move the global stim block pointer 1
+					first_channel_buffer_of_current_segment = asio_channel_buffer + 1; // On end channel, so move to channel 0 of next . . .
 			}
 			if (asio_channel_buffer->segment + 1 == ar_current_device->segswp)
 				// Wrap back in case of sweeping
@@ -680,7 +672,6 @@ int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsio
 			audio_buffer = asio_channel_buffer->data;
 			asio_channel_buffer->Index = 0;
 		}
-		buffer_++;
 	}
 	return 1;
 }
@@ -1301,7 +1292,7 @@ SDK Note:
 ASIOTime* bufferSwitchTimeInfo(ASIOTime* timeInfo, long index, ASIOBool processNow) {
 	int32_t	    i;
 	long	    lngAsioBufferSize = preferred_buffer_size;    // shorthand to buffer size in samples
-	ArAsioChannelBuffer* ptrStimulusData = current_asio_channel_buffer;	    // pointer to channel 0 of current segment stimulus
+	ArAsioChannelBuffer* ptrStimulusData = first_channel_buffer_of_current_segment;	    // pointer to channel 0 of current segment stimulus
 	TResponseData* ptrResponseData = sptrCurSegmentResponse;	    // pointer to channel 0 of current segment response
 
 	if (!driver_has_started)
