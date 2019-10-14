@@ -7,21 +7,39 @@ enum {
 };
 
 static int32_t device_buffer[sufficiently_large];
+static ArAsioSegment segments[2];
 
-static void setup_write_device_buffer(void) {
-	allocate_device(0);
-	assign_device_segments(0, 1);
-	set_device_desired_output_channels(0, 1);
-	ar_current_device = devices(0);
-}
-
-static void teardown_write_device_buffer(void) {
-	memset(device_buffer, 0, sizeof device_buffer);
-	free_device(0);
+static ArAsioSegment initialized_segment() {
+	ArAsioSegment s;
+	s.Magic = 0xBEEF;
+	s.Index = 0;
+	s.channel = 0;
+	s.segment = 0;
+	s.OutputDone = 0;
+	return s;
 }
 
 static ArAsioSegment* segment_at(ArAsioSegment* s, int i) {
 	return s + i;
+}
+
+static void initialize_segment(ArAsioSegment* s, int i) {
+	*segment_at(s, i) = initialized_segment();
+}
+
+static void setup_write_device_buffer(void) {
+	initialize_segment(segments, 0);
+	allocate_device(0);
+	assign_device_segments(0, 1);
+	set_device_desired_output_channels(0, 1);
+	ar_current_device = devices(0);
+	global_asio_segment = segments;
+}
+
+static void teardown_write_device_buffer(void) {
+	memset(device_buffer, 0, sizeof device_buffer);
+	memset(segments, 0, sizeof segments);
+	free_device(0);
 }
 
 static void assign_segment_data(ArAsioSegment* s, int i, int32_t* data) {
@@ -36,20 +54,6 @@ static void assign_segment_segment(ArAsioSegment* s, int i, int32_t segment) {
 	segment_at(s, i)->segment = segment;
 }
 
-static ArAsioSegment initialized_segment() {
-	ArAsioSegment s;
-	s.Magic = 0xBEEF;
-	s.Index = 0;
-	s.channel = 0;
-	s.segment = 0;
-	s.OutputDone = 0;
-	return s;
-}
-
-static void initialize_segment(ArAsioSegment* s, int i) {
-	*segment_at(s, i) = initialized_segment();
-}
-
 static void write_device_buffer(int32_t n, ArAsioSegment* s) {
 	ar_asio_write_device_buffer(device_buffer, n, s);
 }
@@ -62,14 +66,13 @@ static void write_device_buffer(int32_t n, ArAsioSegment* s) {
 
 START_TEST(write_device_buffer_one_segment) {
 	int32_t stimulus[3];
-	ArAsioSegment segment = initialized_segment();
-	segment.data = stimulus;
-	segment.size = 3;
+	assign_segment_data(segments, 0, stimulus);
+	assign_segment_size(segments, 0, 3);
 
 	assign_integer_array(stimulus, 0, 5);
 	assign_integer_array(stimulus, 1, 6);
 	assign_integer_array(stimulus, 2, 7);
-	write_device_buffer(3, &segment);
+	write_device_buffer(3, segments);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(0, 5);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(1, 6);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(2, 7);
