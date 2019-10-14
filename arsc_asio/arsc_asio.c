@@ -702,7 +702,7 @@ int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsio
 			if (asio_channel_buffer->segment + 1 == ar_current_device->segswp) {
 				DBUG_S(("no more segments to play for channel [%d].\n", asio_channel_buffer->channel));
 				// Wrap back in case of sweeping
-				asio_channel_buffer = global_asio_channel_buffers;
+				asio_channel_buffer -= output_channels * (ar_current_device->segswp - 1);
 			}
 			else {
 				/*

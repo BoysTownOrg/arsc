@@ -176,11 +176,11 @@ START_TEST(tbd) {
 	assign_audio_buffer(5, 2, 13);
 	assign_audio_buffer(5, 3, 14);
 
-	channel_buffers[0].channel = 0;
-	assign_channel_buffer_size(channel_buffers, 0, 3);
-	assign_first_audio_buffer(0, 15);
-	assign_first_audio_buffer(1, 16);
-	assign_first_audio_buffer(2, 17);
+	channel_buffers[1].channel = 1;
+	assign_channel_buffer_size(channel_buffers, 1, 3);
+	assign_audio_buffer(1, 0, 15);
+	assign_audio_buffer(1, 1, 16);
+	assign_audio_buffer(1, 2, 17);
 
 	write_device_buffer(7, channel_buffers + 5);
 
