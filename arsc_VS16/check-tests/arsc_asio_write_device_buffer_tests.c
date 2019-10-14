@@ -67,12 +67,16 @@ static void teardown_write_device_buffer(void) {
 	free_device(0);
 }
 
+static void assign_audio_buffer(int i, int j, int32_t what) {
+	assign_integer_array(audio_buffers[i], j, what);
+}
+
 static void assign_first_audio_buffer(int i, int32_t what) {
-	assign_integer_array(audio_buffers[0], i, what);
+	assign_audio_buffer(0, i, what);
 }
 
 static void assign_second_audio_buffer(int i, int32_t what) {
-	assign_integer_array(audio_buffers[1], i, what);
+	assign_audio_buffer(1, i, what);
 }
 
 static void write_device_buffer(int32_t n, ArAsioChannelBuffer* s) {
@@ -159,6 +163,37 @@ START_TEST(write_device_buffer_wrap_segments) {
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(6, 13);
 }
 
+START_TEST(tbd) {
+	set_device_desired_output_channels(0, 2);
+	assign_device_segments(0, 3);
+	ar_current_device->seg_ic = 0;
+	ar_current_device->seg_oc = 2;
+
+	channel_buffers[5].channel = 1;
+	assign_channel_buffer_segment(channel_buffers, 5, 2);
+	assign_channel_buffer_size(channel_buffers, 5, 4);
+	assign_audio_buffer(5, 0, 11);
+	assign_audio_buffer(5, 1, 12);
+	assign_audio_buffer(5, 2, 13);
+	assign_audio_buffer(5, 3, 14);
+
+	channel_buffers[0].channel = 0;
+	assign_channel_buffer_size(channel_buffers, 0, 3);
+	assign_first_audio_buffer(0, 15);
+	assign_first_audio_buffer(1, 16);
+	assign_first_audio_buffer(2, 17);
+
+	write_device_buffer(7, channel_buffers + 5);
+
+	ASSERT_DEVICE_BUFFER_AT_EQUALS(0, 11);
+	ASSERT_DEVICE_BUFFER_AT_EQUALS(1, 12);
+	ASSERT_DEVICE_BUFFER_AT_EQUALS(2, 13);
+	ASSERT_DEVICE_BUFFER_AT_EQUALS(3, 14);
+	ASSERT_DEVICE_BUFFER_AT_EQUALS(4, 15);
+	ASSERT_DEVICE_BUFFER_AT_EQUALS(5, 16);
+	ASSERT_DEVICE_BUFFER_AT_EQUALS(6, 17);
+}
+
 Suite* arsc_asio_write_device_buffer_suite() {
 	Suite* suite = suite_create("arsc_asio_write_device_buffer");
 	TCase* test_case = tcase_create("write_device_buffer");
@@ -167,6 +202,7 @@ Suite* arsc_asio_write_device_buffer_suite() {
 	add_test(test_case, write_device_buffer_one_segment_offset);
 	add_test(test_case, write_device_buffer_two_segments);
 	add_test(test_case, write_device_buffer_wrap_segments);
+	add_test(test_case, tbd);
 	suite_add_tcase(suite, test_case);
 	return suite;
 }

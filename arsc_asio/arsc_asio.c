@@ -650,7 +650,7 @@ int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsio
 		return 0;
 
 	int32_t	intCurOutputSegment;
-	if (ar_current_device->a_ncad)
+	if (ar_current_device->a_ncda)
 		intCurOutputSegment = ar_current_device->seg_oc;		// If there are output channels, use the correct counter.
 	else						// Otherwise, use seg_ic because that is passed back to calling program.
 		intCurOutputSegment = ar_current_device->seg_ic;
@@ -733,7 +733,7 @@ int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsio
 			if (asio_channel_buffer->segment + 1 == ar_current_device->segswp) {
 				DBUG_S(("no more segments to play for channel [%d].\n", asio_channel_buffer->channel));
 				// Wrap back in case of sweeping
-				asio_channel_buffer -= (output_channels) * (ar_current_device->segswp - 1);
+				asio_channel_buffer = global_asio_channel_buffers;
 			}
 			else {
 				/*
