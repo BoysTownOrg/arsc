@@ -3,12 +3,13 @@
 #include <stdlib.h>
 
 enum {
-	sufficiently_large = 100
+	sufficiently_large = 100,
+	segments_count = 2
 };
 
 static int32_t device_buffer[sufficiently_large];
-static ArAsioSegment segments[2];
-static int32_t stimuli[2][sufficiently_large];
+static ArAsioSegment segments[segments_count];
+static int32_t stimuli[segments_count][sufficiently_large];
 
 static ArAsioSegment initialized_segment() {
 	ArAsioSegment s;
@@ -45,7 +46,7 @@ static void assign_segment_index(ArAsioSegment* s, int i, int32_t index) {
 }
 
 static void setup_write_device_buffer(void) {
-	for (int i = 0; i < 2; ++i) {
+	for (int i = 0; i < segments_count; ++i) {
 		initialize_segment(segments, i);
 		assign_segment_data(segments, i, stimuli[i]);
 		assign_segment_size(segments, i, sizeof stimuli[i] / sizeof stimuli[i][0]);
