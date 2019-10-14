@@ -674,15 +674,9 @@ int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsio
 		*buffer_ = *audio_buffer++;			// Set this sample value
 		asio_channel_buffer->Index++;			// Increment the index for this channel
 
-		if (asio_channel_buffer->OutputDone) {
-			*buffer_ = 0;
-			buffer_++;
-			continue;
-		}
-
 		// SEGMENT DONE
 		// Is the current index of this segment beyond this channel's segment size?
-		if (asio_channel_buffer->Index >= asio_channel_buffer->size) {
+		if (asio_channel_buffer->Index == asio_channel_buffer->size) {
 			DBUG_S(("m/seg/ch [%d]/[%d]/[%d] finished.\n", 
 				asio_channel_buffer->Magic, 
 				asio_channel_buffer->segment, 
@@ -693,9 +687,6 @@ int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsio
 			// If last channel of finished segment, increment the global segment count
 			int32_t last_channel = output_channels - 1;
 			if (asio_channel_buffer->channel == last_channel) {
-				// Windows messages aren't currently enacted in this implementation
-				if (_arsc_wind)
-					PostMessage((HWND)_arsc_wind, WM_ARSC, AM_StimulusSent, device_identifier_offset);
 				// If there are no input channels, the out channel determines the segment end
 				if (!ar_current_device->a_ncad) {
 					sintSegmentFinished++;

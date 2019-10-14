@@ -18,7 +18,6 @@ typedef struct {
 	int32_t Index;					    // How many samples have already been played
 	int32_t channel;				    // 0, 1, 2, . . . 
 	int32_t segment;				    // Current segment for this channel
-	bool OutputDone;				    // Says if output is done for this channel
 } ArAsioChannelBuffer;
 
 extern int32_t (*ar_asio_devices)();

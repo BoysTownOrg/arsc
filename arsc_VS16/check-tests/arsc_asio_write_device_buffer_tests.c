@@ -17,7 +17,6 @@ static ArAsioChannelBuffer initialized_channel_buffer() {
 	s.Index = 0;
 	s.channel = 0;
 	s.segment = 0;
-	s.OutputDone = 0;
 	return s;
 }
 
