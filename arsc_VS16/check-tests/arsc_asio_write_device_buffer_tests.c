@@ -35,6 +35,10 @@ static void assign_channel_buffer_size(ArAsioChannelBuffer* s, int i, int32_t si
 	channel_buffer_at(s, i)->size = size;
 }
 
+static void assign_first_channel_buffer_size(int32_t size) {
+	assign_channel_buffer_size(channel_buffers, 0, size);
+}
+
 static void assign_channel_buffer_segment(ArAsioChannelBuffer* s, int i, int32_t segment) {
 	channel_buffer_at(s, i)->segment = segment;
 }
@@ -101,7 +105,7 @@ START_TEST(write_device_buffer_one_segment) {
 }
 
 START_TEST(write_device_buffer_one_segment_wrap) {
-	assign_channel_buffer_size(channel_buffers, 0, 3);
+	assign_first_channel_buffer_size(3);
 	assign_first_audio_buffer(0, 11);
 	assign_first_audio_buffer(1, 12);
 	assign_first_audio_buffer(2, 13);
@@ -120,7 +124,7 @@ START_TEST(write_device_buffer_one_segment_wrap_two_channels) {
 	channel_buffers[0].channel = 0;
 	channel_buffers[1].channel = 1;
 
-	assign_channel_buffer_size(channel_buffers, 0, 3);
+	assign_first_channel_buffer_size(3);
 	assign_first_audio_buffer(0, 11);
 	assign_first_audio_buffer(1, 12);
 	assign_first_audio_buffer(2, 13);
@@ -166,6 +170,8 @@ START_TEST(write_device_buffer_one_segment_offset) {
 
 START_TEST(write_device_buffer_two_segments_one_channel) {
 	assign_device_segments(0, 2);
+	assign_channel_buffer_segment(channel_buffers, 0, 0);
+	assign_channel_buffer_segment(channel_buffers, 1, 1);
 
 	assign_channel_buffer_size(channel_buffers, 0, 3);
 	assign_first_audio_buffer(0, 11);
