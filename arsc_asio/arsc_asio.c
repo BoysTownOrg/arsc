@@ -665,19 +665,13 @@ int32_t ar_asio_write_device_buffer(int32_t* destination, int32_t size, ArAsioCh
 				// If there are no input channels, the out channel determines the segment end
 				if (!ar_current_device->a_ncad)
 					sintSegmentFinished++;
-				if (is_last_segment(asio_channel_buffer))
-					first_channel_buffer_of_current_segment = global_asio_channel_buffers; // Just sets it back to the beginning in case of infinite sweep
-				else
-					first_channel_buffer_of_current_segment = asio_channel_buffer + 1; // On end channel, so move to channel 0 of next . . .
+				first_channel_buffer_of_current_segment = is_last_segment(asio_channel_buffer) 
+					? global_asio_channel_buffers 
+					: asio_channel_buffer + 1;
 			}
-			if (is_last_segment(asio_channel_buffer))
-				// Wrap back in case of sweeping
-				asio_channel_buffer -= output_channels * (ar_current_device->segswp - 1);
-			else
-				/*
-				if just finishing SEG0 CH1, need to jump to SEG1 CH1.
-				*/
-				asio_channel_buffer += output_channels;	// Now pointing at next segment, same channel
+			asio_channel_buffer = is_last_segment(asio_channel_buffer)
+				? global_asio_channel_buffers + asio_channel_buffer->channel
+				: asio_channel_buffer + output_channels;
 			source = asio_channel_buffer->data;
 			asio_channel_buffer->Index = 0;
 		}
