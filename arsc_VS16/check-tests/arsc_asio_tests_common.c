@@ -24,6 +24,10 @@ void set_device_desired_output_channels(int i, int32_t c) {
 	devices(i)->a_ncda = c;
 }
 
+void set_device_desired_input_channels(int i, int32_t c) {
+	devices(i)->a_ncad = c;
+}
+
 void assign_device_segments(int device, int32_t segments) {
 	devices(device)->segswp = segments;
 }

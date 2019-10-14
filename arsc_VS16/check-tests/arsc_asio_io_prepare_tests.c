@@ -52,8 +52,8 @@ static void assign_output_buffer(int i, void* buffer) {
 	assign_pointer_array(output_buffers, i, buffer);
 }
 
-static ArAsioSegment* global_asio_segment_(int i) {
-	return global_asio_segment + i;
+static ArAsioChannelBuffer* global_asio_segment_(int i) {
+	return global_asio_channel_buffers + i;
 }
 
 static int32_t* global_asio_segment_data(int i) {

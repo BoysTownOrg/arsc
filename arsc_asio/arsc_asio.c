@@ -56,8 +56,8 @@ static int32_t	max_output_channels = -1;   // Maximum as reported by the driver
 ASIOBufferInfo* bufferInfos = NULL;  // Pointer to array of bufferInfos; one for each channel (input + output)
 static ASIOChannelInfo* channelInfos = NULL; // Pointer to array of channelInfos; one for each channel (input + output)
 static ASIOCallbacks	asioCallbacks;  // structure that holds the pointers to the callback functions
-ArAsioSegment* global_asio_segment;   // pointer to the main stimulus block
-static ArAsioSegment* current_asio_segment;   // Points to the current segment stimulus (channel 0)
+ArAsioChannelBuffer* global_asio_channel_buffers;   // pointer to the main stimulus block
+static ArAsioChannelBuffer* current_asio_channel_buffer;   // Points to the current segment stimulus (channel 0)
 static TResponseData* responseData;   // pointer to the main response block
 static TResponseData* sptrCurSegmentResponse;   // Points to the current segment response (channel 0)
 static long	preferred_buffer_size;   // Returned by the driver
@@ -265,14 +265,14 @@ _ar_asio_close(int32_t di) {
 	}
 
 	// Clear stim blocks
-	if (global_asio_segment != NULL) {
-		global_asio_segment->Magic = 0;	// Indentification for debugging
-		free(global_asio_segment);
-		global_asio_segment = NULL;
+	if (global_asio_channel_buffers != NULL) {
+		global_asio_channel_buffers->Magic = 0;	// Indentification for debugging
+		free(global_asio_channel_buffers);
+		global_asio_channel_buffers = NULL;
 	}
 
 	// Clear resp blocks
-	if (global_asio_segment != NULL) {
+	if (global_asio_channel_buffers != NULL) {
 		responseData->Magic = 0;	// Indentification for debugging
 		free(responseData);
 		responseData = NULL;
@@ -444,7 +444,7 @@ _ar_asio_io_prepare(int32_t di)
 	ar_current_device = _ardev[di];
 	/*
 	Set up stimulus (OUTPUT) blocks
-	This is just a contiguous array of global_asio_segment structures.  The bufferSwitch
+	This is just a contiguous array of global_asio_channel_buffers structures.  The bufferSwitch
 	only loops over channels, so the contiguous array should (for stereo) look
 	like this:
 		SEGMENT		CHANNEL
@@ -454,19 +454,19 @@ _ar_asio_io_prepare(int32_t di)
 		1		    1
 		2		    0
 			. . .
-	The pointer "current_asio_segment" will point to the first (channel 0)
-	global_asio_segment for the current segment.
+	The pointer "current_asio_channel_buffer" will point to the first (channel 0)
+	global_asio_channel_buffers for the current segment.
 	*/
 	int32_t segments = ar_current_device->segswp;
-	if ((global_asio_segment = (ArAsioSegment*)calloc(ar_current_device->ncda * segments, sizeof(ArAsioSegment))) == NULL)
+	if ((global_asio_channel_buffers = (ArAsioChannelBuffer*)calloc(ar_current_device->ncda * segments, sizeof(ArAsioChannelBuffer))) == NULL)
 		return -1;
 
 	if ((responseData = (TResponseData*)calloc(ar_current_device->ncad * segments, sizeof(TResponseData))) == NULL)
 		return -1;
 
-	// Fill global_asio_segment (OUTPUT) blocks
-	ArAsioSegment* asio_segment = global_asio_segment;										// Initialize
-	current_asio_segment = global_asio_segment;			// Set to SEG0 CH0 to start.
+	// Fill global_asio_channel_buffers (OUTPUT) blocks
+	ArAsioChannelBuffer* asio_segment = global_asio_channel_buffers;										// Initialize
+	current_asio_channel_buffer = global_asio_channel_buffers;			// Set to SEG0 CH0 to start.
 	for (int32_t i = 0; i < ar_current_device->ncda * segments; i++) {
 
 		asio_segment->Magic = 0xBEEF;			// Indentification for debugging
@@ -640,7 +640,7 @@ stimulus data.
 Each channel has its own StimulusData block, so this function does not worry
 about channels. A pointer to the correct StimulusData structure is passed.
 */
-int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsioSegment* asio_segment) {
+int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsioChannelBuffer* asio_segment) {
 	if (asio_segment->Magic != 0xBEEF)
 		return 0;
 	if (asio_segment->size < 0 || asio_segment->size > 999000)
@@ -674,7 +674,7 @@ int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsio
 		// was possible for the pointer to point one beyond, i.e. 4410, without causing a 
 		// switch to the next asio_segment before exiting this function.  Then the 
 		// BufferSwitchTimeInfo() function returns you here causing an immediate switch, 
-		// but the global pointer current_asio_segment gets munged.
+		// but the global pointer current_asio_channel_buffer gets munged.
 		//
 		// The fix was to move these next three lines from the end of the for(k) loop to the
 		// top.
@@ -710,23 +710,23 @@ int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsio
 				}
 				if (((intCurOutputSegment + 1) % ar_current_device->segswp) != 0) {
 					// Move the global stim block pointer 1
-					if (asio_segment - global_asio_segment <= ar_current_device->segswp + 1) {
-						current_asio_segment = asio_segment + 1;		// On end channel, so move to channel 0 of next . . .
-						DBUG(("all channels done . . . current_asio_segment incremented to [%p].\n", asio_segment));
+					if (asio_segment - global_asio_channel_buffers <= ar_current_device->segswp + 1) {
+						current_asio_channel_buffer = asio_segment + 1;		// On end channel, so move to channel 0 of next . . .
+						DBUG(("all channels done . . . current_asio_channel_buffer incremented to [%p].\n", asio_segment));
 					}
 					else {
 						// Ouch!  Some sort of overrun caused this.  Maybe by clicking on
 						// an external window or some such thing.  Just set back to zero.
 						PRINT(("O U C H\n"));
-						current_asio_segment = global_asio_segment;
-						asio_segment = global_asio_segment;
+						current_asio_channel_buffer = global_asio_channel_buffers;
+						asio_segment = global_asio_channel_buffers;
 						sintSegmentFinished = 0;
 					}
 				}
 				else {
 					// All segments have been completed in this sweep.
-					DBUG(("*** All segments have been completed in this sweep.  Moving current_asio_segment to start. ***\n"));
-					current_asio_segment = global_asio_segment;						// Just sets it back to the beginning in case of infinite sweep
+					DBUG(("*** All segments have been completed in this sweep.  Moving current_asio_channel_buffer to start. ***\n"));
+					current_asio_channel_buffer = global_asio_channel_buffers;						// Just sets it back to the beginning in case of infinite sweep
 				}
 			}
 			// Any more segments to play for this (current) channel?
@@ -1368,7 +1368,7 @@ SDK Note:
 ASIOTime* bufferSwitchTimeInfo(ASIOTime* timeInfo, long index, ASIOBool processNow) {
 	int32_t	    i;
 	long	    lngAsioBufferSize = preferred_buffer_size;    // shorthand to buffer size in samples
-	ArAsioSegment* ptrStimulusData = current_asio_segment;	    // pointer to channel 0 of current segment stimulus
+	ArAsioChannelBuffer* ptrStimulusData = current_asio_channel_buffer;	    // pointer to channel 0 of current segment stimulus
 	TResponseData* ptrResponseData = sptrCurSegmentResponse;	    // pointer to channel 0 of current segment response
 
 	if (!driver_has_started)

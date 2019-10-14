@@ -15,6 +15,7 @@ int32_t* integer_array_at(int32_t* a, int i);
 int32_t read_integer_array_at(int32_t* a, int i);
 void assign_integer_array(int32_t* a, int i, int32_t what);
 void set_device_desired_output_channels(int i, int32_t c);
+void set_device_desired_input_channels(int i, int32_t c);
 void assign_device_segments(int device, int32_t segments);
 void add_test(TCase* test_case, const TTest* test);
 

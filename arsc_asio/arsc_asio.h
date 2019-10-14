@@ -19,7 +19,7 @@ typedef struct {
 	int32_t channel;				    // 0, 1, 2, . . . 
 	int32_t segment;				    // Current segment for this channel
 	bool OutputDone;				    // Says if output is done for this channel
-} ArAsioSegment;
+} ArAsioChannelBuffer;
 
 extern int32_t (*ar_asio_devices)();
 extern char* (*ar_asio_device_name)(int32_t);
@@ -33,11 +33,11 @@ extern int32_t(*ar_asio_check_segment)(int32_t, int32_t);
 extern int32_t(*ar_asio_latency)(int32_t, int32_t);
 extern int32_t(*ar_asio_list_rates)(int32_t);
 extern int32_t (*pLockAndLoad)(int32_t aintDevice);
-extern ArAsioSegment* global_asio_segment;
+extern ArAsioChannelBuffer* global_asio_channel_buffers;
 extern ARDEV* ar_current_device;
 
 int32_t _ar_asio_open(int32_t);
 int32_t _ar_asio_io_prepare(int32_t);
-int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t aintBufferSize, ArAsioSegment* ptrStimulusData);
+int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t aintBufferSize, ArAsioChannelBuffer* ptrStimulusData);
 
 #endif
