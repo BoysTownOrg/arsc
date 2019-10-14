@@ -101,6 +101,25 @@ START_TEST(write_device_buffer_one_segment) {
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(2, 7);
 }
 
+START_TEST(write_device_buffer_one_segment_two_channels) {
+	set_device_desired_output_channels(0, 2);
+
+	channel_buffers[0].channel = 0;
+	channel_buffers[1].channel = 1;
+
+	assign_channel_buffer_size(channel_buffers, 0, 3);
+	assign_first_audio_buffer(0, 11);
+	assign_first_audio_buffer(1, 12);
+	assign_first_audio_buffer(2, 13);
+
+	write_device_buffer_(5);
+	ASSERT_DEVICE_BUFFER_AT_EQUALS(0, 11);
+	ASSERT_DEVICE_BUFFER_AT_EQUALS(1, 12);
+	ASSERT_DEVICE_BUFFER_AT_EQUALS(2, 13);
+	ASSERT_DEVICE_BUFFER_AT_EQUALS(3, 11);
+	ASSERT_DEVICE_BUFFER_AT_EQUALS(4, 12);
+}
+
 START_TEST(write_device_buffer_one_segment_offset) {
 	assign_channel_buffer_index(channel_buffers, 0, 1);
 
@@ -228,6 +247,7 @@ Suite* arsc_asio_write_device_buffer_suite() {
 	tcase_add_checked_fixture(test_case, setup_write_device_buffer, teardown_write_device_buffer);
 	add_test(test_case, write_device_buffer_one_segment);
 	add_test(test_case, write_device_buffer_one_segment_offset);
+	add_test(test_case, write_device_buffer_one_segment_two_channels);
 	add_test(test_case, write_device_buffer_two_segments_one_channel);
 	add_test(test_case, write_device_buffer_two_segments_wrap_one_channel);
 	add_test(test_case, tbd);
