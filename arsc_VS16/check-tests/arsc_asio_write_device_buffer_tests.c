@@ -54,6 +54,10 @@ static void assign_segment_segment(ArAsioSegment* s, int i, int32_t segment) {
 	segment_at(s, i)->segment = segment;
 }
 
+static void assign_segment_index(ArAsioSegment* s, int i, int32_t index) {
+	segment_at(s, i)->Index = index;
+}
+
 static void write_device_buffer(int32_t n, ArAsioSegment* s) {
 	ar_asio_write_device_buffer(device_buffer, n, s);
 }
@@ -80,15 +84,14 @@ START_TEST(write_device_buffer_one_segment) {
 
 START_TEST(write_device_buffer_one_segment_offset) {
 	int32_t stimulus[4];
-	ArAsioSegment segment = initialized_segment();
-	segment.data = stimulus;
-	segment.size = 4;
-	segment.Index = 1;
+	assign_segment_data(segments, 0, stimulus);
+	assign_segment_size(segments, 0, 4);
+	assign_segment_index(segments, 0, 1);
 
 	assign_integer_array(stimulus, 1, 5);
 	assign_integer_array(stimulus, 2, 6);
 	assign_integer_array(stimulus, 3, 7);
-	write_device_buffer(3, &segment);
+	write_device_buffer(3, segments);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(0, 5);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(1, 6);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(2, 7);
