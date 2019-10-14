@@ -71,6 +71,10 @@ static void assign_first_stimulus(int i, int32_t what) {
 	assign_integer_array(stimuli[0], i, what);
 }
 
+static void assign_second_stimulus(int i, int32_t what) {
+	assign_integer_array(stimuli[1], i, what);
+}
+
 static void write_device_buffer(int32_t n, ArAsioSegment* s) {
 	ar_asio_write_device_buffer(device_buffer, n, s);
 }
@@ -108,18 +112,18 @@ START_TEST(write_device_buffer_one_segment_offset) {
 }
 
 START_TEST(write_device_buffer_two_segments) {
-	assign_segment_size(segments, 0, 3);
-	assign_segment_size(segments, 1, 4);
 	assign_device_segments(0, 2);
 
-	assign_integer_array(stimuli[0], 0, 11);
-	assign_integer_array(stimuli[0], 1, 12);
-	assign_integer_array(stimuli[0], 2, 13);
+	assign_segment_size(segments, 0, 3);
+	assign_first_stimulus(0, 11);
+	assign_first_stimulus(1, 12);
+	assign_first_stimulus(2, 13);
 
-	assign_integer_array(stimuli[1], 0, 14);
-	assign_integer_array(stimuli[1], 1, 15);
-	assign_integer_array(stimuli[1], 2, 16);
-	assign_integer_array(stimuli[1], 3, 17);
+	assign_segment_size(segments, 1, 4);
+	assign_second_stimulus(0, 14);
+	assign_second_stimulus(1, 15);
+	assign_second_stimulus(2, 16);
+	assign_second_stimulus(3, 17);
 
 	write_device_buffer_(7);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(0, 11);
