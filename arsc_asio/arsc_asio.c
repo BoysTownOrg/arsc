@@ -632,6 +632,20 @@ _ar_asio_bind(int32_t ndt, int32_t tnd)
 	return devices;
 }
 
+static int is_last_segment(ArAsioChannelBuffer* asio_channel_buffer) {
+	return asio_channel_buffer->segment + 1 == ar_current_device->segswp;
+}
+
+static int is_last_channel(ArAsioChannelBuffer* asio_channel_buffer) {
+	int32_t output_channels = ar_current_device->a_ncda;
+	int32_t last_channel = output_channels - 1;
+	return asio_channel_buffer->channel == last_channel;
+}
+
+static int is_exhausted(ArAsioChannelBuffer* asio_channel_buffer) {
+	return asio_channel_buffer->Index == asio_channel_buffer->size;
+}
+
 /*
 Sends a stimulus, piece-meal, by filling the passed ASIO buffer with
 stimulus data.
@@ -639,29 +653,24 @@ stimulus data.
 Each channel has its own StimulusData block, so this function does not worry
 about channels. A pointer to the correct StimulusData structure is passed.
 */
-int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsioChannelBuffer* asio_channel_buffer) {
+int32_t ar_asio_write_device_buffer(int32_t* destination, int32_t size, ArAsioChannelBuffer* asio_channel_buffer) {
 	int32_t output_channels = ar_current_device->a_ncda;
-	int32_t* audio_buffer = asio_channel_buffer->data + asio_channel_buffer->Index;
+	int32_t* source = asio_channel_buffer->data + asio_channel_buffer->Index;
 	// Loop over buffer size samples
-	for (int k = 0; k < buffer_size; k++) {
-		*buffer++ = *audio_buffer++;
+	for (int k = 0; k < size; k++) {
+		*destination++ = *source++;
 		asio_channel_buffer->Index++;
-		if (asio_channel_buffer->Index == asio_channel_buffer->size) {
-			// SEGMENT DONE
-			int32_t last_channel = output_channels - 1;
-			if (asio_channel_buffer->channel == last_channel) {
-				// LAST CHANNEL
+		if (is_exhausted(asio_channel_buffer)) {
+			if (is_last_channel(asio_channel_buffer)) {
 				// If there are no input channels, the out channel determines the segment end
 				if (!ar_current_device->a_ncad)
 					sintSegmentFinished++;
-				if (asio_channel_buffer->segment + 1 == ar_current_device->segswp)
-					// All segments have been completed in this sweep.
+				if (is_last_segment(asio_channel_buffer))
 					first_channel_buffer_of_current_segment = global_asio_channel_buffers; // Just sets it back to the beginning in case of infinite sweep
 				else
-					// Move the global stim block pointer 1
 					first_channel_buffer_of_current_segment = asio_channel_buffer + 1; // On end channel, so move to channel 0 of next . . .
 			}
-			if (asio_channel_buffer->segment + 1 == ar_current_device->segswp)
+			if (is_last_segment(asio_channel_buffer))
 				// Wrap back in case of sweeping
 				asio_channel_buffer -= output_channels * (ar_current_device->segswp - 1);
 			else
@@ -669,7 +678,7 @@ int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsio
 				if just finishing SEG0 CH1, need to jump to SEG1 CH1.
 				*/
 				asio_channel_buffer += output_channels;	// Now pointing at next segment, same channel
-			audio_buffer = asio_channel_buffer->data;
+			source = asio_channel_buffer->data;
 			asio_channel_buffer->Index = 0;
 		}
 	}
