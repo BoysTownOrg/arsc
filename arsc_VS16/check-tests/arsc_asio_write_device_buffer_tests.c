@@ -4,7 +4,8 @@
 
 enum {
 	sufficiently_large = 100,
-	buffer_count = sufficiently_large
+	buffer_count = sufficiently_large,
+	device_index = 0
 };
 
 static int32_t device_buffer[sufficiently_large];
@@ -57,10 +58,9 @@ static void setup_write_device_buffer(void) {
 		assign_channel_buffer_data(channel_buffers, i, audio_buffers[i]);
 		assign_channel_buffer_size_(i, sizeof audio_buffers[i] / sizeof audio_buffers[i][0]);
 	}
-	allocate_device(0);
-	assign_device_segments(0, 1);
-	set_device_desired_output_channels(0, 1);
-	set_device_desired_input_channels(0, 0);
+	allocate_device(device_index);
+	assign_device_segments(device_index, 1);
+	set_device_desired_output_channels(device_index, 1);
 	ar_current_device = devices(0);
 	global_asio_channel_buffers = channel_buffers;
 }
@@ -69,7 +69,7 @@ static void teardown_write_device_buffer(void) {
 	memset(device_buffer, 0, sizeof device_buffer);
 	memset(channel_buffers, 0, sizeof channel_buffers);
 	memset(audio_buffers, 0, sizeof audio_buffers);
-	free_device(0);
+	free_device(device_index);
 }
 
 static void assign_audio_buffer(int i, int j, int32_t what) {
@@ -123,7 +123,7 @@ START_TEST(write_device_buffer_one_segment_wrap) {
 }
 
 START_TEST(write_device_buffer_one_segment_wrap_two_channels) {
-	set_device_desired_output_channels(0, 2);
+	set_device_desired_output_channels(device_index, 2);
 
 	channel_buffers[0].channel = 0;
 	channel_buffers[1].channel = 1;
@@ -142,7 +142,7 @@ START_TEST(write_device_buffer_one_segment_wrap_two_channels) {
 }
 
 START_TEST(write_device_buffer_one_segment_wrap_second_channel) {
-	set_device_desired_output_channels(0, 2);
+	set_device_desired_output_channels(device_index, 2);
 
 	channel_buffers[0].channel = 0;
 	channel_buffers[1].channel = 1;
@@ -173,7 +173,7 @@ START_TEST(write_device_buffer_one_segment_offset) {
 }
 
 START_TEST(write_device_buffer_two_segments_one_channel) {
-	assign_device_segments(0, 2);
+	assign_device_segments(device_index, 2);
 	assign_channel_buffer_segment(channel_buffers, 0, 0);
 	assign_channel_buffer_segment(channel_buffers, 1, 1);
 
@@ -198,7 +198,7 @@ START_TEST(write_device_buffer_two_segments_one_channel) {
 }
 
 START_TEST(write_device_buffer_two_segments_wrap_one_channel) {
-	assign_device_segments(0, 2);
+	assign_device_segments(device_index, 2);
 	assign_channel_buffer_segment(channel_buffers, 0, 0);
 	assign_channel_buffer_segment(channel_buffers, 1, 1);
 
@@ -223,10 +223,8 @@ START_TEST(write_device_buffer_two_segments_wrap_one_channel) {
 }
 
 START_TEST(write_device_buffer_three_segments_two_channels) {
-	set_device_desired_output_channels(0, 2);
-	assign_device_segments(0, 3);
-	ar_current_device->seg_ic = 0;
-	ar_current_device->seg_oc = 2;
+	set_device_desired_output_channels(device_index, 2);
+	assign_device_segments(device_index, 3);
 
 	channel_buffers[5].channel = 1;
 	assign_channel_buffer_segment(channel_buffers, 5, 2);
@@ -254,8 +252,8 @@ START_TEST(write_device_buffer_three_segments_two_channels) {
 }
 
 START_TEST(write_device_buffer_two_segments_three_channels) {
-	assign_device_segments(0, 2);
-	set_device_desired_output_channels(0, 3);
+	assign_device_segments(device_index, 2);
+	set_device_desired_output_channels(device_index, 3);
 
 	channel_buffers[2].channel = 2;
 	assign_channel_buffer_segment(channel_buffers, 2, 0);
