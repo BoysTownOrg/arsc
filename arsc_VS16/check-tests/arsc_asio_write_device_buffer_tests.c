@@ -113,7 +113,7 @@ START_TEST(write_device_buffer_one_segment_offset) {
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(2, 7);
 }
 
-START_TEST(write_device_buffer_two_segments) {
+START_TEST(write_device_buffer_two_segments_one_channel) {
 	assign_device_segments(0, 2);
 
 	assign_channel_buffer_size(channel_buffers, 0, 3);
@@ -121,7 +121,6 @@ START_TEST(write_device_buffer_two_segments) {
 	assign_first_audio_buffer(1, 12);
 	assign_first_audio_buffer(2, 13);
 
-	assign_channel_buffer_size(channel_buffers, 1, 4);
 	assign_second_audio_buffer(0, 14);
 	assign_second_audio_buffer(1, 15);
 	assign_second_audio_buffer(2, 16);
@@ -137,19 +136,18 @@ START_TEST(write_device_buffer_two_segments) {
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(6, 17);
 }
 
-START_TEST(write_device_buffer_wrap_segments) {
+START_TEST(write_device_buffer_two_segments_wrap_one_channel) {
 	assign_device_segments(0, 2);
-
-	assign_channel_buffer_size(channel_buffers, 0, 3);
-	assign_first_audio_buffer(0, 11);
-	assign_first_audio_buffer(1, 12);
-	assign_first_audio_buffer(2, 13);
 
 	assign_channel_buffer_size(channel_buffers, 1, 4);
 	assign_second_audio_buffer(0, 14);
 	assign_second_audio_buffer(1, 15);
 	assign_second_audio_buffer(2, 16);
 	assign_second_audio_buffer(3, 17);
+
+	assign_first_audio_buffer(0, 11);
+	assign_first_audio_buffer(1, 12);
+	assign_first_audio_buffer(2, 13);
 
 	write_device_buffer(7, channel_buffers + 1);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(0, 14);
@@ -230,8 +228,8 @@ Suite* arsc_asio_write_device_buffer_suite() {
 	tcase_add_checked_fixture(test_case, setup_write_device_buffer, teardown_write_device_buffer);
 	add_test(test_case, write_device_buffer_one_segment);
 	add_test(test_case, write_device_buffer_one_segment_offset);
-	add_test(test_case, write_device_buffer_two_segments);
-	add_test(test_case, write_device_buffer_wrap_segments);
+	add_test(test_case, write_device_buffer_two_segments_one_channel);
+	add_test(test_case, write_device_buffer_two_segments_wrap_one_channel);
 	add_test(test_case, tbd);
 	add_test(test_case, tbd2);
 	suite_add_tcase(suite, test_case);
