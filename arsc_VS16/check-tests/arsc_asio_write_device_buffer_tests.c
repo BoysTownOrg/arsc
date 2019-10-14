@@ -13,7 +13,6 @@ static int32_t audio_buffers[buffer_count][sufficiently_large];
 
 static ArAsioChannelBuffer initialized_channel_buffer() {
 	ArAsioChannelBuffer s;
-	s.Magic = 0xBEEF;
 	s.Index = 0;
 	s.channel = 0;
 	s.segment = 0;

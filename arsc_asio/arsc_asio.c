@@ -266,7 +266,6 @@ _ar_asio_close(int32_t di) {
 
 	// Clear stim blocks
 	if (global_asio_channel_buffers != NULL) {
-		global_asio_channel_buffers->Magic = 0;	// Indentification for debugging
 		free(global_asio_channel_buffers);
 		global_asio_channel_buffers = NULL;
 	}

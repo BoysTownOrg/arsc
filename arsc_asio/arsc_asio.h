@@ -12,7 +12,6 @@ Steve set up to an array of these structures.
 32-bit integers is what all of the sound cards tested expect. 
 */
 typedef struct {
-	int32_t Magic;					    // Just an identifier for this structure
 	int32_t* data;				    // Pointer to segment
 	int32_t size;				    // # of samples, e.g. 2048, in this block
 	int32_t Index;					    // How many samples have already been played
