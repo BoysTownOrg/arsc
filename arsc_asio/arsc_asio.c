@@ -649,60 +649,34 @@ int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsio
 
 	int32_t *buffer_ = buffer;
 	int32_t* audio_buffer = asio_channel_buffer->data + asio_channel_buffer->Index;
-
-	DBUG_S(("send: m/seg/ch [%d]/[%d]/[%d] index [%d] of [%d] TotalSamples [%d].\n",
-		asio_channel_buffer->Magic,
-		asio_channel_buffer->segment,
-		asio_channel_buffer->channel,
-		asio_channel_buffer->Index,
-		asio_channel_buffer->size,
-		sintTotalSamples));
-
 	// Loop over buffer size samples
 	for (int k = 0; k < buffer_size; k++) {
 		*buffer_ = *audio_buffer++;
 		asio_channel_buffer->Index++;
 		if (asio_channel_buffer->Index == asio_channel_buffer->size) {
 			// SEGMENT DONE
-			DBUG_S(("m/seg/ch [%d]/[%d]/[%d] finished.\n", 
-				asio_channel_buffer->Magic, 
-				asio_channel_buffer->segment, 
-				asio_channel_buffer->channel
-			));
 			int32_t last_channel = output_channels - 1;
 			if (asio_channel_buffer->channel == last_channel) {
 				// LAST CHANNEL
 				// If there are no input channels, the out channel determines the segment end
 				if (!ar_current_device->a_ncad) {
 					sintSegmentFinished++;
-					FDBUG((_arS, "S %d\n", sintSegmentFinished));
 				}
-				if (((output_segment + 1) % ar_current_device->segswp) != 0) {
+				if (((output_segment + 1) % ar_current_device->segswp) != 0)
 					// Move the global stim block pointer 1
-					current_asio_channel_buffer = asio_channel_buffer + 1;		// On end channel, so move to channel 0 of next . . .
-					DBUG(("all channels done . . . current_asio_channel_buffer incremented to [%p].\n", asio_channel_buffer));
-				}
-				else {
+					current_asio_channel_buffer = asio_channel_buffer + 1; // On end channel, so move to channel 0 of next . . .
+				else
 					// All segments have been completed in this sweep.
-					DBUG(("*** All segments have been completed in this sweep.  Moving current_asio_channel_buffer to start. ***\n"));
-					current_asio_channel_buffer = global_asio_channel_buffers;						// Just sets it back to the beginning in case of infinite sweep
-				}
+					current_asio_channel_buffer = global_asio_channel_buffers; // Just sets it back to the beginning in case of infinite sweep
 			}
-			// Any more segments to play for this (current) channel?
-			if (asio_channel_buffer->segment + 1 == ar_current_device->segswp) {
-				DBUG_S(("no more segments to play for channel [%d].\n", asio_channel_buffer->channel));
+			if (asio_channel_buffer->segment + 1 == ar_current_device->segswp)
 				// Wrap back in case of sweeping
 				asio_channel_buffer -= output_channels * (ar_current_device->segswp - 1);
-			}
-			else {
+			else
 				/*
-				More segments to play . . .
-				Move to the next stimulus structure for the rest of this bufferswitch.
-				For example, if just finishing SEG0 CH1, need to jump to SEG1 CH1.
+				if just finishing SEG0 CH1, need to jump to SEG1 CH1.
 				*/
-				DBUG_S(("incrementing asio_segment [%p] to [%p].\n", asio_channel_buffer, (asio_channel_buffer + output_channels)));
-				asio_channel_buffer += output_channels;		// Now pointing at next segment, same channel
-			}
+				asio_channel_buffer += output_channels;	// Now pointing at next segment, same channel
 			audio_buffer = asio_channel_buffer->data;
 			asio_channel_buffer->Index = 0;
 		}
