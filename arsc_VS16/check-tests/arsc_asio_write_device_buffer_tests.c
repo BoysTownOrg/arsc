@@ -35,8 +35,12 @@ static void assign_channel_buffer_size(ArAsioChannelBuffer* s, int i, int32_t si
 	channel_buffer_at(s, i)->size = size;
 }
 
+static void assign_channel_buffer_size_(int i, int32_t size) {
+	channel_buffer_at(channel_buffers, i)->size = size;
+}
+
 static void assign_first_channel_buffer_size(int32_t size) {
-	assign_channel_buffer_size(channel_buffers, 0, size);
+	assign_channel_buffer_size_(0, size);
 }
 
 static void assign_channel_buffer_segment(ArAsioChannelBuffer* s, int i, int32_t segment) {
@@ -51,7 +55,7 @@ static void setup_write_device_buffer(void) {
 	for (int i = 0; i < buffer_count; ++i) {
 		initialize_channel_buffer(channel_buffers, i);
 		assign_channel_buffer_data(channel_buffers, i, audio_buffers[i]);
-		assign_channel_buffer_size(channel_buffers, i, sizeof audio_buffers[i] / sizeof audio_buffers[i][0]);
+		assign_channel_buffer_size_(i, sizeof audio_buffers[i] / sizeof audio_buffers[i][0]);
 	}
 	allocate_device(0);
 	assign_device_segments(0, 1);
@@ -143,7 +147,7 @@ START_TEST(write_device_buffer_one_segment_wrap_second_channel) {
 	channel_buffers[0].channel = 0;
 	channel_buffers[1].channel = 1;
 
-	assign_channel_buffer_size(channel_buffers, 1, 3);
+	assign_channel_buffer_size_(1, 3);
 	assign_second_audio_buffer(0, 11);
 	assign_second_audio_buffer(1, 12);
 	assign_second_audio_buffer(2, 13);
@@ -173,7 +177,7 @@ START_TEST(write_device_buffer_two_segments_one_channel) {
 	assign_channel_buffer_segment(channel_buffers, 0, 0);
 	assign_channel_buffer_segment(channel_buffers, 1, 1);
 
-	assign_channel_buffer_size(channel_buffers, 0, 3);
+	assign_first_channel_buffer_size(3);
 	assign_first_audio_buffer(0, 11);
 	assign_first_audio_buffer(1, 12);
 	assign_first_audio_buffer(2, 13);
@@ -218,7 +222,7 @@ START_TEST(write_device_buffer_two_segments_wrap_one_channel) {
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(6, 13);
 }
 
-START_TEST(tbd) {
+START_TEST(write_device_buffer_three_segments_two_channels) {
 	set_device_desired_output_channels(0, 2);
 	assign_device_segments(0, 3);
 	ar_current_device->seg_ic = 0;
@@ -226,14 +230,14 @@ START_TEST(tbd) {
 
 	channel_buffers[5].channel = 1;
 	assign_channel_buffer_segment(channel_buffers, 5, 2);
-	assign_channel_buffer_size(channel_buffers, 5, 4);
+	assign_channel_buffer_size_(5, 4);
 	assign_audio_buffer(5, 0, 11);
 	assign_audio_buffer(5, 1, 12);
 	assign_audio_buffer(5, 2, 13);
 	assign_audio_buffer(5, 3, 14);
 
 	channel_buffers[1].channel = 1;
-	assign_channel_buffer_size(channel_buffers, 1, 3);
+	assign_channel_buffer_size_(1, 3);
 	assign_audio_buffer(1, 0, 15);
 	assign_audio_buffer(1, 1, 16);
 	assign_audio_buffer(1, 2, 17);
@@ -249,15 +253,13 @@ START_TEST(tbd) {
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(6, 17);
 }
 
-START_TEST(tbd2) {
+START_TEST(write_device_buffer_two_segments_three_channels) {
 	assign_device_segments(0, 2);
 	set_device_desired_output_channels(0, 3);
-	ar_current_device->seg_ic = 0;
-	ar_current_device->seg_oc = 1;
 
 	channel_buffers[2].channel = 2;
 	assign_channel_buffer_segment(channel_buffers, 2, 0);
-	assign_channel_buffer_size(channel_buffers, 2, 4);
+	assign_channel_buffer_size_(2, 4);
 	assign_audio_buffer(2, 0, 11);
 	assign_audio_buffer(2, 1, 12);
 	assign_audio_buffer(2, 2, 13);
@@ -265,7 +267,7 @@ START_TEST(tbd2) {
 
 	channel_buffers[5].channel = 2;
 	assign_channel_buffer_segment(channel_buffers, 5, 1);
-	assign_channel_buffer_size(channel_buffers, 5, 3);
+	assign_channel_buffer_size_(5, 3);
 	assign_audio_buffer(5, 0, 15);
 	assign_audio_buffer(5, 1, 16);
 	assign_audio_buffer(5, 2, 17);
@@ -292,8 +294,8 @@ Suite* arsc_asio_write_device_buffer_suite() {
 	add_test(test_case, write_device_buffer_one_segment_wrap_second_channel);
 	add_test(test_case, write_device_buffer_two_segments_one_channel);
 	add_test(test_case, write_device_buffer_two_segments_wrap_one_channel);
-	add_test(test_case, tbd);
-	add_test(test_case, tbd2);
+	add_test(test_case, write_device_buffer_three_segments_two_channels);
+	add_test(test_case, write_device_buffer_two_segments_three_channels);
 	suite_add_tcase(suite, test_case);
 	return suite;
 }
