@@ -56,6 +56,10 @@ static void set_output_channels(int32_t n) {
 	set_device_desired_output_channels(device_index, n);;
 }
 
+static void set_segments(int32_t n) {
+	assign_device_segments(device_index, n);
+}
+
 static void setup_write_device_buffer(void) {
 	for (int i = 0; i < buffer_count; ++i) {
 		initialize_channel_buffer(channel_buffers, i);
@@ -63,7 +67,7 @@ static void setup_write_device_buffer(void) {
 		assign_channel_buffer_size_(i, sizeof audio_buffers[i] / sizeof audio_buffers[i][0]);
 	}
 	allocate_device(device_index);
-	assign_device_segments(device_index, 1);
+	set_segments(1);
 	set_output_channels(1);
 	ar_current_device = devices(0);
 	global_asio_channel_buffers = channel_buffers;
@@ -177,7 +181,7 @@ START_TEST(write_device_buffer_one_segment_offset) {
 }
 
 START_TEST(write_device_buffer_two_segments_one_channel) {
-	assign_device_segments(device_index, 2);
+	set_segments(2);
 	assign_channel_buffer_segment(channel_buffers, 0, 0);
 	assign_channel_buffer_segment(channel_buffers, 1, 1);
 
@@ -202,7 +206,7 @@ START_TEST(write_device_buffer_two_segments_one_channel) {
 }
 
 START_TEST(write_device_buffer_two_segments_wrap_one_channel) {
-	assign_device_segments(device_index, 2);
+	set_segments(2);
 	assign_channel_buffer_segment(channel_buffers, 0, 0);
 	assign_channel_buffer_segment(channel_buffers, 1, 1);
 
@@ -228,7 +232,7 @@ START_TEST(write_device_buffer_two_segments_wrap_one_channel) {
 
 START_TEST(write_device_buffer_three_segments_two_channels) {
 	set_output_channels(2);
-	assign_device_segments(device_index, 3);
+	set_segments(3);
 
 	channel_buffers[5].channel = 1;
 	assign_channel_buffer_segment(channel_buffers, 5, 2);
@@ -256,7 +260,7 @@ START_TEST(write_device_buffer_three_segments_two_channels) {
 }
 
 START_TEST(write_device_buffer_two_segments_three_channels) {
-	assign_device_segments(device_index, 2);
+	set_segments(2);
 	set_output_channels(3);
 
 	channel_buffers[2].channel = 2;
