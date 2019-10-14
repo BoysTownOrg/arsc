@@ -52,6 +52,10 @@ static void assign_channel_buffer_index(ArAsioChannelBuffer* s, int i, int32_t i
 	channel_buffer_at(s, i)->Index = index;
 }
 
+static void set_output_channels(int32_t n) {
+	set_device_desired_output_channels(device_index, n);;
+}
+
 static void setup_write_device_buffer(void) {
 	for (int i = 0; i < buffer_count; ++i) {
 		initialize_channel_buffer(channel_buffers, i);
@@ -60,7 +64,7 @@ static void setup_write_device_buffer(void) {
 	}
 	allocate_device(device_index);
 	assign_device_segments(device_index, 1);
-	set_device_desired_output_channels(device_index, 1);
+	set_output_channels(1);
 	ar_current_device = devices(0);
 	global_asio_channel_buffers = channel_buffers;
 }
@@ -123,7 +127,7 @@ START_TEST(write_device_buffer_one_segment_wrap) {
 }
 
 START_TEST(write_device_buffer_one_segment_wrap_two_channels) {
-	set_device_desired_output_channels(device_index, 2);
+	set_output_channels(2);
 
 	channel_buffers[0].channel = 0;
 	channel_buffers[1].channel = 1;
@@ -142,7 +146,7 @@ START_TEST(write_device_buffer_one_segment_wrap_two_channels) {
 }
 
 START_TEST(write_device_buffer_one_segment_wrap_second_channel) {
-	set_device_desired_output_channels(device_index, 2);
+	set_output_channels(2);
 
 	channel_buffers[0].channel = 0;
 	channel_buffers[1].channel = 1;
@@ -223,7 +227,7 @@ START_TEST(write_device_buffer_two_segments_wrap_one_channel) {
 }
 
 START_TEST(write_device_buffer_three_segments_two_channels) {
-	set_device_desired_output_channels(device_index, 2);
+	set_output_channels(2);
 	assign_device_segments(device_index, 3);
 
 	channel_buffers[5].channel = 1;
@@ -253,7 +257,7 @@ START_TEST(write_device_buffer_three_segments_two_channels) {
 
 START_TEST(write_device_buffer_two_segments_three_channels) {
 	assign_device_segments(device_index, 2);
-	set_device_desired_output_channels(device_index, 3);
+	set_output_channels(3);
 
 	channel_buffers[2].channel = 2;
 	assign_channel_buffer_segment(channel_buffers, 2, 0);
