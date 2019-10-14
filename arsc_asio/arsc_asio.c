@@ -444,7 +444,7 @@ _ar_asio_io_prepare(int32_t di)
 	ar_current_device = _ardev[di];
 	/*
 	Set up stimulus (OUTPUT) blocks
-	This is just a contiguous array of global_asio_channel_buffers structures.  The bufferSwitch
+	This is just a contiguous array of ArAsioChannelBuffers.  The bufferSwitch
 	only loops over channels, so the contiguous array should (for stereo) look
 	like this:
 		SEGMENT		CHANNEL
@@ -641,14 +641,7 @@ Each channel has its own StimulusData block, so this function does not worry
 about channels. A pointer to the correct StimulusData structure is passed.
 */
 int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsioChannelBuffer* asio_channel_buffer) {
-	if (asio_channel_buffer->Magic != 0xBEEF)
-		return 0;
-	if (asio_channel_buffer->size < 0 || asio_channel_buffer->size > 999000)
-		return 0;
 	int32_t output_channels = ar_current_device->a_ncda;
-	if (asio_channel_buffer->channel < 0 || asio_channel_buffer->channel >= output_channels)
-		return 0;
-
 	int32_t	intCurOutputSegment;
 	if (ar_current_device->a_ncda)
 		intCurOutputSegment = ar_current_device->seg_oc;		// If there are output channels, use the correct counter.
