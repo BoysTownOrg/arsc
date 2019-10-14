@@ -679,18 +679,8 @@ int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t buffer_size, ArAsio
 				}
 				if (((output_segment + 1) % ar_current_device->segswp) != 0) {
 					// Move the global stim block pointer 1
-					if (asio_channel_buffer - global_asio_channel_buffers <= ar_current_device->segswp + 1) {
-						current_asio_channel_buffer = asio_channel_buffer + 1;		// On end channel, so move to channel 0 of next . . .
-						DBUG(("all channels done . . . current_asio_channel_buffer incremented to [%p].\n", asio_channel_buffer));
-					}
-					else {
-						// Ouch!  Some sort of overrun caused this.  Maybe by clicking on
-						// an external window or some such thing.  Just set back to zero.
-						PRINT(("O U C H\n"));
-						current_asio_channel_buffer = global_asio_channel_buffers;
-						asio_channel_buffer = global_asio_channel_buffers;
-						sintSegmentFinished = 0;
-					}
+					current_asio_channel_buffer = asio_channel_buffer + 1;		// On end channel, so move to channel 0 of next . . .
+					DBUG(("all channels done . . . current_asio_channel_buffer incremented to [%p].\n", asio_channel_buffer));
 				}
 				else {
 					// All segments have been completed in this sweep.
