@@ -84,12 +84,20 @@ static void assign_device_buffer(int i, int32_t n) {
 	assign_integer_array(device_buffer, i, n);
 }
 
+static void read_device_buffer_(int32_t n, TResponseData *response) {
+	ar_asio_read_device_buffer(device_buffer, n, response);
+}
+
 static void read_device_buffer(int32_t n) {
-	ar_asio_read_device_buffer(device_buffer, n, responses);
+	read_device_buffer_(n, responses);
 }
 
 static void set_first_response_size(int32_t n) {
 	assign_channel_response_size_(0, n);
+}
+
+static void set_second_response_size(int32_t n) {
+	assign_channel_response_size_(1, n);
 }
 
 #define ASSERT_NTH_AUDIO_BUFFER_AT_EQUALS(n, a, b)\
@@ -145,6 +153,26 @@ START_TEST(read_device_buffer_one_segment_wrap_two_channels) {
 	ASSERT_FIRST_AUDIO_BUFFER_AT_EQUALS(2, 3);
 }
 
+START_TEST(read_device_buffer_one_segment_wrap_second_channel) {
+	set_input_channels(2);
+
+	responses[0].channel = 0;
+	responses[1].channel = 1;
+
+	set_second_response_size(3);
+	assign_device_buffer(0, 1);
+	assign_device_buffer(1, 2);
+	assign_device_buffer(2, 3);
+	assign_device_buffer(3, 4);
+	assign_device_buffer(4, 5);
+
+	read_device_buffer_(5, responses + 1);
+
+	ASSERT_SECOND_AUDIO_BUFFER_AT_EQUALS(0, 4);
+	ASSERT_SECOND_AUDIO_BUFFER_AT_EQUALS(1, 5);
+	ASSERT_SECOND_AUDIO_BUFFER_AT_EQUALS(2, 3);
+}
+
 START_TEST(read_device_buffer_two_segments) {
 	set_segments(2);
 	responses[0].segment = 0;
@@ -178,6 +206,7 @@ Suite* arsc_asio_read_device_buffer_suite() {
 	add_test(test_case, read_device_buffer_one_segment);
 	add_test(test_case, read_device_buffer_one_segment_wrap);
 	add_test(test_case, read_device_buffer_one_segment_wrap_two_channels);
+	add_test(test_case, read_device_buffer_one_segment_wrap_second_channel);
 	add_test(test_case, read_device_buffer_two_segments);
 	suite_add_tcase(suite, test_case);
 	return suite;
