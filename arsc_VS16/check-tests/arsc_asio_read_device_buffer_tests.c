@@ -100,6 +100,14 @@ static void set_second_response_size(int32_t n) {
 	assign_channel_response_size_(1, n);
 }
 
+static void set_response_channel(int i, int32_t c) {
+	responses[i].channel = c;
+}
+
+static void set_response_segment(int i, int32_t c) {
+	responses[i].segment = c;
+}
+
 #define ASSERT_NTH_AUDIO_BUFFER_AT_EQUALS(n, a, b)\
 	ASSERT_EQUAL_ANY(b, audio_buffers[n][a]);
 
@@ -147,9 +155,8 @@ START_TEST(read_device_buffer_one_segment_wrap) {
 
 START_TEST(read_device_buffer_one_segment_wrap_two_channels) {
 	set_input_channels(2);
-
-	responses[0].channel = 0;
-	responses[1].channel = 1;
+	set_response_channel(0, 0);
+	set_response_channel(1, 1);
 
 	set_first_response_size(3);
 	assign_device_buffer(0, 1);
@@ -167,9 +174,8 @@ START_TEST(read_device_buffer_one_segment_wrap_two_channels) {
 
 START_TEST(read_device_buffer_one_segment_wrap_second_channel) {
 	set_input_channels(2);
-
-	responses[0].channel = 0;
-	responses[1].channel = 1;
+	set_response_channel(0, 0);
+	set_response_channel(1, 1);
 
 	set_second_response_size(3);
 	assign_device_buffer(0, 1);
@@ -187,8 +193,8 @@ START_TEST(read_device_buffer_one_segment_wrap_second_channel) {
 
 START_TEST(read_device_buffer_two_segments) {
 	set_segments(2);
-	responses[0].segment = 0;
-	responses[1].segment = 1;
+	set_response_segment(0, 0);
+	set_response_segment(1, 1);
 
 	assign_device_buffer(0, 1);
 	assign_device_buffer(1, 2);
@@ -213,8 +219,8 @@ START_TEST(read_device_buffer_two_segments) {
 
 START_TEST(read_device_buffer_two_segments_wrap_one_channel) {
 	set_segments(2);
-	responses[0].segment = 0;
-	responses[1].segment = 1;
+	set_response_segment(0, 0);
+	set_response_segment(1, 1);
 
 	assign_device_buffer(0, 1);
 	assign_device_buffer(1, 2);
