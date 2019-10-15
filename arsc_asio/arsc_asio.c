@@ -619,7 +619,7 @@ _ar_asio_bind(int32_t ndt, int32_t tnd)
 	return devices;
 }
 
-static int is_last_segment(ArAsioOutputAudio* audio) {
+static int is_last_output_segment(ArAsioOutputAudio* audio) {
 	return audio->segment + 1 == ar_current_device->segswp;
 }
 
@@ -629,8 +629,12 @@ static int is_last_channel(ArAsioOutputAudio* audio) {
 	return audio->channel == last_channel;
 }
 
-static int is_exhausted(ArAsioOutputAudio* audio) {
+static int output_is_exhausted(ArAsioOutputAudio* audio) {
 	return audio->Index == audio->size;
+}
+
+static int is_last_input_segment(ArAsioInputAudio* audio) {
+	return audio->segment + 1 == ar_current_device->segswp;
 }
 
 static int32_t minimum(int32_t a, int32_t b) {
@@ -646,7 +650,7 @@ static void update_if_last_channel(ArAsioOutputAudio* audio) {
 		// If there are no input channels, the out channel determines the segment end
 		if (!ar_current_device->a_ncad)
 			sintSegmentFinished++;
-		first_channel_buffer_of_current_segment = is_last_segment(audio)
+		first_channel_buffer_of_current_segment = is_last_output_segment(audio)
 			? global_asio_channel_buffers
 			: audio + 1;
 	}
@@ -660,10 +664,10 @@ int32_t ar_asio_write_device_buffer(int32_t* destination, int32_t size, ArAsioOu
 		copy(destination + copied, source, to_copy);
 		copied += to_copy;
 		audio->Index += to_copy;
-		if (is_exhausted(audio)) {
+		if (output_is_exhausted(audio)) {
 			update_if_last_channel(audio);
 			int32_t output_channels = ar_current_device->a_ncda;
-			audio = is_last_segment(audio)
+			audio = is_last_output_segment(audio)
 				? global_asio_channel_buffers + audio->channel
 				: audio + output_channels;
 			audio->Index = 0;
@@ -740,18 +744,18 @@ int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAud
 			copy(destination, source_, intDifference);
 			audio->Index += intDifference;
 			source_ += intDifference;
-			int32_t intInputChannels = ar_current_device->a_ncad;
-			if (audio->channel == intInputChannels - 1) {
+			int32_t input_channels = ar_current_device->a_ncad;
+			if (audio->channel == input_channels - 1) {
 				sintSegmentFinished++;
-				if (audio->segment + 1 == ar_current_device->segswp)
+				if (is_last_input_segment(audio))
 					sptrCurSegmentResponse = responseData;
 				else
 					sptrCurSegmentResponse = audio + 1;
 			}
-			if (audio->segment + 1 == ar_current_device->segswp)
-				audio -= (intInputChannels) * (ar_current_device->segswp - 1);
+			if (is_last_input_segment(audio))
+				audio -= (input_channels) * (ar_current_device->segswp - 1);
 			else
-				audio += intInputChannels;
+				audio += input_channels;
 			destination = audio->data;
 			audio->Index = 0;
 			intDifference = size - intDifference;
