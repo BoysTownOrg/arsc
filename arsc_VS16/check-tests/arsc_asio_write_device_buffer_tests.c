@@ -9,10 +9,10 @@ enum {
 };
 
 static int32_t device_buffer[sufficiently_large];
-static ArAsioOutputAudio channel_buffers[buffer_count];
+static ArAsioOutputAudio audio[buffer_count];
 static int32_t audio_buffers[buffer_count][sufficiently_large];
 
-static ArAsioOutputAudio initialized_channel_buffer() {
+static ArAsioOutputAudio initialized_audio() {
 	ArAsioOutputAudio s;
 	s.Index = 0;
 	s.channel = 0;
@@ -20,36 +20,36 @@ static ArAsioOutputAudio initialized_channel_buffer() {
 	return s;
 }
 
-static ArAsioOutputAudio* channel_buffer_at(ArAsioOutputAudio* s, int i) {
+static ArAsioOutputAudio* audio_at(ArAsioOutputAudio* s, int i) {
 	return s + i;
 }
 
-static void initialize_channel_buffer(ArAsioOutputAudio* s, int i) {
-	*channel_buffer_at(s, i) = initialized_channel_buffer();
+static void initialize_audio(ArAsioOutputAudio* s, int i) {
+	*audio_at(s, i) = initialized_audio();
 }
 
-static void assign_channel_buffer_data(ArAsioOutputAudio* s, int i, int32_t* data) {
-	channel_buffer_at(s, i)->data = data;
+static void assign_audio_data(ArAsioOutputAudio* s, int i, int32_t* data) {
+	audio_at(s, i)->data = data;
 }
 
-static void assign_channel_buffer_size(ArAsioOutputAudio* s, int i, int32_t size) {
-	channel_buffer_at(s, i)->size = size;
+static void assign_audio_size(ArAsioOutputAudio* s, int i, int32_t size) {
+	audio_at(s, i)->size = size;
 }
 
-static void assign_channel_buffer_size_(int i, int32_t size) {
-	channel_buffer_at(channel_buffers, i)->size = size;
+static void assign_audio_size_(int i, int32_t size) {
+	audio_at(audio, i)->size = size;
 }
 
-static void assign_first_channel_buffer_size(int32_t size) {
-	assign_channel_buffer_size_(0, size);
+static void assign_first_audio_size(int32_t size) {
+	assign_audio_size_(0, size);
 }
 
-static void assign_channel_buffer_segment(ArAsioOutputAudio* s, int i, int32_t segment) {
-	channel_buffer_at(s, i)->segment = segment;
+static void assign_audio_segment(ArAsioOutputAudio* s, int i, int32_t segment) {
+	audio_at(s, i)->segment = segment;
 }
 
-static void assign_channel_buffer_index(ArAsioOutputAudio* s, int i, int32_t index) {
-	channel_buffer_at(s, i)->Index = index;
+static void assign_audio_index(ArAsioOutputAudio* s, int i, int32_t index) {
+	audio_at(s, i)->Index = index;
 }
 
 static void set_output_channels(int32_t n) {
@@ -62,20 +62,20 @@ static void set_segments(int32_t n) {
 
 static void setup_write_device_buffer(void) {
 	for (int i = 0; i < buffer_count; ++i) {
-		initialize_channel_buffer(channel_buffers, i);
-		assign_channel_buffer_data(channel_buffers, i, audio_buffers[i]);
-		assign_channel_buffer_size_(i, sizeof audio_buffers[i] / sizeof audio_buffers[i][0]);
+		initialize_audio(audio, i);
+		assign_audio_data(audio, i, audio_buffers[i]);
+		assign_audio_size_(i, sizeof audio_buffers[i] / sizeof audio_buffers[i][0]);
 	}
 	allocate_device(device_index);
 	set_segments(1);
 	set_output_channels(1);
 	ar_current_device = devices(0);
-	global_asio_channel_buffers = channel_buffers;
+	global_asio_channel_buffers = audio;
 }
 
 static void teardown_write_device_buffer(void) {
 	memset(device_buffer, 0, sizeof device_buffer);
-	memset(channel_buffers, 0, sizeof channel_buffers);
+	memset(audio, 0, sizeof audio);
 	memset(audio_buffers, 0, sizeof audio_buffers);
 	free_device(device_index);
 }
@@ -97,7 +97,7 @@ static void write_device_buffer(int32_t n, ArAsioOutputAudio* s) {
 }
 
 static void write_device_buffer_(int32_t n) {
-	ar_asio_write_device_buffer(device_buffer, n, channel_buffers);
+	ar_asio_write_device_buffer(device_buffer, n, audio);
 }
 
 #define ASSERT_INTEGER_ARRAY_AT_EQUALS(a, b, c)\
@@ -117,7 +117,7 @@ START_TEST(write_device_buffer_one_segment) {
 }
 
 START_TEST(write_device_buffer_one_segment_wrap) {
-	assign_first_channel_buffer_size(3);
+	assign_first_audio_size(3);
 	assign_first_audio_buffer(0, 11);
 	assign_first_audio_buffer(1, 12);
 	assign_first_audio_buffer(2, 13);
@@ -133,10 +133,10 @@ START_TEST(write_device_buffer_one_segment_wrap) {
 START_TEST(write_device_buffer_one_segment_wrap_two_channels) {
 	set_output_channels(2);
 
-	channel_buffers[0].channel = 0;
-	channel_buffers[1].channel = 1;
+	audio[0].channel = 0;
+	audio[1].channel = 1;
 
-	assign_first_channel_buffer_size(3);
+	assign_first_audio_size(3);
 	assign_first_audio_buffer(0, 11);
 	assign_first_audio_buffer(1, 12);
 	assign_first_audio_buffer(2, 13);
@@ -152,15 +152,15 @@ START_TEST(write_device_buffer_one_segment_wrap_two_channels) {
 START_TEST(write_device_buffer_one_segment_wrap_second_channel) {
 	set_output_channels(2);
 
-	channel_buffers[0].channel = 0;
-	channel_buffers[1].channel = 1;
+	audio[0].channel = 0;
+	audio[1].channel = 1;
 
-	assign_channel_buffer_size_(1, 3);
+	assign_audio_size_(1, 3);
 	assign_second_audio_buffer(0, 11);
 	assign_second_audio_buffer(1, 12);
 	assign_second_audio_buffer(2, 13);
 
-	write_device_buffer(5, channel_buffers + 1);
+	write_device_buffer(5, audio + 1);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(0, 11);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(1, 12);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(2, 13);
@@ -169,7 +169,7 @@ START_TEST(write_device_buffer_one_segment_wrap_second_channel) {
 }
 
 START_TEST(write_device_buffer_one_segment_offset) {
-	assign_channel_buffer_index(channel_buffers, 0, 1);
+	assign_audio_index(audio, 0, 1);
 
 	assign_first_audio_buffer(1, 5);
 	assign_first_audio_buffer(2, 6);
@@ -182,10 +182,10 @@ START_TEST(write_device_buffer_one_segment_offset) {
 
 START_TEST(write_device_buffer_two_segments_one_channel) {
 	set_segments(2);
-	assign_channel_buffer_segment(channel_buffers, 0, 0);
-	assign_channel_buffer_segment(channel_buffers, 1, 1);
+	assign_audio_segment(audio, 0, 0);
+	assign_audio_segment(audio, 1, 1);
 
-	assign_first_channel_buffer_size(3);
+	assign_first_audio_size(3);
 	assign_first_audio_buffer(0, 11);
 	assign_first_audio_buffer(1, 12);
 	assign_first_audio_buffer(2, 13);
@@ -207,10 +207,10 @@ START_TEST(write_device_buffer_two_segments_one_channel) {
 
 START_TEST(write_device_buffer_two_segments_wrap_one_channel) {
 	set_segments(2);
-	assign_channel_buffer_segment(channel_buffers, 0, 0);
-	assign_channel_buffer_segment(channel_buffers, 1, 1);
+	assign_audio_segment(audio, 0, 0);
+	assign_audio_segment(audio, 1, 1);
 
-	assign_channel_buffer_size(channel_buffers, 1, 4);
+	assign_audio_size(audio, 1, 4);
 	assign_second_audio_buffer(0, 14);
 	assign_second_audio_buffer(1, 15);
 	assign_second_audio_buffer(2, 16);
@@ -220,7 +220,7 @@ START_TEST(write_device_buffer_two_segments_wrap_one_channel) {
 	assign_first_audio_buffer(1, 12);
 	assign_first_audio_buffer(2, 13);
 
-	write_device_buffer(7, channel_buffers + 1);
+	write_device_buffer(7, audio + 1);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(0, 14);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(1, 15);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(2, 16);
@@ -234,21 +234,21 @@ START_TEST(write_device_buffer_three_segments_two_channels) {
 	set_output_channels(2);
 	set_segments(3);
 
-	channel_buffers[5].channel = 1;
-	assign_channel_buffer_segment(channel_buffers, 5, 2);
-	assign_channel_buffer_size_(5, 4);
+	audio[5].channel = 1;
+	assign_audio_segment(audio, 5, 2);
+	assign_audio_size_(5, 4);
 	assign_audio_buffer(5, 0, 11);
 	assign_audio_buffer(5, 1, 12);
 	assign_audio_buffer(5, 2, 13);
 	assign_audio_buffer(5, 3, 14);
 
-	channel_buffers[1].channel = 1;
-	assign_channel_buffer_size_(1, 3);
+	audio[1].channel = 1;
+	assign_audio_size_(1, 3);
 	assign_audio_buffer(1, 0, 15);
 	assign_audio_buffer(1, 1, 16);
 	assign_audio_buffer(1, 2, 17);
 
-	write_device_buffer(7, channel_buffers + 5);
+	write_device_buffer(7, audio + 5);
 
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(0, 11);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(1, 12);
@@ -263,22 +263,22 @@ START_TEST(write_device_buffer_two_segments_three_channels) {
 	set_segments(2);
 	set_output_channels(3);
 
-	channel_buffers[2].channel = 2;
-	assign_channel_buffer_segment(channel_buffers, 2, 0);
-	assign_channel_buffer_size_(2, 4);
+	audio[2].channel = 2;
+	assign_audio_segment(audio, 2, 0);
+	assign_audio_size_(2, 4);
 	assign_audio_buffer(2, 0, 11);
 	assign_audio_buffer(2, 1, 12);
 	assign_audio_buffer(2, 2, 13);
 	assign_audio_buffer(2, 3, 14);
 
-	channel_buffers[5].channel = 2;
-	assign_channel_buffer_segment(channel_buffers, 5, 1);
-	assign_channel_buffer_size_(5, 3);
+	audio[5].channel = 2;
+	assign_audio_segment(audio, 5, 1);
+	assign_audio_size_(5, 3);
 	assign_audio_buffer(5, 0, 15);
 	assign_audio_buffer(5, 1, 16);
 	assign_audio_buffer(5, 2, 17);
 
-	write_device_buffer(7, channel_buffers + 2);
+	write_device_buffer(7, audio + 2);
 
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(0, 11);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(1, 12);
