@@ -45,10 +45,10 @@ static int32_t	max_output_channels = -1;   // Maximum as reported by the driver
 ASIOBufferInfo* bufferInfos = NULL;  // Pointer to array of bufferInfos; one for each channel (input + output)
 static ASIOChannelInfo* channelInfos = NULL; // Pointer to array of channelInfos; one for each channel (input + output)
 static ASIOCallbacks	asioCallbacks;  // structure that holds the pointers to the callback functions
-ArAsioOutputAudio* global_asio_channel_buffers;   // pointer to the main stimulus block
+ArAsioOutputAudio* global_output_audio;   // pointer to the main stimulus block
 static ArAsioOutputAudio* first_channel_buffer_of_current_segment;   // Points to the current segment stimulus (channel 0)
 static ArAsioInputAudio* responseData;   // pointer to the main response block
-static ArAsioInputAudio* sptrCurSegmentResponse;   // Points to the current segment response (channel 0)
+static ArAsioInputAudio* global_input_audio;   // Points to the current segment response (channel 0)
 static long	preferred_buffer_size;   // Returned by the driver
 static long	total_input_and_output_channels = 0;   // Need the total number of used input and output channels
 static long	slngTotalPossibleChannels = 0;  // Total possible channels
@@ -253,13 +253,13 @@ _ar_asio_close(int32_t di) {
 	}
 
 	// Clear stim blocks
-	if (global_asio_channel_buffers != NULL) {
-		free(global_asio_channel_buffers);
-		global_asio_channel_buffers = NULL;
+	if (global_output_audio != NULL) {
+		free(global_output_audio);
+		global_output_audio = NULL;
 	}
 
 	// Clear resp blocks
-	if (global_asio_channel_buffers != NULL) {
+	if (global_output_audio != NULL) {
 		responseData->Magic = 0;	// Indentification for debugging
 		free(responseData);
 		responseData = NULL;
@@ -442,18 +442,18 @@ _ar_asio_io_prepare(int32_t di)
 		2		    0
 			. . .
 	The pointer "first_channel_buffer_of_current_segment" will point to the first (channel 0)
-	global_asio_channel_buffers for the current segment.
+	global_output_audio for the current segment.
 	*/
 	int32_t segments = ar_current_device->segswp;
-	if ((global_asio_channel_buffers = calloc(ar_current_device->ncda * segments, sizeof(ArAsioOutputAudio))) == NULL)
+	if ((global_output_audio = calloc(ar_current_device->ncda * segments, sizeof(ArAsioOutputAudio))) == NULL)
 		return -1;
 
 	if ((responseData = (ArAsioInputAudio*)calloc(ar_current_device->ncad * segments, sizeof(ArAsioInputAudio))) == NULL)
 		return -1;
 
-	// Fill global_asio_channel_buffers (OUTPUT) blocks
-	ArAsioOutputAudio* asio_segment = global_asio_channel_buffers;										// Initialize
-	first_channel_buffer_of_current_segment = global_asio_channel_buffers;			// Set to SEG0 CH0 to start.
+	// Fill global_output_audio (OUTPUT) blocks
+	ArAsioOutputAudio* asio_segment = global_output_audio;										// Initialize
+	first_channel_buffer_of_current_segment = global_output_audio;			// Set to SEG0 CH0 to start.
 	for (int32_t i = 0; i < ar_current_device->ncda * segments; i++) {
 
 		asio_segment->channel = i % ar_current_device->ncda;		// e.g. 0, 1, 0, 1, . . . 
@@ -467,7 +467,7 @@ _ar_asio_io_prepare(int32_t di)
 
 	// Fill responseData (INPUT) blocks
 	ArAsioInputAudio* ptrResponseData = responseData;				// Initialize
-	sptrCurSegmentResponse = responseData;			// Set to SEG0 CH0 to start.
+	global_input_audio = responseData;			// Set to SEG0 CH0 to start.
 	for (int32_t i = 0; i < ar_current_device->ncad * segments; i++) {
 
 		ptrResponseData->Magic = 0xBEEF;			// Indentification number for debugging
@@ -651,7 +651,7 @@ static void update_if_last_channel(ArAsioOutputAudio* audio) {
 		if (!ar_current_device->a_ncad)
 			sintSegmentFinished++;
 		first_channel_buffer_of_current_segment = is_last_output_segment(audio)
-			? global_asio_channel_buffers
+			? global_output_audio
 			: audio + 1;
 	}
 }
@@ -668,7 +668,7 @@ int32_t ar_asio_write_device_buffer(int32_t* destination, int32_t size, ArAsioOu
 			update_if_last_channel(audio);
 			int32_t output_channels = ar_current_device->a_ncda;
 			audio = is_last_output_segment(audio)
-				? global_asio_channel_buffers + audio->channel
+				? global_output_audio + audio->channel
 				: audio + output_channels;
 			audio->Index = 0;
 		}
@@ -748,9 +748,9 @@ int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAud
 			if (audio->channel == input_channels - 1) {
 				sintSegmentFinished++;
 				if (is_last_input_segment(audio))
-					sptrCurSegmentResponse = responseData;
+					global_input_audio = responseData;
 				else
-					sptrCurSegmentResponse = audio + 1;
+					global_input_audio = audio + 1;
 			}
 			if (is_last_input_segment(audio))
 				audio -= (input_channels) * (ar_current_device->segswp - 1);
@@ -1165,7 +1165,7 @@ ASIOTime* bufferSwitchTimeInfo(ASIOTime* timeInfo, long index, ASIOBool processN
 	int32_t	    i;
 	long	    lngAsioBufferSize = preferred_buffer_size;    // shorthand to buffer size in samples
 	ArAsioOutputAudio* ptrStimulusData = first_channel_buffer_of_current_segment;	    // pointer to channel 0 of current segment stimulus
-	ArAsioInputAudio* ptrResponseData = sptrCurSegmentResponse;	    // pointer to channel 0 of current segment response
+	ArAsioInputAudio* ptrResponseData = global_input_audio;	    // pointer to channel 0 of current segment response
 
 	if (!driver_has_started)
 		return 0L;

@@ -70,7 +70,7 @@ static void setup_write_device_buffer(void) {
 	set_segments(1);
 	set_output_channels(1);
 	ar_current_device = devices(0);
-	global_asio_channel_buffers = audio;
+	global_output_audio = audio;
 }
 
 static void teardown_write_device_buffer(void) {
