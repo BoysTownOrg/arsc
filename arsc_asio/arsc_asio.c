@@ -623,9 +623,15 @@ static int is_last_output_segment(ArAsioOutputAudio* audio) {
 	return audio->segment + 1 == ar_current_device->segswp;
 }
 
-static int is_last_channel(ArAsioOutputAudio* audio) {
+static int is_last_output_channel(ArAsioOutputAudio* audio) {
 	int32_t output_channels = ar_current_device->a_ncda;
 	int32_t last_channel = output_channels - 1;
+	return audio->channel == last_channel;
+}
+
+static int is_last_input_channel(ArAsioInputAudio* audio) {
+	int32_t input_channels = ar_current_device->a_ncad;
+	int32_t last_channel = input_channels - 1;
 	return audio->channel == last_channel;
 }
 
@@ -646,7 +652,7 @@ static void copy(int32_t* destination, int32_t* source, int32_t count) {
 }
 
 static void update_if_last_channel(ArAsioOutputAudio* audio) {
-	if (is_last_channel(audio)) {
+	if (is_last_output_channel(audio)) {
 		// If there are no input channels, the out channel determines the segment end
 		if (!ar_current_device->a_ncad)
 			sintSegmentFinished++;
@@ -739,29 +745,29 @@ int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAud
 			audio->Index += size;
 		}
 		else {
-			int32_t intDifference = audio->size - audio->Index - 0;
-			copy(destination, source_, intDifference);
-			audio->Index += intDifference;
-			source_ += intDifference;
-			int32_t input_channels = ar_current_device->a_ncad;
-			if (audio->channel == input_channels - 1) {
+			int32_t to_copy = audio->size - audio->Index;
+			copy(destination, source_, to_copy);
+			audio->Index += to_copy;
+			source_ += to_copy;
+			if (is_last_input_channel(audio)) {
 				sintSegmentFinished++;
 				if (is_last_input_segment(audio))
 					global_input_audio = responseData;
 				else
 					global_input_audio = audio + 1;
 			}
+			int32_t input_channels = ar_current_device->a_ncad;
 			audio += is_last_input_segment(audio)
 				? -input_channels * (ar_current_device->segswp - 1)
 				: input_channels;
 			destination = audio->data;
 			audio->Index = 0;
-			intDifference = size - intDifference;
-			if (intDifference < audio->size) {
-				copy(destination, source_, intDifference);
-				audio->Index = intDifference;
+			to_copy = size - to_copy;
+			if (to_copy < audio->size) {
+				copy(destination, source_, to_copy);
+				audio->Index = to_copy;
 			}
-			else if (!ar_asio_read_device_buffer(source_, intDifference, audio))
+			else if (!ar_asio_read_device_buffer(source_, to_copy, audio))
 				return 0L;
 		}
 	}
