@@ -686,12 +686,7 @@ only for testing, only.
 int32_t ar_asio_read_device_buffer(int32_t* buffer, int32_t aintBufferSize, TResponseData* ptrResponseData) {
 	int32_t	intDifference;
 	int32_t	intRemainder;
-	int32_t	intImpulseLatency;
 	int32_t	intLoopbackLatency;
-
-	int32_t intInputChannels = ar_current_device->a_ncad;
-	int32_t intCurInputSegment = ar_current_device->seg_ic;
-	int32_t intActualSegment = intCurInputSegment % ar_current_device->segswp;
 
 	int32_t* ptrBuffer = buffer;
 	int32_t* ptrResponseSample = ptrResponseData->data + ptrResponseData->Index;
@@ -711,7 +706,7 @@ int32_t ar_asio_read_device_buffer(int32_t* buffer, int32_t aintBufferSize, TRes
 		//intLoopbackLatency = slngInputLatency + slngOutputLatency + slngLatencyOffset;    // Tone's version
 		// Changed default LoopbackLatecy to match WDM latency [STN:Jun-2007]
 		intLoopbackLatency = slngInputLatency + slngOutputLatency;	    // sum of driver input/output latencies
-		intImpulseLatency = intLoopbackLatency % 256;			    // extract impulse latency, if any
+		int32_t intImpulseLatency = intLoopbackLatency % 256;			    // extract impulse latency, if any
 		intLoopbackLatency -= slngLatencyOffset + intImpulseLatency;    // subtract app & impulse latencies
 		// With the passed buffer, are we past the latency?
 		if (ptrResponseData->SkippedSamples + aintBufferSize >= intLoopbackLatency) {
@@ -748,27 +743,18 @@ int32_t ar_asio_read_device_buffer(int32_t* buffer, int32_t aintBufferSize, TRes
 			memcpy(ptrResponseSample, ptrBuffer, intDifference * sizeof(int32_t));
 			ptrResponseData->Index += intDifference;
 			ptrBuffer += intDifference;
+			int32_t intInputChannels = ar_current_device->a_ncad;
 			if (ptrResponseData->channel == intInputChannels - 1) {
 				sintSegmentFinished++;
-				if (((intCurInputSegment + 1) % ar_current_device->segswp) != 0) {
-					// Move the global response block pointer 1 to get to the zeroeth channel of next segment.
-					// (ptrResponseData already points to the last channel of the previous segment.)
-					sptrCurSegmentResponse = ptrResponseData + 1;
-				}
-				else
+				if (ptrResponseData->segment + 1 == ar_current_device->segswp)
 					sptrCurSegmentResponse = responseData;
+				else
+					sptrCurSegmentResponse = ptrResponseData + 1;
 			}
-			// Any more segments to play for this (current) channel?
 			if (ptrResponseData->segment + 1 == ar_current_device->segswp)
 				ptrResponseData -= (intInputChannels) * (ar_current_device->segswp - 1);
-			else {
-				/*
-				There are more segments.
-				Move to the next response structure for the rest of this bufferswitch.
-				For example, if just finishing SEG0 CH1, need to jump to SEG1 CH1.
-				*/
+			else
 				ptrResponseData += intInputChannels;
-			}
 			ptrResponseSample = ptrResponseData->data;
 			ptrResponseData->Index = 0;
 			intDifference = aintBufferSize - intDifference;
