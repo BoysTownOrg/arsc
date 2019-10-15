@@ -8,10 +8,10 @@ enum {
 };
 
 static int32_t device_buffer[sufficiently_large];
-static ArAsioInputAudio responses[buffer_count];
+static ArAsioInputAudio audio[buffer_count];
 static int32_t audio_buffers[buffer_count][sufficiently_large];
 
-static ArAsioInputAudio initialized_channel_response() {
+static ArAsioInputAudio initialized_audio() {
 	ArAsioInputAudio s;
 	s.Magic = 0xBEEF;
 	s.Index = 0;
@@ -21,40 +21,40 @@ static ArAsioInputAudio initialized_channel_response() {
 	return s;
 }
 
-static ArAsioInputAudio* channel_response_at(ArAsioInputAudio* s, int i) {
+static ArAsioInputAudio* audio_at(ArAsioInputAudio* s, int i) {
 	return s + i;
 }
 
 static ArAsioInputAudio* response_at(int i) {
-	return channel_response_at(responses, i);
+	return audio_at(audio, i);
 }
 
-static void initialize_channel_response_(int i) {
-	*response_at(i) = initialized_channel_response();
+static void initialize_audio_(int i) {
+	*response_at(i) = initialized_audio();
 }
 
-static void assign_channel_response_data_(int i, int32_t* data) {
+static void assign_audio_data_(int i, int32_t* data) {
 	response_at(i)->data = data;
 }
 
-static void assign_channel_response_size(ArAsioInputAudio* s, int i, int32_t size) {
-	channel_response_at(s, i)->size = size;
+static void assign_audio_size(ArAsioInputAudio* s, int i, int32_t size) {
+	audio_at(s, i)->size = size;
 }
 
-static void assign_channel_response_size_(int i, int32_t size) {
-	channel_response_at(responses, i)->size = size;
+static void assign_audio_size_(int i, int32_t size) {
+	audio_at(audio, i)->size = size;
 }
 
-static void assign_first_channel_response_size(int32_t size) {
-	assign_channel_response_size_(0, size);
+static void assign_first_audio_size(int32_t size) {
+	assign_audio_size_(0, size);
 }
 
-static void assign_channel_response_segment(ArAsioInputAudio* s, int i, int32_t segment) {
-	channel_response_at(s, i)->segment = segment;
+static void assign_audio_segment(ArAsioInputAudio* s, int i, int32_t segment) {
+	audio_at(s, i)->segment = segment;
 }
 
-static void assign_channel_response_index(ArAsioInputAudio* s, int i, int32_t index) {
-	channel_response_at(s, i)->Index = index;
+static void assign_audio_index(ArAsioInputAudio* s, int i, int32_t index) {
+	audio_at(s, i)->Index = index;
 }
 
 static void set_input_channels(int32_t n) {
@@ -67,9 +67,9 @@ static void set_segments(int32_t n) {
 
 static void setup(void) {
 	for (int i = 0; i < buffer_count; ++i) {
-		initialize_channel_response_(i);
-		assign_channel_response_data_(i, audio_buffers[i]);
-		assign_channel_response_size_(i, sizeof audio_buffers[i] / sizeof audio_buffers[i][0]);
+		initialize_audio_(i);
+		assign_audio_data_(i, audio_buffers[i]);
+		assign_audio_size_(i, sizeof audio_buffers[i] / sizeof audio_buffers[i][0]);
 	}
 	allocate_device(device_index);
 	set_segments(1);
@@ -79,7 +79,7 @@ static void setup(void) {
 
 static void teardown(void) {
 	memset(device_buffer, 0, sizeof device_buffer);
-	memset(responses, 0, sizeof responses);
+	memset(audio, 0, sizeof audio);
 	memset(audio_buffers, 0, sizeof audio_buffers);
 	free_device(device_index);
 }
@@ -93,19 +93,19 @@ static void read_device_buffer_(int32_t n, ArAsioInputAudio *response) {
 }
 
 static void read_device_buffer_into_second_response(int32_t n) {
-	read_device_buffer_(n, responses + 1);
+	read_device_buffer_(n, audio + 1);
 }
 
 static void read_device_buffer(int32_t n) {
-	read_device_buffer_(n, responses);
+	read_device_buffer_(n, audio);
 }
 
 static void set_first_response_size(int32_t n) {
-	assign_channel_response_size_(0, n);
+	assign_audio_size_(0, n);
 }
 
 static void set_second_response_size(int32_t n) {
-	assign_channel_response_size_(1, n);
+	assign_audio_size_(1, n);
 }
 
 static void set_response_channel(int i, int32_t c) {
@@ -136,7 +136,7 @@ START_TEST(read_device_buffer_one_segment) {
 }
 
 START_TEST(read_device_buffer_one_segment_offset) {
-	assign_channel_response_index(responses, 0, 1);
+	assign_audio_index(audio, 0, 1);
 
 	assign_device_buffer(0, 5);
 	assign_device_buffer(1, 6);
@@ -267,8 +267,8 @@ START_TEST(read_device_buffer_two_segments_three_channels) {
 	assign_device_buffer(5, 6);
 	assign_device_buffer(6, 7);
 
-	assign_channel_response_size_(2, 3);
-	read_device_buffer_(7, responses + 2);
+	assign_audio_size_(2, 3);
+	read_device_buffer_(7, audio + 2);
 
 	ASSERT_NTH_AUDIO_BUFFER_AT_EQUALS(2, 0, 1);
 	ASSERT_NTH_AUDIO_BUFFER_AT_EQUALS(2, 1, 2);
