@@ -689,13 +689,12 @@ int32_t ar_asio_read_device_buffer(int32_t* buffer, int32_t aintBufferSize, TRes
 	int32_t	intImpulseLatency;
 	int32_t	intLoopbackLatency;
 
-	int32_t intInputChannels = ar_current_device->a_ncad;			// shorthand
-	int32_t intCurInputSegment = ar_current_device->seg_ic;			// shorthand
-	int32_t intActualSegment = intCurInputSegment % ar_current_device->segswp;	// shorthand
+	int32_t intInputChannels = ar_current_device->a_ncad;
+	int32_t intCurInputSegment = ar_current_device->seg_ic;
+	int32_t intActualSegment = intCurInputSegment % ar_current_device->segswp;
 
-	int32_t* ptrBuffer = buffer;						// Set a pointer to passed 1/2 buffer
-	int32_t* ptrResponseSample = ptrResponseData->data;		// Get reference to Response Block that is currently being filled
-	ptrResponseSample += ptrResponseData->Index;		// Point to correct sample in Response Block
+	int32_t* ptrBuffer = buffer;
+	int32_t* ptrResponseSample = ptrResponseData->data + ptrResponseData->Index;
 
 	/*
 	Check to see that the latency between ouput and input has been reached.
@@ -704,7 +703,6 @@ int32_t ar_asio_read_device_buffer(int32_t* buffer, int32_t aintBufferSize, TRes
 	by filling the LatencyReached flag to TRUE for segments 1..N
 	*/
 	if (!ptrResponseData->LatencyReached) {
-
 		// Latency not yet reached
 		//
 		// An E-mail to the ASIO listserv suggested the calculation for the
@@ -715,10 +713,8 @@ int32_t ar_asio_read_device_buffer(int32_t* buffer, int32_t aintBufferSize, TRes
 		intLoopbackLatency = slngInputLatency + slngOutputLatency;	    // sum of driver input/output latencies
 		intImpulseLatency = intLoopbackLatency % 256;			    // extract impulse latency, if any
 		intLoopbackLatency -= slngLatencyOffset + intImpulseLatency;    // subtract app & impulse latencies
-		FDBUG((_arS, "Loopback latency: input [%d] + output [%d] + offset [%d]\n", slngInputLatency, slngOutputLatency, slngLatencyOffset));
 		// With the passed buffer, are we past the latency?
 		if (ptrResponseData->SkippedSamples + aintBufferSize >= intLoopbackLatency) {
-
 			// Partial buffer needs to be sent
 			intDifference = intLoopbackLatency - ptrResponseData->SkippedSamples;
 			if (intDifference < 0)
@@ -733,84 +729,53 @@ int32_t ar_asio_read_device_buffer(int32_t* buffer, int32_t aintBufferSize, TRes
 				ptrResponseData->Index += intRemainder;
 
 			}
-			else {
-				// This recursively calls this same function to handle the
-				// remainder of this oversized buffer.
+			else
 				if (!ar_asio_read_device_buffer(ptrBuffer, intRemainder, ptrResponseData))
 					return 0L;
-			}
 		}
-		else {
+		else
 			// Entire buffer is worthless.  Still need to track # of skipped samples until LatencyReached.
 			ptrResponseData->SkippedSamples += aintBufferSize;
-		}
 	}
 	else {
-		// Latency has been reached.
-		// This is true most of the time.  We are filling the segment.
-
-		// Whole buffer or partial buffer?
-		// 2005 Apr 19 -- changed from 1 to 0
-		if (ptrResponseData->Index + aintBufferSize < ptrResponseData->size + 0) {
-
+		if (ptrResponseData->Index + aintBufferSize < ptrResponseData->size) {
 			// Whole buffer will fit in block
 			memcpy(ptrResponseSample, ptrBuffer, aintBufferSize * sizeof(int32_t));
 			ptrResponseData->Index += aintBufferSize;
-
 		}
 		else {
-			// Partial buffer will fit in block.
-
-			// Calculate what it will take to fill rest of block from end of segment, then put it in
 			intDifference = ptrResponseData->size - ptrResponseData->Index - 0;
 			memcpy(ptrResponseSample, ptrBuffer, intDifference * sizeof(int32_t));
-			ptrResponseData->Index += intDifference;		// Brings us to the end
-			ptrBuffer += intDifference;				// Move the pointer
-
-			// if this is the last channel, increment the global segment count
+			ptrResponseData->Index += intDifference;
+			ptrBuffer += intDifference;
 			if (ptrResponseData->channel == intInputChannels - 1) {
-
-				// Increment a semaphore-like variable
 				sintSegmentFinished++;
-
-				// Are sweeps done?
 				if (((intCurInputSegment + 1) % ar_current_device->segswp) != 0) {
-
 					// Move the global response block pointer 1 to get to the zeroeth channel of next segment.
 					// (ptrResponseData already points to the last channel of the previous segment.)
 					sptrCurSegmentResponse = ptrResponseData + 1;
 				}
-				else {
-					// All segments have been completed in this sweep.
-					sptrCurSegmentResponse = responseData;			// Just sets it back to the beginning
-				}
-			} // fi last channel
-
-			// Any more segments to play for this (current) channel?
-			if (ptrResponseData->segment + 1 == ar_current_device->segswp) {
-				// No more
-				ptrResponseData -= (intInputChannels) * (ar_current_device->segswp - 1);
+				else
+					sptrCurSegmentResponse = responseData;
 			}
+			// Any more segments to play for this (current) channel?
+			if (ptrResponseData->segment + 1 == ar_current_device->segswp)
+				ptrResponseData -= (intInputChannels) * (ar_current_device->segswp - 1);
 			else {
 				/*
 				There are more segments.
 				Move to the next response structure for the rest of this bufferswitch.
 				For example, if just finishing SEG0 CH1, need to jump to SEG1 CH1.
 				*/
-				ptrResponseData += intInputChannels;		    // Now pointing at next segment, same channel
-			} // fi any more segments
-
-			ptrResponseSample = ptrResponseData->data;	    // Point to the appropriate Response sample
-			ptrResponseData->Index = 0;				    // Reset to beginning of block
-
-			// Remainder of RESPONSE data from sound card goes into next block
-
+				ptrResponseData += intInputChannels;
+			}
+			ptrResponseSample = ptrResponseData->data;
+			ptrResponseData->Index = 0;
 			intDifference = aintBufferSize - intDifference;
 
 			// This should, at least, not cause a memory fault.  It does
 			// mean that data is thrown away.
 			if (intDifference < ptrResponseData->size) {
-
 				memcpy(ptrResponseSample, ptrBuffer, intDifference * sizeof(int32_t));
 				ptrResponseData->Index = intDifference;
 			}
