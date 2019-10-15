@@ -17,7 +17,7 @@ typedef struct {
 	int32_t Index;					    // How many samples have already been played
 	int32_t channel;				    // 0, 1, 2, . . . 
 	int32_t segment;				    // Current segment for this channel
-} ArAsioChannelBuffer;
+} ArAsioOutputAudio;
 
 typedef struct {
 	int32_t Magic; // Just an identifier for this structure
@@ -28,7 +28,7 @@ typedef struct {
 	int32_t segment;
 	int32_t SkippedSamples; // Skipped samples before Latency kicks in
 	bool LatencyReached; // For each channel, but only segment 0
-} TResponseData;
+} ArAsioInputAudio;
 
 extern int32_t (*ar_asio_devices)();
 extern char* (*ar_asio_device_name)(int32_t);
@@ -42,12 +42,12 @@ extern int32_t(*ar_asio_check_segment)(int32_t, int32_t);
 extern int32_t(*ar_asio_latency)(int32_t, int32_t);
 extern int32_t(*ar_asio_list_rates)(int32_t);
 extern int32_t (*pLockAndLoad)(int32_t aintDevice);
-extern ArAsioChannelBuffer* global_asio_channel_buffers;
+extern ArAsioOutputAudio* global_asio_channel_buffers;
 extern ARDEV* ar_current_device;
 
 int32_t _ar_asio_open(int32_t);
 int32_t _ar_asio_io_prepare(int32_t);
-int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t aintBufferSize, ArAsioChannelBuffer* ptrStimulusData);
-int32_t ar_asio_read_device_buffer(int32_t* buffer, int32_t aintBufferSize, TResponseData* ptrStimulusData);
+int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t aintBufferSize, ArAsioOutputAudio* ptrStimulusData);
+int32_t ar_asio_read_device_buffer(int32_t* buffer, int32_t aintBufferSize, ArAsioInputAudio* ptrStimulusData);
 
 #endif

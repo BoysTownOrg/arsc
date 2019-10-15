@@ -9,30 +9,30 @@ enum {
 };
 
 static int32_t device_buffer[sufficiently_large];
-static ArAsioChannelBuffer channel_buffers[buffer_count];
+static ArAsioOutputAudio channel_buffers[buffer_count];
 static int32_t audio_buffers[buffer_count][sufficiently_large];
 
-static ArAsioChannelBuffer initialized_channel_buffer() {
-	ArAsioChannelBuffer s;
+static ArAsioOutputAudio initialized_channel_buffer() {
+	ArAsioOutputAudio s;
 	s.Index = 0;
 	s.channel = 0;
 	s.segment = 0;
 	return s;
 }
 
-static ArAsioChannelBuffer* channel_buffer_at(ArAsioChannelBuffer* s, int i) {
+static ArAsioOutputAudio* channel_buffer_at(ArAsioOutputAudio* s, int i) {
 	return s + i;
 }
 
-static void initialize_channel_buffer(ArAsioChannelBuffer* s, int i) {
+static void initialize_channel_buffer(ArAsioOutputAudio* s, int i) {
 	*channel_buffer_at(s, i) = initialized_channel_buffer();
 }
 
-static void assign_channel_buffer_data(ArAsioChannelBuffer* s, int i, int32_t* data) {
+static void assign_channel_buffer_data(ArAsioOutputAudio* s, int i, int32_t* data) {
 	channel_buffer_at(s, i)->data = data;
 }
 
-static void assign_channel_buffer_size(ArAsioChannelBuffer* s, int i, int32_t size) {
+static void assign_channel_buffer_size(ArAsioOutputAudio* s, int i, int32_t size) {
 	channel_buffer_at(s, i)->size = size;
 }
 
@@ -44,11 +44,11 @@ static void assign_first_channel_buffer_size(int32_t size) {
 	assign_channel_buffer_size_(0, size);
 }
 
-static void assign_channel_buffer_segment(ArAsioChannelBuffer* s, int i, int32_t segment) {
+static void assign_channel_buffer_segment(ArAsioOutputAudio* s, int i, int32_t segment) {
 	channel_buffer_at(s, i)->segment = segment;
 }
 
-static void assign_channel_buffer_index(ArAsioChannelBuffer* s, int i, int32_t index) {
+static void assign_channel_buffer_index(ArAsioOutputAudio* s, int i, int32_t index) {
 	channel_buffer_at(s, i)->Index = index;
 }
 
@@ -92,7 +92,7 @@ static void assign_second_audio_buffer(int i, int32_t what) {
 	assign_audio_buffer(1, i, what);
 }
 
-static void write_device_buffer(int32_t n, ArAsioChannelBuffer* s) {
+static void write_device_buffer(int32_t n, ArAsioOutputAudio* s) {
 	ar_asio_write_device_buffer(device_buffer, n, s);
 }
 

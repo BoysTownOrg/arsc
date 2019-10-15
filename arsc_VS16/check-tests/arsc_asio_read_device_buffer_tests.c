@@ -8,11 +8,11 @@ enum {
 };
 
 static int32_t device_buffer[sufficiently_large];
-static TResponseData responses[buffer_count];
+static ArAsioInputAudio responses[buffer_count];
 static int32_t audio_buffers[buffer_count][sufficiently_large];
 
-static TResponseData initialized_channel_response() {
-	TResponseData s;
+static ArAsioInputAudio initialized_channel_response() {
+	ArAsioInputAudio s;
 	s.Magic = 0xBEEF;
 	s.Index = 0;
 	s.channel = 0;
@@ -21,11 +21,11 @@ static TResponseData initialized_channel_response() {
 	return s;
 }
 
-static TResponseData* channel_response_at(TResponseData* s, int i) {
+static ArAsioInputAudio* channel_response_at(ArAsioInputAudio* s, int i) {
 	return s + i;
 }
 
-static TResponseData* response_at(int i) {
+static ArAsioInputAudio* response_at(int i) {
 	return channel_response_at(responses, i);
 }
 
@@ -37,7 +37,7 @@ static void assign_channel_response_data_(int i, int32_t* data) {
 	response_at(i)->data = data;
 }
 
-static void assign_channel_response_size(TResponseData* s, int i, int32_t size) {
+static void assign_channel_response_size(ArAsioInputAudio* s, int i, int32_t size) {
 	channel_response_at(s, i)->size = size;
 }
 
@@ -49,11 +49,11 @@ static void assign_first_channel_response_size(int32_t size) {
 	assign_channel_response_size_(0, size);
 }
 
-static void assign_channel_response_segment(TResponseData* s, int i, int32_t segment) {
+static void assign_channel_response_segment(ArAsioInputAudio* s, int i, int32_t segment) {
 	channel_response_at(s, i)->segment = segment;
 }
 
-static void assign_channel_response_index(TResponseData* s, int i, int32_t index) {
+static void assign_channel_response_index(ArAsioInputAudio* s, int i, int32_t index) {
 	channel_response_at(s, i)->Index = index;
 }
 
@@ -88,7 +88,7 @@ static void assign_device_buffer(int i, int32_t n) {
 	assign_integer_array(device_buffer, i, n);
 }
 
-static void read_device_buffer_(int32_t n, TResponseData *response) {
+static void read_device_buffer_(int32_t n, ArAsioInputAudio *response) {
 	ar_asio_read_device_buffer(device_buffer, n, response);
 }
 

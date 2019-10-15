@@ -52,7 +52,7 @@ static void assign_output_buffer(int i, void* buffer) {
 	assign_pointer_array(output_buffers, i, buffer);
 }
 
-static ArAsioChannelBuffer* global_asio_segment_(int i) {
+static ArAsioOutputAudio* global_asio_segment_(int i) {
 	return global_asio_channel_buffers + i;
 }
 
