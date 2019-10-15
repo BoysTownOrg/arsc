@@ -119,6 +119,18 @@ START_TEST(read_device_buffer_one_segment) {
 	ASSERT_FIRST_AUDIO_BUFFER_AT_EQUALS(2, 3);
 }
 
+START_TEST(read_device_buffer_one_segment_offset) {
+	assign_channel_response_index(responses, 0, 1);
+
+	assign_device_buffer(0, 5);
+	assign_device_buffer(1, 6);
+	assign_device_buffer(2, 7);
+	read_device_buffer(3);
+	ASSERT_FIRST_AUDIO_BUFFER_AT_EQUALS(1, 5);
+	ASSERT_FIRST_AUDIO_BUFFER_AT_EQUALS(2, 6);
+	ASSERT_FIRST_AUDIO_BUFFER_AT_EQUALS(3, 7);
+}
+
 START_TEST(read_device_buffer_one_segment_wrap) {
 	set_first_response_size(3);
 	assign_device_buffer(0, 1);
@@ -204,6 +216,7 @@ Suite* arsc_asio_read_device_buffer_suite() {
 	TCase* test_case = tcase_create("read_device_buffer");
 	tcase_add_checked_fixture(test_case, setup, teardown);
 	add_test(test_case, read_device_buffer_one_segment);
+	add_test(test_case, read_device_buffer_one_segment_offset);
 	add_test(test_case, read_device_buffer_one_segment_wrap);
 	add_test(test_case, read_device_buffer_one_segment_wrap_two_channels);
 	add_test(test_case, read_device_buffer_one_segment_wrap_second_channel);
