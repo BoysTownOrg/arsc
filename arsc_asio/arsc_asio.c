@@ -645,28 +645,45 @@ static int is_exhausted(ArAsioChannelBuffer* asio_channel_buffer) {
 	return asio_channel_buffer->Index == asio_channel_buffer->size;
 }
 
+static int32_t minimum(int32_t a, int32_t b) {
+	return a < b ? a : b;
+}
+
+static void copy(int32_t* destination, int32_t* source, int32_t count) {
+	for (int k = 0; k < count; k++)
+		*destination++ = *source++;
+}
+
+static void update_if_last_channel(ArAsioChannelBuffer* asio_channel_buffer) {
+	if (is_last_channel(asio_channel_buffer)) {
+		// If there are no input channels, the out channel determines the segment end
+		if (!ar_current_device->a_ncad)
+			sintSegmentFinished++;
+		first_channel_buffer_of_current_segment = is_last_segment(asio_channel_buffer)
+			? global_asio_channel_buffers
+			: asio_channel_buffer + 1;
+	}
+}
+
 int32_t ar_asio_write_device_buffer(int32_t* destination, int32_t size, ArAsioChannelBuffer* asio_channel_buffer) {
-	for (int k = 0; k < size; k++) {
+	int32_t copied = 0;
+	while (1) {
 		int32_t* source = asio_channel_buffer->data + asio_channel_buffer->Index;
-		*destination++ = *source;
-		asio_channel_buffer->Index++;
+		int32_t to_copy = minimum(size - copied, asio_channel_buffer->size - asio_channel_buffer->Index);
+		copy(destination + copied, source, to_copy);
+		copied += to_copy;
+		asio_channel_buffer->Index += to_copy;
 		if (is_exhausted(asio_channel_buffer)) {
-			if (is_last_channel(asio_channel_buffer)) {
-				// If there are no input channels, the out channel determines the segment end
-				if (!ar_current_device->a_ncad)
-					sintSegmentFinished++;
-				first_channel_buffer_of_current_segment = is_last_segment(asio_channel_buffer) 
-					? global_asio_channel_buffers 
-					: asio_channel_buffer + 1;
-			}
+			update_if_last_channel(asio_channel_buffer);
 			int32_t output_channels = ar_current_device->a_ncda;
 			asio_channel_buffer = is_last_segment(asio_channel_buffer)
 				? global_asio_channel_buffers + asio_channel_buffer->channel
 				: asio_channel_buffer + output_channels;
 			asio_channel_buffer->Index = 0;
 		}
+		else
+			return 1;
 	}
-	return 1;
 }
 
 /*
