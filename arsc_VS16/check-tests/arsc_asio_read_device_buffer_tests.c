@@ -61,10 +61,6 @@ static void set_segments(int32_t n) {
 	assign_device_segments(device_index, n);
 }
 
-static void assign_device_buffer(int i, int32_t n) {
-	assign_integer_array(device_buffer, i, n);
-}
-
 static void setup(void) {
 	for (int i = 0; i < buffer_count; ++i) {
 		initialize_channel_response(responses, i);
@@ -84,51 +80,65 @@ static void teardown(void) {
 	free_device(device_index);
 }
 
-#define ASSERT_FIRST_AUDIO_BUFFER_AT_EQUALS(a, b)\
-	ASSERT_EQUAL_ANY(a, audio_buffers[0][b])
+static void assign_device_buffer(int i, int32_t n) {
+	assign_integer_array(device_buffer, i, n);
+}
 
-START_TEST(tbd) {
+static void read_device_buffer(int32_t n) {
+	ar_asio_read_device_buffer(device_buffer, n, responses);
+}
+
+#define ASSERT_NTH_AUDIO_BUFFER_AT_EQUALS(n, a, b)\
+	ASSERT_EQUAL_ANY(b, audio_buffers[n][a]);
+
+#define ASSERT_FIRST_AUDIO_BUFFER_AT_EQUALS(a, b)\
+	ASSERT_NTH_AUDIO_BUFFER_AT_EQUALS(0, a, b)
+
+#define ASSERT_SECOND_AUDIO_BUFFER_AT_EQUALS(a, b)\
+	ASSERT_NTH_AUDIO_BUFFER_AT_EQUALS(1, a, b)
+
+START_TEST(read_device_buffer_one_segment) {
 	assign_device_buffer(0, 1);
 	assign_device_buffer(1, 2);
 	assign_device_buffer(2, 3);
-	ar_asio_read_device_buffer(device_buffer, 3, responses);
-	ASSERT_FIRST_AUDIO_BUFFER_AT_EQUALS(1, 0);
-	ASSERT_FIRST_AUDIO_BUFFER_AT_EQUALS(2, 1);
-	ASSERT_FIRST_AUDIO_BUFFER_AT_EQUALS(3, 2);
+	read_device_buffer(3);
+	ASSERT_FIRST_AUDIO_BUFFER_AT_EQUALS(0, 1);
+	ASSERT_FIRST_AUDIO_BUFFER_AT_EQUALS(1, 2);
+	ASSERT_FIRST_AUDIO_BUFFER_AT_EQUALS(2, 3);
 }
 
-START_TEST(tbd2) {
+START_TEST(read_device_buffer_two_segments) {
 	set_segments(2);
 	responses[0].segment = 0;
 	responses[1].segment = 1;
 
-	device_buffer[0] = 1;
-	device_buffer[1] = 2;
-	device_buffer[2] = 3;
-	device_buffer[3] = 4;
-	device_buffer[4] = 5;
-	device_buffer[5] = 6;
-	device_buffer[6] = 7;
+	assign_device_buffer(0, 1);
+	assign_device_buffer(1, 2);
+	assign_device_buffer(2, 3);
+	assign_device_buffer(3, 4);
+	assign_device_buffer(4, 5);
+	assign_device_buffer(5, 6);
+	assign_device_buffer(6, 7);
 
 	responses[0].size = 3;
-	ar_asio_read_device_buffer(device_buffer, 7, responses);
+	read_device_buffer(7);
 
-	ASSERT_EQUAL_ANY(1, audio_buffers[0][0]);
-	ASSERT_EQUAL_ANY(2, audio_buffers[0][1]);
-	ASSERT_EQUAL_ANY(3, audio_buffers[0][2]);
+	ASSERT_FIRST_AUDIO_BUFFER_AT_EQUALS(0, 1);
+	ASSERT_FIRST_AUDIO_BUFFER_AT_EQUALS(1, 2);
+	ASSERT_FIRST_AUDIO_BUFFER_AT_EQUALS(2, 3);
 
-	ASSERT_EQUAL_ANY(4, audio_buffers[1][0]);
-	ASSERT_EQUAL_ANY(5, audio_buffers[1][1]);
-	ASSERT_EQUAL_ANY(6, audio_buffers[1][2]);
-	ASSERT_EQUAL_ANY(7, audio_buffers[1][3]);
+	ASSERT_SECOND_AUDIO_BUFFER_AT_EQUALS(0, 4);
+	ASSERT_SECOND_AUDIO_BUFFER_AT_EQUALS(1, 5);
+	ASSERT_SECOND_AUDIO_BUFFER_AT_EQUALS(2, 6);
+	ASSERT_SECOND_AUDIO_BUFFER_AT_EQUALS(3, 7);
 }
 
 Suite* arsc_asio_read_device_buffer_suite() {
 	Suite* suite = suite_create("arsc_asio_read_device_buffer");
 	TCase* test_case = tcase_create("read_device_buffer");
 	tcase_add_checked_fixture(test_case, setup, teardown);
-	add_test(test_case, tbd);
-	add_test(test_case, tbd2);
+	add_test(test_case, read_device_buffer_one_segment);
+	add_test(test_case, read_device_buffer_two_segments);
 	suite_add_tcase(suite, test_case);
 	return suite;
 }
