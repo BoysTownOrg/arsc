@@ -25,12 +25,16 @@ static TResponseData* channel_response_at(TResponseData* s, int i) {
 	return s + i;
 }
 
-static void initialize_channel_response(TResponseData* s, int i) {
-	*channel_response_at(s, i) = initialized_channel_response();
+static TResponseData* response_at(int i) {
+	return channel_response_at(responses, i);
 }
 
-static void assign_channel_response_data(TResponseData* s, int i, int32_t* data) {
-	channel_response_at(s, i)->data = data;
+static void initialize_channel_response_(int i) {
+	*response_at(i) = initialized_channel_response();
+}
+
+static void assign_channel_response_data_(int i, int32_t* data) {
+	response_at(i)->data = data;
 }
 
 static void assign_channel_response_size(TResponseData* s, int i, int32_t size) {
@@ -63,8 +67,8 @@ static void set_segments(int32_t n) {
 
 static void setup(void) {
 	for (int i = 0; i < buffer_count; ++i) {
-		initialize_channel_response(responses, i);
-		assign_channel_response_data(responses, i, audio_buffers[i]);
+		initialize_channel_response_(i);
+		assign_channel_response_data_(i, audio_buffers[i]);
 		assign_channel_response_size_(i, sizeof audio_buffers[i] / sizeof audio_buffers[i][0]);
 	}
 	allocate_device(device_index);
@@ -105,11 +109,11 @@ static void set_second_response_size(int32_t n) {
 }
 
 static void set_response_channel(int i, int32_t c) {
-	responses[i].channel = c;
+	response_at(i)->channel = c;
 }
 
 static void set_response_segment(int i, int32_t c) {
-	responses[i].segment = c;
+	response_at(i)->segment = c;
 }
 
 #define ASSERT_NTH_AUDIO_BUFFER_AT_EQUALS(n, a, b)\
