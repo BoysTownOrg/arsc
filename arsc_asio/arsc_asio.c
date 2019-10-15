@@ -30,17 +30,6 @@ typedef struct {
 	bool IsOutput;
 } TVirtualDevice;
 
-typedef struct {
-	int32_t Magic; // Just an identifier for this structure
-	int32_t* data;
-	int32_t size;
-	int32_t Index;
-	int32_t channel;
-	int32_t segment;
-	int32_t SkippedSamples; // Skipped samples before Latency kicks in
-	bool LatencyReached; // For each channel, but only segment 0
-} TResponseData;
-
 // device identifier offset
 // for multiple platforms such as when WIND and ASIO are both set in the 
 // compilation.  The WIND devices are listed first, for example 0 to 5, then 
@@ -110,7 +99,6 @@ void bufferSwitch(long index, ASIOBool processNow);
 ASIOTime* bufferSwitchTimeInfo(ASIOTime* timeInfo, long index, ASIOBool processNow);
 void sampleRateChanged(ASIOSampleRate sRate);
 long asioMessages(long selector, long value, void* message, double* opt);
-static int32_t pFillResponseBlock(int32_t* buffer, int32_t aintBufferSize, TResponseData* ptrResponseData);
 static int32_t pWriteBufferDemarcation(int32_t aintChunkSize, int32_t aintAbsAmplitude);
 static int32_t pPollAsioDrivers(void);
 static int32_t pLockAndLoadImpl(int32_t aintDevice);
@@ -695,7 +683,7 @@ Any samples due to device latency are skipped.
 The BYPASS compiler directive will send the raw INPUT data.  This is
 only for testing, only.
 */
-int32_t pFillResponseBlock(int32_t* buffer, int32_t aintBufferSize, TResponseData* ptrResponseData) {
+int32_t ar_asio_read_device_buffer(int32_t* buffer, int32_t aintBufferSize, TResponseData* ptrResponseData) {
 
 	int32_t* ptrBuffer;
 	int32_t	intDifference;
@@ -785,7 +773,7 @@ int32_t pFillResponseBlock(int32_t* buffer, int32_t aintBufferSize, TResponseDat
 			else {
 				// This recursively calls this same function to handle the
 				// remainder of this oversized buffer.
-				if (!pFillResponseBlock(ptrBuffer, intRemainder, ptrResponseData))
+				if (!ar_asio_read_device_buffer(ptrBuffer, intRemainder, ptrResponseData))
 					return 0L;
 			}
 		}
@@ -900,7 +888,7 @@ int32_t pFillResponseBlock(int32_t* buffer, int32_t aintBufferSize, TResponseDat
 			else {
 				// This recursively calls this same function to handle the
 				// remainder of this oversized buffer.
-				if (!pFillResponseBlock(ptrBuffer, intDifference, ptrResponseData))
+				if (!ar_asio_read_device_buffer(ptrBuffer, intDifference, ptrResponseData))
 					return 0L;
 			}
 		} // fi whole/partial
@@ -1336,7 +1324,7 @@ ASIOTime* bufferSwitchTimeInfo(ASIOTime* timeInfo, long index, ASIOBool processN
 
 			switch (channelInfos[i].type) {
 			case ASIOSTInt32LSB:
-				if (!pFillResponseBlock(bufferInfos[i].buffers[index], lngAsioBufferSize, ptrResponseData))
+				if (!ar_asio_read_device_buffer(bufferInfos[i].buffers[index], lngAsioBufferSize, ptrResponseData))
 					break;	// ???
 		//		    return 0L;
 				break;

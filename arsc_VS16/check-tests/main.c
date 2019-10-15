@@ -2,7 +2,6 @@
 #include "arsc_asio_read_device_buffer_tests.h"
 #include "arsc_asio_write_device_buffer_tests.h"
 #include "arsc_asio_io_prepare_tests.h"
-#include <stddef.h>
 
 int main() {
 	SRunner* runner = srunner_create(arsc_asio_test_suite());

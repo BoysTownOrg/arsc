@@ -19,6 +19,17 @@ typedef struct {
 	int32_t segment;				    // Current segment for this channel
 } ArAsioChannelBuffer;
 
+typedef struct {
+	int32_t Magic; // Just an identifier for this structure
+	int32_t* data;
+	int32_t size;
+	int32_t Index;
+	int32_t channel;
+	int32_t segment;
+	int32_t SkippedSamples; // Skipped samples before Latency kicks in
+	bool LatencyReached; // For each channel, but only segment 0
+} TResponseData;
+
 extern int32_t (*ar_asio_devices)();
 extern char* (*ar_asio_device_name)(int32_t);
 extern void (*ar_asio_io_stop)(int32_t);
@@ -37,5 +48,6 @@ extern ARDEV* ar_current_device;
 int32_t _ar_asio_open(int32_t);
 int32_t _ar_asio_io_prepare(int32_t);
 int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t aintBufferSize, ArAsioChannelBuffer* ptrStimulusData);
+int32_t ar_asio_read_device_buffer(int32_t* buffer, int32_t aintBufferSize, TResponseData* ptrStimulusData);
 
 #endif

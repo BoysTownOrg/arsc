@@ -10,7 +10,20 @@ static void teardown(void) {
 }
 
 START_TEST(tbd) {
-	ASSERT_EQUAL_ANY(1, 2);
+	int32_t buffer[3];
+	buffer[0] = 1;
+	buffer[1] = 2;
+	buffer[2] = 3;
+	int32_t data[3];
+	TResponseData response;
+	response.Magic = 0xBEEF;
+	response.channel = 0;
+	response.Index = 0;
+	response.data = data;
+	ar_asio_read_device_buffer(buffer, 3, &response);
+	ASSERT_EQUAL_ANY(1, data[0]);
+	ASSERT_EQUAL_ANY(2, data[1]);
+	ASSERT_EQUAL_ANY(3, data[2]);
 }
 
 Suite* arsc_asio_read_device_buffer_suite() {
