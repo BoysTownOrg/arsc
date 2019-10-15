@@ -88,6 +88,10 @@ static void read_device_buffer_(int32_t n, TResponseData *response) {
 	ar_asio_read_device_buffer(device_buffer, n, response);
 }
 
+static void read_device_buffer_into_second_response(int32_t n) {
+	read_device_buffer_(n, responses + 1);
+}
+
 static void read_device_buffer(int32_t n) {
 	read_device_buffer_(n, responses);
 }
@@ -184,7 +188,7 @@ START_TEST(read_device_buffer_one_segment_wrap_second_channel) {
 	assign_device_buffer(3, 4);
 	assign_device_buffer(4, 5);
 
-	read_device_buffer_(5, responses + 1);
+	read_device_buffer_into_second_response(5);
 
 	ASSERT_SECOND_AUDIO_BUFFER_AT_EQUALS(0, 4);
 	ASSERT_SECOND_AUDIO_BUFFER_AT_EQUALS(1, 5);
@@ -231,7 +235,7 @@ START_TEST(read_device_buffer_two_segments_wrap_one_channel) {
 	assign_device_buffer(6, 7);
 
 	set_second_response_size(3);
-	read_device_buffer_(7, responses + 1);
+	read_device_buffer_into_second_response(7);
 
 	ASSERT_SECOND_AUDIO_BUFFER_AT_EQUALS(0, 1);
 	ASSERT_SECOND_AUDIO_BUFFER_AT_EQUALS(1, 2);
