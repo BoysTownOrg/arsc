@@ -650,7 +650,7 @@ static int32_t minimum(int32_t a, int32_t b) {
 }
 
 static void copy(int32_t* destination, int32_t* source, int32_t count) {
-	for (int k = 0; k < count; k++)
+	for (int k = 0; k < count; ++k)
 		*destination++ = *source++;
 }
 
