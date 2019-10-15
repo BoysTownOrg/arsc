@@ -638,8 +638,7 @@ static int32_t minimum(int32_t a, int32_t b) {
 }
 
 static void copy(int32_t* destination, int32_t* source, int32_t count) {
-	for (int k = 0; k < count; ++k)
-		*destination++ = *source++;
+	memcpy(destination, source, count * sizeof(int32_t));
 }
 
 static void update_if_last_channel(ArAsioOutputAudio* audio) {
@@ -683,13 +682,13 @@ Any samples due to device latency are skipped.
 The BYPASS compiler directive will send the raw INPUT data.  This is
 only for testing, only.
 */
-int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAudio* ptrResponseData) {
+int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAudio* audio) {
 	int32_t	intDifference;
 	int32_t	intRemainder;
 	int32_t	intLoopbackLatency;
 
 	int32_t* source_ = source;
-	int32_t* destination = ptrResponseData->data + ptrResponseData->Index;
+	int32_t* destination = audio->data + audio->Index;
 
 	/*
 	Check to see that the latency between ouput and input has been reached.
@@ -697,7 +696,7 @@ int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAud
 	the latency once for each channel of segment 0.  This was accomplished
 	by filling the LatencyReached flag to TRUE for segments 1..N
 	*/
-	if (!ptrResponseData->LatencyReached) {
+	if (!audio->LatencyReached) {
 		// Latency not yet reached
 		//
 		// An E-mail to the ASIO listserv suggested the calculation for the
@@ -709,59 +708,59 @@ int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAud
 		int32_t intImpulseLatency = intLoopbackLatency % 256;			    // extract impulse latency, if any
 		intLoopbackLatency -= slngLatencyOffset + intImpulseLatency;    // subtract app & impulse latencies
 		// With the passed buffer, are we past the latency?
-		if (ptrResponseData->SkippedSamples + size >= intLoopbackLatency) {
+		if (audio->SkippedSamples + size >= intLoopbackLatency) {
 			// Partial buffer needs to be sent
-			intDifference = intLoopbackLatency - ptrResponseData->SkippedSamples;
+			intDifference = intLoopbackLatency - audio->SkippedSamples;
 			if (intDifference < 0)
 				intDifference = 0;
 			source_ += intDifference;
-			ptrResponseData->LatencyReached = true;
+			audio->LatencyReached = true;
 
 			// Check for abnormally large buffers
 			intRemainder = size - intDifference;
-			if (intRemainder < ptrResponseData->size) {
+			if (intRemainder < audio->size) {
 				memcpy(destination, source_, intRemainder * sizeof(int32_t));
-				ptrResponseData->Index += intRemainder;
+				audio->Index += intRemainder;
 			}
 			else
-				if (!ar_asio_read_device_buffer(source_, intRemainder, ptrResponseData))
+				if (!ar_asio_read_device_buffer(source_, intRemainder, audio))
 					return 0L;
 		}
 		else
 			// Entire buffer is worthless.  Still need to track # of skipped samples until LatencyReached.
-			ptrResponseData->SkippedSamples += size;
+			audio->SkippedSamples += size;
 	}
 	else {
-		if (ptrResponseData->Index + size < ptrResponseData->size) {
-			memcpy(destination, source_, size * sizeof(int32_t));
-			ptrResponseData->Index += size;
+		if (audio->Index + size < audio->size) {
+			copy(destination, source_, size);
+			audio->Index += size;
 		}
 		else {
-			intDifference = ptrResponseData->size - ptrResponseData->Index - 0;
-			memcpy(destination, source_, intDifference * sizeof(int32_t));
-			ptrResponseData->Index += intDifference;
+			intDifference = audio->size - audio->Index - 0;
+			copy(destination, source_, intDifference);
+			audio->Index += intDifference;
 			source_ += intDifference;
 			int32_t intInputChannels = ar_current_device->a_ncad;
-			if (ptrResponseData->channel == intInputChannels - 1) {
+			if (audio->channel == intInputChannels - 1) {
 				sintSegmentFinished++;
-				if (ptrResponseData->segment + 1 == ar_current_device->segswp)
+				if (audio->segment + 1 == ar_current_device->segswp)
 					sptrCurSegmentResponse = responseData;
 				else
-					sptrCurSegmentResponse = ptrResponseData + 1;
+					sptrCurSegmentResponse = audio + 1;
 			}
-			if (ptrResponseData->segment + 1 == ar_current_device->segswp)
-				ptrResponseData -= (intInputChannels) * (ar_current_device->segswp - 1);
+			if (audio->segment + 1 == ar_current_device->segswp)
+				audio -= (intInputChannels) * (ar_current_device->segswp - 1);
 			else
-				ptrResponseData += intInputChannels;
-			destination = ptrResponseData->data;
-			ptrResponseData->Index = 0;
+				audio += intInputChannels;
+			destination = audio->data;
+			audio->Index = 0;
 			intDifference = size - intDifference;
-			if (intDifference < ptrResponseData->size) {
-				memcpy(destination, source_, intDifference * sizeof(int32_t));
-				ptrResponseData->Index = intDifference;
+			if (intDifference < audio->size) {
+				copy(destination, source_, intDifference);
+				audio->Index = intDifference;
 			}
 			else
-				if (!ar_asio_read_device_buffer(source_, intDifference, ptrResponseData))
+				if (!ar_asio_read_device_buffer(source_, intDifference, audio))
 					return 0L;
 		}
 	}
