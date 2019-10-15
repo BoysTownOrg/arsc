@@ -667,9 +667,9 @@ int32_t ar_asio_write_device_buffer(int32_t* destination, int32_t size, ArAsioOu
 		if (output_is_exhausted(audio)) {
 			update_if_last_channel(audio);
 			int32_t output_channels = ar_current_device->a_ncda;
-			audio = is_last_output_segment(audio)
-				? global_output_audio + audio->channel
-				: audio + output_channels;
+			audio += is_last_output_segment(audio)
+				? -output_channels * (ar_current_device->segswp - 1)
+				: output_channels;
 			audio->Index = 0;
 		}
 		else
@@ -687,7 +687,6 @@ The BYPASS compiler directive will send the raw INPUT data.  This is
 only for testing, only.
 */
 int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAudio* audio) {
-	int32_t	intDifference;
 	int32_t	intRemainder;
 	int32_t	intLoopbackLatency;
 
@@ -714,7 +713,7 @@ int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAud
 		// With the passed buffer, are we past the latency?
 		if (audio->SkippedSamples + size >= intLoopbackLatency) {
 			// Partial buffer needs to be sent
-			intDifference = intLoopbackLatency - audio->SkippedSamples;
+			int32_t intDifference = intLoopbackLatency - audio->SkippedSamples;
 			if (intDifference < 0)
 				intDifference = 0;
 			source_ += intDifference;
@@ -723,7 +722,7 @@ int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAud
 			// Check for abnormally large buffers
 			intRemainder = size - intDifference;
 			if (intRemainder < audio->size) {
-				memcpy(destination, source_, intRemainder * sizeof(int32_t));
+				copy(destination, source_, intRemainder);
 				audio->Index += intRemainder;
 			}
 			else
@@ -740,7 +739,7 @@ int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAud
 			audio->Index += size;
 		}
 		else {
-			intDifference = audio->size - audio->Index - 0;
+			int32_t intDifference = audio->size - audio->Index - 0;
 			copy(destination, source_, intDifference);
 			audio->Index += intDifference;
 			source_ += intDifference;
@@ -752,10 +751,9 @@ int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAud
 				else
 					global_input_audio = audio + 1;
 			}
-			if (is_last_input_segment(audio))
-				audio -= (input_channels) * (ar_current_device->segswp - 1);
-			else
-				audio += input_channels;
+			audio += is_last_input_segment(audio)
+				? -input_channels * (ar_current_device->segswp - 1)
+				: input_channels;
 			destination = audio->data;
 			audio->Index = 0;
 			intDifference = size - intDifference;
@@ -763,9 +761,8 @@ int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAud
 				copy(destination, source_, intDifference);
 				audio->Index = intDifference;
 			}
-			else
-				if (!ar_asio_read_device_buffer(source_, intDifference, audio))
-					return 0L;
+			else if (!ar_asio_read_device_buffer(source_, intDifference, audio))
+				return 0L;
 		}
 	}
 	return 1L;
