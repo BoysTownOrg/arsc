@@ -46,9 +46,9 @@ ASIOBufferInfo* bufferInfos = NULL;  // Pointer to array of bufferInfos; one for
 static ASIOChannelInfo* channelInfos = NULL; // Pointer to array of channelInfos; one for each channel (input + output)
 static ASIOCallbacks	asioCallbacks;  // structure that holds the pointers to the callback functions
 ArAsioOutputAudio* global_output_audio;   // pointer to the main stimulus block
-static ArAsioOutputAudio* first_channel_buffer_of_current_segment;   // Points to the current segment stimulus (channel 0)
-static ArAsioInputAudio* responseData;   // pointer to the main response block
-static ArAsioInputAudio* global_input_audio;   // Points to the current segment response (channel 0)
+static ArAsioOutputAudio* first_output_audio_of_current_segment;   // Points to the current segment stimulus (channel 0)
+static ArAsioInputAudio* global_input_audio;   // pointer to the main response block
+static ArAsioInputAudio* first_input_audio_of_current_segment;   // Points to the current segment response (channel 0)
 static long	preferred_buffer_size;   // Returned by the driver
 static long	total_input_and_output_channels = 0;   // Need the total number of used input and output channels
 static long	slngTotalPossibleChannels = 0;  // Total possible channels
@@ -260,9 +260,9 @@ _ar_asio_close(int32_t di) {
 
 	// Clear resp blocks
 	if (global_output_audio != NULL) {
-		responseData->Magic = 0;	// Indentification for debugging
-		free(responseData);
-		responseData = NULL;
+		global_input_audio->Magic = 0;	// Indentification for debugging
+		free(global_input_audio);
+		global_input_audio = NULL;
 	}
 
 	// Unload the ASIO driver
@@ -441,19 +441,19 @@ _ar_asio_io_prepare(int32_t di)
 		1		    1
 		2		    0
 			. . .
-	The pointer "first_channel_buffer_of_current_segment" will point to the first (channel 0)
+	The pointer "first_output_audio_of_current_segment" will point to the first (channel 0)
 	global_output_audio for the current segment.
 	*/
 	int32_t segments = ar_current_device->segswp;
 	if ((global_output_audio = calloc(ar_current_device->ncda * segments, sizeof(ArAsioOutputAudio))) == NULL)
 		return -1;
 
-	if ((responseData = (ArAsioInputAudio*)calloc(ar_current_device->ncad * segments, sizeof(ArAsioInputAudio))) == NULL)
+	if ((global_input_audio = (ArAsioInputAudio*)calloc(ar_current_device->ncad * segments, sizeof(ArAsioInputAudio))) == NULL)
 		return -1;
 
 	// Fill global_output_audio (OUTPUT) blocks
 	ArAsioOutputAudio* asio_segment = global_output_audio;										// Initialize
-	first_channel_buffer_of_current_segment = global_output_audio;			// Set to SEG0 CH0 to start.
+	first_output_audio_of_current_segment = global_output_audio;			// Set to SEG0 CH0 to start.
 	for (int32_t i = 0; i < ar_current_device->ncda * segments; i++) {
 
 		asio_segment->channel = i % ar_current_device->ncda;		// e.g. 0, 1, 0, 1, . . . 
@@ -465,9 +465,9 @@ _ar_asio_io_prepare(int32_t di)
 		asio_segment++;
 	}
 
-	// Fill responseData (INPUT) blocks
-	ArAsioInputAudio* ptrResponseData = responseData;				// Initialize
-	global_input_audio = responseData;			// Set to SEG0 CH0 to start.
+	// Fill global_input_audio (INPUT) blocks
+	ArAsioInputAudio* ptrResponseData = global_input_audio;				// Initialize
+	first_input_audio_of_current_segment = global_input_audio;			// Set to SEG0 CH0 to start.
 	for (int32_t i = 0; i < ar_current_device->ncad * segments; i++) {
 
 		ptrResponseData->Magic = 0xBEEF;			// Indentification number for debugging
@@ -639,6 +639,10 @@ static int output_is_exhausted(ArAsioOutputAudio* audio) {
 	return audio->Index == audio->size;
 }
 
+static int input_is_exhausted(ArAsioInputAudio* audio) {
+	return audio->Index == audio->size;
+}
+
 static int is_last_input_segment(ArAsioInputAudio* audio) {
 	return audio->segment + 1 == ar_current_device->segswp;
 }
@@ -656,7 +660,7 @@ static void update_if_last_channel(ArAsioOutputAudio* audio) {
 		// If there are no input channels, the out channel determines the segment end
 		if (!ar_current_device->a_ncad)
 			sintSegmentFinished++;
-		first_channel_buffer_of_current_segment = is_last_output_segment(audio)
+		first_output_audio_of_current_segment = is_last_output_segment(audio)
 			? global_output_audio
 			: audio + 1;
 	}
@@ -693,12 +697,9 @@ The BYPASS compiler directive will send the raw INPUT data.  This is
 only for testing, only.
 */
 int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAudio* audio) {
-	int32_t	intRemainder;
-	int32_t	intLoopbackLatency;
-
+	int32_t copied = 0;
 	int32_t* source_ = source;
 	int32_t* destination = audio->data + audio->Index;
-
 	/*
 	Check to see that the latency between ouput and input has been reached.
 	Each channel has the same latency (one would hope), and we only check
@@ -713,7 +714,7 @@ int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAud
 		// close.
 		//intLoopbackLatency = slngInputLatency + slngOutputLatency + slngLatencyOffset;    // Tone's version
 		// Changed default LoopbackLatecy to match WDM latency [STN:Jun-2007]
-		intLoopbackLatency = slngInputLatency + slngOutputLatency;	    // sum of driver input/output latencies
+		int32_t intLoopbackLatency = slngInputLatency + slngOutputLatency;	    // sum of driver input/output latencies
 		int32_t intImpulseLatency = intLoopbackLatency % 256;			    // extract impulse latency, if any
 		intLoopbackLatency -= slngLatencyOffset + intImpulseLatency;    // subtract app & impulse latencies
 		// With the passed buffer, are we past the latency?
@@ -726,7 +727,7 @@ int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAud
 			audio->LatencyReached = true;
 
 			// Check for abnormally large buffers
-			intRemainder = size - intDifference;
+			int32_t intRemainder = size - intDifference;
 			if (intRemainder < audio->size) {
 				copy(destination, source_, intRemainder);
 				audio->Index += intRemainder;
@@ -739,39 +740,28 @@ int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAud
 			// Entire buffer is worthless.  Still need to track # of skipped samples until LatencyReached.
 			audio->SkippedSamples += size;
 	}
-	else {
-		if (audio->Index + size < audio->size) {
-			copy(destination, source_, size);
-			audio->Index += size;
-		}
-		else {
-			int32_t to_copy = audio->size - audio->Index;
-			copy(destination, source_, to_copy);
-			audio->Index += to_copy;
-			source_ += to_copy;
+	while (1) {
+		destination = audio->data + audio->Index;
+		int32_t to_copy = minimum(size - copied, audio->size - audio->Index);
+		copy(destination, source_ + copied, to_copy);
+		copied += to_copy;
+		audio->Index += to_copy;
+		if (input_is_exhausted(audio)) {
 			if (is_last_input_channel(audio)) {
 				sintSegmentFinished++;
-				if (is_last_input_segment(audio))
-					global_input_audio = responseData;
-				else
-					global_input_audio = audio + 1;
+				first_input_audio_of_current_segment = is_last_input_segment(audio)
+					? global_input_audio
+					: audio + 1;
 			}
 			int32_t input_channels = ar_current_device->a_ncad;
 			audio += is_last_input_segment(audio)
 				? -input_channels * (ar_current_device->segswp - 1)
 				: input_channels;
-			destination = audio->data;
 			audio->Index = 0;
-			to_copy = size - to_copy;
-			if (to_copy < audio->size) {
-				copy(destination, source_, to_copy);
-				audio->Index = to_copy;
-			}
-			else if (!ar_asio_read_device_buffer(source_, to_copy, audio))
-				return 0L;
 		}
+		else
+			return 1;
 	}
-	return 1L;
 }
 
 
@@ -1167,8 +1157,8 @@ SDK Note:
 ASIOTime* bufferSwitchTimeInfo(ASIOTime* timeInfo, long index, ASIOBool processNow) {
 	int32_t	    i;
 	long	    lngAsioBufferSize = preferred_buffer_size;    // shorthand to buffer size in samples
-	ArAsioOutputAudio* ptrStimulusData = first_channel_buffer_of_current_segment;	    // pointer to channel 0 of current segment stimulus
-	ArAsioInputAudio* ptrResponseData = global_input_audio;	    // pointer to channel 0 of current segment response
+	ArAsioOutputAudio* ptrStimulusData = first_output_audio_of_current_segment;	    // pointer to channel 0 of current segment stimulus
+	ArAsioInputAudio* ptrResponseData = first_input_audio_of_current_segment;	    // pointer to channel 0 of current segment response
 
 	if (!driver_has_started)
 		return 0L;
