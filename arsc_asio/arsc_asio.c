@@ -698,8 +698,6 @@ only for testing, only.
 */
 int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAudio* audio) {
 	int32_t copied = 0;
-	int32_t* source_ = source;
-	int32_t* destination = audio->data + audio->Index;
 	/*
 	Check to see that the latency between ouput and input has been reached.
 	Each channel has the same latency (one would hope), and we only check
@@ -723,12 +721,14 @@ int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAud
 			int32_t intDifference = intLoopbackLatency - audio->SkippedSamples;
 			if (intDifference < 0)
 				intDifference = 0;
+			int32_t* source_ = source;
 			source_ += intDifference;
 			audio->LatencyReached = true;
 
 			// Check for abnormally large buffers
 			int32_t intRemainder = size - intDifference;
 			if (intRemainder < audio->size) {
+				int32_t* destination = audio->data + audio->Index;
 				copy(destination, source_, intRemainder);
 				audio->Index += intRemainder;
 			}
@@ -741,9 +741,9 @@ int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAud
 			audio->SkippedSamples += size;
 	}
 	while (1) {
-		destination = audio->data + audio->Index;
+		int32_t* destination = audio->data + audio->Index;
 		int32_t to_copy = minimum(size - copied, audio->size - audio->Index);
-		copy(destination, source_ + copied, to_copy);
+		copy(destination, source + copied, to_copy);
 		copied += to_copy;
 		audio->Index += to_copy;
 		if (input_is_exhausted(audio)) {
