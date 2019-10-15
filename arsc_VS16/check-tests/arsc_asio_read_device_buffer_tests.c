@@ -88,6 +88,10 @@ static void read_device_buffer(int32_t n) {
 	ar_asio_read_device_buffer(device_buffer, n, responses);
 }
 
+static void set_first_response_size(int32_t n) {
+	assign_channel_response_size_(0, n);
+}
+
 #define ASSERT_NTH_AUDIO_BUFFER_AT_EQUALS(n, a, b)\
 	ASSERT_EQUAL_ANY(b, audio_buffers[n][a]);
 
@@ -108,7 +112,7 @@ START_TEST(read_device_buffer_one_segment) {
 }
 
 START_TEST(read_device_buffer_one_segment_wrap) {
-	responses[0].size = 3;
+	set_first_response_size(3);
 	assign_device_buffer(0, 1);
 	assign_device_buffer(1, 2);
 	assign_device_buffer(2, 3);
@@ -127,7 +131,7 @@ START_TEST(read_device_buffer_one_segment_wrap_two_channels) {
 	responses[0].channel = 0;
 	responses[1].channel = 1;
 
-	responses[0].size = 3;
+	set_first_response_size(3);
 	assign_device_buffer(0, 1);
 	assign_device_buffer(1, 2);
 	assign_device_buffer(2, 3);
@@ -154,7 +158,7 @@ START_TEST(read_device_buffer_two_segments) {
 	assign_device_buffer(5, 6);
 	assign_device_buffer(6, 7);
 
-	responses[0].size = 3;
+	set_first_response_size(3);
 	read_device_buffer(7);
 
 	ASSERT_FIRST_AUDIO_BUFFER_AT_EQUALS(0, 1);
