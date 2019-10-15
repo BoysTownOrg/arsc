@@ -684,56 +684,19 @@ The BYPASS compiler directive will send the raw INPUT data.  This is
 only for testing, only.
 */
 int32_t ar_asio_read_device_buffer(int32_t* buffer, int32_t aintBufferSize, TResponseData* ptrResponseData) {
-
-	int32_t* ptrBuffer;
 	int32_t	intDifference;
 	int32_t	intRemainder;
 	int32_t	intImpulseLatency;
 	int32_t	intLoopbackLatency;
-	int32_t* ptrResponseSample;
-	int32_t	intCurInputSegment;
-	int32_t	intInputChannels;
-	int32_t	intActualSegment;			// after mod
 
+	int32_t intInputChannels = ar_current_device->a_ncad;			// shorthand
+	int32_t intCurInputSegment = ar_current_device->seg_ic;			// shorthand
+	int32_t intActualSegment = intCurInputSegment % ar_current_device->segswp;	// shorthand
 
-	intInputChannels = ar_current_device->a_ncad;			// shorthand
-	intCurInputSegment = ar_current_device->seg_ic;			// shorthand
-	intActualSegment = intCurInputSegment % ar_current_device->segswp;	// shorthand
-
-	// Loon test
-	if (ptrResponseData->Magic != 0xBEEF)
-		return 0;
-	if (ptrResponseData->channel < 0 || ptrResponseData->channel >= intInputChannels)
-		return 0;
-
-	/*
-	The NO_LATENCY_CORRECTION compiler directive will send the raw INPUT data rather than
-	correct for latency between the response and the stimulus.  This
-	latency is based upon the ASIO BufferSize and the sampling rate.
-
-	STN: Latency correction should enabled for consistency between the SYNC and ASIO code. [Nov-2006]
-	*/
-#ifdef NO_LATENCY_CORRECTION
-	/*
-	Response is not adjusted for latency.  The input (response) will start a little more than
-	two buffers past the stimulus start of time zero.
-	*/
-	ptrResponseData->LatencyReached = true;
-#endif // NO_LATENCY_CORRECTION
-
-	ptrBuffer = buffer;						// Set a pointer to passed 1/2 buffer
-	ptrResponseSample = ptrResponseData->data;		// Get reference to Response Block that is currently being filled
+	int32_t* ptrBuffer = buffer;						// Set a pointer to passed 1/2 buffer
+	int32_t* ptrResponseSample = ptrResponseData->data;		// Get reference to Response Block that is currently being filled
 	ptrResponseSample += ptrResponseData->Index;		// Point to correct sample in Response Block
 
-	DBUG_R(("fill: m/seg/ch [%d]/[%d]/[%d] index [%d] of [%d] TotalSamples [%d] skipped [%d] bolLatency [%d].\n",
-		ptrResponseData->Magic,
-		ptrResponseData->segment,
-		ptrResponseData->channel,
-		ptrResponseData->Index,
-		ptrResponseData->size,
-		sintTotalSamples,
-		ptrResponseData->SkippedSamples,
-		ptrResponseData->LatencyReached));
 	/*
 	Check to see that the latency between ouput and input has been reached.
 	Each channel has the same latency (one would hope), and we only check
@@ -804,47 +767,21 @@ int32_t ar_asio_read_device_buffer(int32_t* buffer, int32_t aintBufferSize, TRes
 			ptrResponseData->Index += intDifference;		// Brings us to the end
 			ptrBuffer += intDifference;				// Move the pointer
 
-			/*
-			P O S T - This segment is full at this point
-			*/
-#ifdef POSTRESPONSE
-			if (ptrResponseData->ChannelNumber == 0)
-				BlockWrite(fhPostResponse, ptrResponseData->ReadBlock^, ptrResponseData->Samples * sizeof(Integer), intNumWritten);
-#endif // POSTRESPONSE
-
-#ifdef BLOCKDEMARCATION
-			// Send demarcation
-			if (ptrResponseData->ChannelNumber == 0) {
-				// Send modified datablock to indicate buffer demarcation
-				pWriteBlockDemarcation(ptrResponseData->Samples, SCALE_32BIT);
-			}
-#endif // BLOCKDEMARCATION
-
 			// if this is the last channel, increment the global segment count
 			if (ptrResponseData->channel == intInputChannels - 1) {
 
-				DBUG_R(("Posting message to AM_ResponseFull for channel [%d]\n", ptrResponseData->channel));
-				if (_arsc_wind)
-					PostMessage((HWND)_arsc_wind, WM_ARSC, AM_ResponseFull, device_identifier_offset);
-
 				// Increment a semaphore-like variable
 				sintSegmentFinished++;
-				FDBUG((_arS, "F %d\n", sintSegmentFinished));
 
 				// Are sweeps done?
 				if (((intCurInputSegment + 1) % ar_current_device->segswp) != 0) {
 
 					// Move the global response block pointer 1 to get to the zeroeth channel of next segment.
 					// (ptrResponseData already points to the last channel of the previous segment.)
-					DBUG_R(("all channels done . . moving sptrCurSegmentResponse to next pointer [%p].\n", (ptrResponseData + 1)));
 					sptrCurSegmentResponse = ptrResponseData + 1;
 				}
 				else {
 					// All segments have been completed in this sweep.
-					DBUG_R(("*** All segments have been completed in this sweep. Moving sptrCurSegmentResponse to start. *** [%d] [%d] [%d]\n",
-						intCurInputSegment + 1,
-						ar_current_device->segswp,
-						intCurInputSegment + 1 % ar_current_device->segswp));
 					sptrCurSegmentResponse = responseData;			// Just sets it back to the beginning
 				}
 			} // fi last channel
@@ -852,11 +789,6 @@ int32_t ar_asio_read_device_buffer(int32_t* buffer, int32_t aintBufferSize, TRes
 			// Any more segments to play for this (current) channel?
 			if (ptrResponseData->segment + 1 == ar_current_device->segswp) {
 				// No more
-				DBUG_R(("no more segments for m/seg/ch [%d]/[%d]/[%d].\n",
-					ptrResponseData->Magic,
-					intCurInputSegment,
-					ptrResponseData->channel));
-				// Wrap back in case of sweeping
 				ptrResponseData -= (intInputChannels) * (ar_current_device->segswp - 1);
 			}
 			else {
@@ -865,9 +797,6 @@ int32_t ar_asio_read_device_buffer(int32_t* buffer, int32_t aintBufferSize, TRes
 				Move to the next response structure for the rest of this bufferswitch.
 				For example, if just finishing SEG0 CH1, need to jump to SEG1 CH1.
 				*/
-				DBUG_R(("incrementing ptrResponseData [%p] [%d] channels.\n",
-					ptrResponseData,
-					intInputChannels));
 				ptrResponseData += intInputChannels;		    // Now pointing at next segment, same channel
 			} // fi any more segments
 
@@ -885,15 +814,11 @@ int32_t ar_asio_read_device_buffer(int32_t* buffer, int32_t aintBufferSize, TRes
 				memcpy(ptrResponseSample, ptrBuffer, intDifference * sizeof(int32_t));
 				ptrResponseData->Index = intDifference;
 			}
-			else {
-				// This recursively calls this same function to handle the
-				// remainder of this oversized buffer.
+			else
 				if (!ar_asio_read_device_buffer(ptrBuffer, intDifference, ptrResponseData))
 					return 0L;
-			}
-		} // fi whole/partial
-	} // fi Latency reached
-
+		}
+	}
 	return 1L;
 }
 
