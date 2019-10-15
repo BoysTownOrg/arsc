@@ -155,6 +155,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="arsc_asio_io_prepare_tests.c" />
+    <ClCompile Include="arsc_asio_read_device_buffer_tests.c" />
     <ClCompile Include="arsc_asio_tests.c" />
     <ClCompile Include="arsc_asio_tests_common.c" />
     <ClCompile Include="arsc_asio_write_device_buffer_tests.c" />
@@ -162,6 +163,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="arsc_asio_io_prepare_tests.h" />
+    <ClInclude Include="arsc_asio_read_device_buffer_tests.h" />
     <ClInclude Include="arsc_asio_tests.h" />
     <ClInclude Include="arsc_asio_tests_common.h" />
     <ClInclude Include="arsc_asio_write_device_buffer_tests.h" />
