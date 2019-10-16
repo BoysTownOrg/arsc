@@ -60,7 +60,7 @@ static void set_segments(int32_t n) {
 	assign_device_segments(device_index, n);
 }
 
-static void setup_write_device_buffer(void) {
+static void setup(void) {
 	for (int i = 0; i < buffer_count; ++i) {
 		initialize_audio(audio, i);
 		assign_audio_data(audio, i, audio_buffers[i]);
@@ -73,7 +73,7 @@ static void setup_write_device_buffer(void) {
 	global_output_audio = audio;
 }
 
-static void teardown_write_device_buffer(void) {
+static void teardown(void) {
 	memset(device_buffer, 0, sizeof device_buffer);
 	memset(audio, 0, sizeof audio);
 	memset(audio_buffers, 0, sizeof audio_buffers);
@@ -292,7 +292,7 @@ START_TEST(write_device_buffer_two_segments_three_channels) {
 Suite* arsc_asio_write_device_buffer_suite() {
 	Suite* suite = suite_create("arsc_asio_write_device_buffer");
 	TCase* test_case = tcase_create("write_device_buffer");
-	tcase_add_checked_fixture(test_case, setup_write_device_buffer, teardown_write_device_buffer);
+	tcase_add_checked_fixture(test_case, setup, teardown);
 	add_test(test_case, write_device_buffer_one_segment);
 	add_test(test_case, write_device_buffer_one_segment_wrap);
 	add_test(test_case, write_device_buffer_one_segment_offset);
