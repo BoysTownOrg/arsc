@@ -1,14 +1,12 @@
-/* arsc_asio.c - soudcard functions for ASIO devices */
-
 #ifdef ASIO
 
 #include "arsc_asio.h"
-#include "asiosys.h" // platform definition from Steinberg SDK
-#include "asio.h"  // from Steinberg SDK
+#include "asiosys.h"
+#include "asio.h"
 #include "arsc_asio_wrappers.h"
 
 #define MAX_REGISTRY_KEY_LENGTH	255
-#define ASIO_PATH "software\\asio"  // For my example
+#define ASIO_PATH "software\\asio"
 #define MAX_ASIO_DRIVERS 32  // PortAudio allows a max of 32, so we will too
 #define MAX_DRIVER_NAME_LENGTH 40
 
@@ -44,7 +42,6 @@ static int32_t	max_input_channels = -1;   // Maximum as reported by the driver
 static int32_t	max_output_channels = -1;   // Maximum as reported by the driver
 ASIOBufferInfo* bufferInfos = NULL;  // Pointer to array of bufferInfos; one for each channel (input + output)
 static ASIOChannelInfo* channelInfos = NULL; // Pointer to array of channelInfos; one for each channel (input + output)
-static ASIOCallbacks	asioCallbacks;  // structure that holds the pointers to the callback functions
 ArAsioOutputAudio* global_output_audio;   // pointer to the main stimulus block
 static ArAsioOutputAudio* first_output_audio_of_current_segment;   // Points to the current segment stimulus (channel 0)
 static ArAsioInputAudio* global_input_audio;   // pointer to the main response block
@@ -336,6 +333,7 @@ int32_t _ar_asio_open(int32_t di)
 		ptrBufferInfo++;
 	}
 
+	ASIOCallbacks asioCallbacks;
 	// set up the asioCallback structure and create the ASIO data buffer
 	asioCallbacks.bufferSwitch = &bufferSwitch;
 	asioCallbacks.sampleRateDidChange = &sampleRateChanged;
