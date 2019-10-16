@@ -315,22 +315,21 @@ int32_t _ar_asio_open(int32_t di)
 	intChannelOffset = (di - device_identifier_offset) - intChannelOffset;
 	FDBUG((_arS, "Channel Offset [%d]\n", intChannelOffset));
 
-	ASIOBufferInfo* ptrBufferInfo = bufferInfos;
+	ASIOBufferInfo* bufferInfo_ = bufferInfos;
 	for (int32_t i = 0; i < ar_current_device->a_ncda; i++) {
-		ptrBufferInfo->isInput = ASIOFalse;
-		ptrBufferInfo->channelNum = i;
-		ptrBufferInfo->buffers[0] = NULL;
-		ptrBufferInfo->buffers[1] = NULL;
-		ptrBufferInfo++;
+		bufferInfo_->isInput = ASIOFalse;
+		bufferInfo_->channelNum = i;
+		bufferInfo_->buffers[0] = NULL;
+		bufferInfo_->buffers[1] = NULL;
+		bufferInfo_++;
 	}
 
 	for (int32_t i = 0; i < ar_current_device->a_ncad; i++) {		// loop over output channels
-		ptrBufferInfo->isInput = ASIOTrue;	// create an input buffer
-		ptrBufferInfo->channelNum = i;		// (di - dio) handles channel offsets
-		ptrBufferInfo->buffers[0] = NULL;	// clear buffer 1/2 channels
-		ptrBufferInfo->buffers[1] = NULL;	// clear buffer 1/2 channels
-
-		ptrBufferInfo++;
+		bufferInfo_->isInput = ASIOTrue;	// create an input buffer
+		bufferInfo_->channelNum = i;		// (di - dio) handles channel offsets
+		bufferInfo_->buffers[0] = NULL;	// clear buffer 1/2 channels
+		bufferInfo_->buffers[1] = NULL;	// clear buffer 1/2 channels
+		bufferInfo_++;
 	}
 
 	ASIOCallbacks asioCallbacks;
@@ -363,11 +362,11 @@ int32_t _ar_asio_open(int32_t di)
 	FDBUG((_arS, "Latencies: input (%d) output (%d)\n", slngInputLatency, slngOutputLatency));
 
 	// Clear the buffers because CardDeluxe has known issues
-	ptrBufferInfo = bufferInfos;
+	bufferInfo_ = bufferInfos;
 	for (int32_t i = 0; i < total_input_and_output_channels; i++) {
-		memset(ptrBufferInfo->buffers[0], 0, preferred_buffer_size * sizeof(int32_t));
-		memset(ptrBufferInfo->buffers[1], 0, preferred_buffer_size * sizeof(int32_t));
-		ptrBufferInfo++;
+		memset(bufferInfo_->buffers[0], 0, preferred_buffer_size * sizeof(int32_t));
+		memset(bufferInfo_->buffers[1], 0, preferred_buffer_size * sizeof(int32_t));
+		bufferInfo_++;
 	}
 
 	sintTotalSamples = 0;	// Total samples processed

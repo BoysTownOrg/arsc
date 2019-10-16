@@ -415,7 +415,7 @@ START_TEST(open_passes_device_to_list_rates) {
 
 START_TEST(open_initializes_buffer_infos) {
 	set_device_desired_output_channels(1, 2);
-	devices(1)->a_ncad = 3;
+	set_device_desired_input_channels(1, 3);
 	open_device(1);
 	ASSERT_BUFFER_INFO_IS_INPUT_FOR_DEVICE_RANGE(0, 2);
 	ASSERT_BUFFER_INFO_IS_OUTPUT_FOR_DEVICE_RANGE(2, 2 + 3);

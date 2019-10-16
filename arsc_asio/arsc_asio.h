@@ -20,7 +20,6 @@ typedef struct {
 } ArAsioOutputAudio;
 
 typedef struct {
-	int32_t Magic; // Just an identifier for this structure
 	int32_t* data;
 	int32_t size;
 	int32_t Index;
