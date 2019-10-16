@@ -50,7 +50,7 @@ static void io_prepare(void) {
 	_ar_asio_io_prepare(0);
 }
 
-static void assign_output_buffer_size(int i, int32_t size) {
+static void assign_buffer_size(int i, int32_t size) {
 	assign_integer_array(buffer_size, i, size);
 }
 
@@ -99,21 +99,33 @@ static void set_input_channels(int32_t n) {
 #define ASSERT_OUTPUT_AUDIO_AT_SIZE(a, b)\
 	ASSERT_EQUAL_ANY(b, global_output_audio_(a)->size)
 
+#define ASSERT_INPUT_AUDIO_AT_SIZE(a, b)\
+	ASSERT_EQUAL_ANY(b, global_input_audio_(a)->size)
+
 #define ASSERT_OUTPUT_AUDIO_AT_SEGMENT(a, b)\
 	ASSERT_EQUAL_ANY(b, global_output_audio_(a)->segment)
+
+#define ASSERT_INPUT_AUDIO_AT_SEGMENT(a, b)\
+	ASSERT_EQUAL_ANY(b, global_input_audio_(a)->segment)
 
 #define ASSERT_OUTPUT_AUDIO_AT_CHANNEL(a, b)\
 	ASSERT_EQUAL_ANY(b, global_output_audio_(a)->channel)
 
+#define ASSERT_INPUT_AUDIO_AT_CHANNEL(a, b)\
+	ASSERT_EQUAL_ANY(b, global_input_audio_(a)->channel)
+
 #define ASSERT_OUTPUT_AUDIO_AT_INDEX(a, b)\
 	ASSERT_EQUAL_ANY(b, global_output_audio_(a)->Index)
+
+#define ASSERT_INPUT_AUDIO_AT_INDEX(a, b)\
+	ASSERT_EQUAL_ANY(b, global_input_audio_(a)->Index)
 
 START_TEST(io_prepare_initializes_output_audio) {
 	set_output_channels(2);
 	set_segments(3);
-	assign_output_buffer_size(0, 4);
-	assign_output_buffer_size(1, 5);
-	assign_output_buffer_size(2, 6);
+	assign_buffer_size(0, 4);
+	assign_buffer_size(1, 5);
+	assign_buffer_size(2, 6);
 
 	io_prepare();
 
@@ -144,6 +156,44 @@ START_TEST(io_prepare_initializes_output_audio) {
 	ASSERT_OUTPUT_AUDIO_AT_INDEX(3, 0);
 	ASSERT_OUTPUT_AUDIO_AT_INDEX(4, 0);
 	ASSERT_OUTPUT_AUDIO_AT_INDEX(5, 0);
+}
+
+START_TEST(io_prepare_initializes_input_audio) {
+	set_input_channels(2);
+	set_segments(3);
+	assign_buffer_size(0, 4);
+	assign_buffer_size(1, 5);
+	assign_buffer_size(2, 6);
+
+	io_prepare();
+
+	ASSERT_INPUT_AUDIO_AT_SIZE(0, 4);
+	ASSERT_INPUT_AUDIO_AT_SIZE(1, 4);
+	ASSERT_INPUT_AUDIO_AT_SIZE(2, 5);
+	ASSERT_INPUT_AUDIO_AT_SIZE(3, 5);
+	ASSERT_INPUT_AUDIO_AT_SIZE(4, 6);
+	ASSERT_INPUT_AUDIO_AT_SIZE(5, 6);
+
+	ASSERT_INPUT_AUDIO_AT_SEGMENT(0, 0);
+	ASSERT_INPUT_AUDIO_AT_SEGMENT(1, 0);
+	ASSERT_INPUT_AUDIO_AT_SEGMENT(2, 1);
+	ASSERT_INPUT_AUDIO_AT_SEGMENT(3, 1);
+	ASSERT_INPUT_AUDIO_AT_SEGMENT(4, 2);
+	ASSERT_INPUT_AUDIO_AT_SEGMENT(5, 2);
+
+	ASSERT_INPUT_AUDIO_AT_CHANNEL(0, 0);
+	ASSERT_INPUT_AUDIO_AT_CHANNEL(1, 1);
+	ASSERT_INPUT_AUDIO_AT_CHANNEL(2, 0);
+	ASSERT_INPUT_AUDIO_AT_CHANNEL(3, 1);
+	ASSERT_INPUT_AUDIO_AT_CHANNEL(4, 0);
+	ASSERT_INPUT_AUDIO_AT_CHANNEL(5, 1);
+
+	ASSERT_INPUT_AUDIO_AT_INDEX(0, 0);
+	ASSERT_INPUT_AUDIO_AT_INDEX(1, 0);
+	ASSERT_INPUT_AUDIO_AT_INDEX(2, 0);
+	ASSERT_INPUT_AUDIO_AT_INDEX(3, 0);
+	ASSERT_INPUT_AUDIO_AT_INDEX(4, 0);
+	ASSERT_INPUT_AUDIO_AT_INDEX(5, 0);
 }
 
 START_TEST(io_prepare_initializes_output_audio_data) {
@@ -180,11 +230,12 @@ START_TEST(io_prepare_initializes_input_audio_data) {
 
 Suite* arsc_asio_io_prepare_suite() {
 	Suite* suite = suite_create("arsc_asio_io_prepare");
-	TCase* io_prepare_test_case = tcase_create("io_prepare");
-	tcase_add_checked_fixture(io_prepare_test_case, setup, teardown);
-	add_test(io_prepare_test_case, io_prepare_initializes_output_audio);
-	add_test(io_prepare_test_case, io_prepare_initializes_output_audio_data);
-	add_test(io_prepare_test_case, io_prepare_initializes_input_audio_data);
-	suite_add_tcase(suite, io_prepare_test_case);
+	TCase* test_case = tcase_create("io_prepare");
+	tcase_add_checked_fixture(test_case, setup, teardown);
+	add_test(test_case, io_prepare_initializes_output_audio);
+	add_test(test_case, io_prepare_initializes_input_audio);
+	add_test(test_case, io_prepare_initializes_output_audio_data);
+	add_test(test_case, io_prepare_initializes_input_audio_data);
+	suite_add_tcase(suite, test_case);
 	return suite;
 }
