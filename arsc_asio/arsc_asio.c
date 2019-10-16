@@ -338,14 +338,12 @@ int32_t _ar_asio_open(int32_t di)
 	intChannelOffset = (di - device_identifier_offset) - intChannelOffset;
 	FDBUG((_arS, "Channel Offset [%d]\n", intChannelOffset));
 
-	// Allocate buffers
-	ASIOBufferInfo* ptrBufferInfo = bufferInfos;		// Set a pointer
-	for (int32_t i = 0; i < ar_current_device->a_ncda; i++) {		// loop over output channels
-		ptrBufferInfo->isInput = ASIOFalse;	// create an output buffer
-		ptrBufferInfo->channelNum = i;		// (di - dio) handles channel offsets
-		ptrBufferInfo->buffers[0] = NULL;	// clear buffer 1/2 channels
-		ptrBufferInfo->buffers[1] = NULL;	// clear buffer 1/2 channels
-
+	ASIOBufferInfo* ptrBufferInfo = bufferInfos;
+	for (int32_t i = 0; i < ar_current_device->a_ncda; i++) {
+		ptrBufferInfo->isInput = ASIOFalse;
+		ptrBufferInfo->channelNum = i;
+		ptrBufferInfo->buffers[0] = NULL;
+		ptrBufferInfo->buffers[1] = NULL;
 		ptrBufferInfo++;
 	}
 
@@ -405,8 +403,6 @@ err:
 
 int32_t(*ar_asio_open)(int32_t) = _ar_asio_open;
 
-/* _ar_asio_io_prepare - prepare device and buffers for I/O */
-
 int32_t
 _ar_asio_io_prepare(int32_t di)
 {
@@ -434,26 +430,21 @@ _ar_asio_io_prepare(int32_t di)
 	if ((global_input_audio = (ArAsioInputAudio*)calloc(ar_current_device->ncad * segments, sizeof(ArAsioInputAudio))) == NULL)
 		return -1;
 
-	// Fill global_output_audio (OUTPUT) blocks
-	ArAsioOutputAudio* asio_segment = global_output_audio;										// Initialize
-	first_output_audio_of_current_segment = global_output_audio;			// Set to SEG0 CH0 to start.
+	ArAsioOutputAudio* output_audio = global_output_audio;
+	first_output_audio_of_current_segment = global_output_audio;
 	for (int32_t i = 0; i < ar_current_device->ncda * segments; i++) {
-
-		asio_segment->channel = i % ar_current_device->ncda;		// e.g. 0, 1, 0, 1, . . . 
-		asio_segment->segment = i / ar_current_device->ncda;		// segment number
-		asio_segment->data = ar_current_device->o_data[i];
-		asio_segment->Index = 0;										// initialize to the first sample
-		asio_segment->size = ar_current_device->sizptr[i / ar_current_device->ncda];
-
-		asio_segment++;
+		output_audio->channel = i % ar_current_device->ncda;
+		output_audio->segment = i / ar_current_device->ncda;
+		output_audio->data = ar_current_device->o_data[i];
+		output_audio->Index = 0;
+		output_audio->size = ar_current_device->sizptr[i / ar_current_device->ncda];
+		output_audio++;
 	}
 
 	// Fill global_input_audio (INPUT) blocks
 	ArAsioInputAudio* ptrResponseData = global_input_audio;				// Initialize
 	first_input_audio_of_current_segment = global_input_audio;			// Set to SEG0 CH0 to start.
 	for (int32_t i = 0; i < ar_current_device->ncad * segments; i++) {
-
-		ptrResponseData->Magic = 0xBEEF;			// Indentification number for debugging
 		ptrResponseData->channel = i % ar_current_device->ncad;		// e.g. 0, 1, 0, 1, . . . 
 		ptrResponseData->segment = i / ar_current_device->ncad;		// segment number
 		ptrResponseData->data = ar_current_device->i_data[i];
@@ -481,8 +472,6 @@ _ar_asio_xfer_seg(int32_t di, int32_t b)
 
 int32_t(*ar_asio_transfer_segment)(int32_t, int32_t) = _ar_asio_xfer_seg;
 
-/* _ar_asio_chk_seg - check for segment completion */
-
 static int32_t
 _ar_asio_chk_seg(int32_t di, int32_t b)
 {
@@ -509,7 +498,6 @@ _ar_asio_chk_seg(int32_t di, int32_t b)
 	ar_current_device = _ardev[di];
 
 	if (!driver_has_started) {
-		FDBUG((_arS, "driver_has_started is FALSE\n"));
 		return -1;
 	}
 
@@ -537,12 +525,10 @@ _ar_asio_chk_seg(int32_t di, int32_t b)
 
 int32_t(*ar_asio_check_segment)(int32_t, int32_t) = _ar_asio_chk_seg;
 
-/* _ar_asio_io_start - start I/O */
-
 static void
 _ar_asio_io_start(int32_t di)
 {
-	sintTotalSamples = 0;		// Reset the total samples
+	sintTotalSamples = 0;
 	FDBUG((_arS, "_ar_asio_io_start(): entered.\n"));
 	driver_has_started = SDKAsioStart();
 }
@@ -571,8 +557,6 @@ int32_t(*ar_asio_latency)(int32_t, int32_t) = _ar_asio_latency;
 static ARDVT* device_type(int32_t n) {
 	return &_ardvt[n];
 }
-
-/* _ar_asio_bind - bind ASIO functions */
 
 int32_t
 _ar_asio_bind(int32_t ndt, int32_t tnd)
@@ -671,9 +655,6 @@ int32_t ar_asio_write_device_buffer(int32_t* destination, int32_t size, ArAsioOu
 }
 
 /*
-The response buffer is filled by the sound card.
-
-Line up the input (response) waveform to the output (stimulus) wave form.
 Any samples due to device latency are skipped.
 */
 int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAudio* audio) {
@@ -1098,55 +1079,41 @@ SDK Note:
 	take care about thread synchronization. This is omitted here for simplicity.
 */
 ASIOTime* bufferSwitchTimeInfo(ASIOTime* timeInfo, long index, ASIOBool processNow) {
-	int32_t	    i;
-	long	    lngAsioBufferSize = preferred_buffer_size;    // shorthand to buffer size in samples
-	ArAsioOutputAudio* ptrStimulusData = first_output_audio_of_current_segment;	    // pointer to channel 0 of current segment stimulus
-	ArAsioInputAudio* ptrResponseData = first_input_audio_of_current_segment;	    // pointer to channel 0 of current segment response
+	long lngAsioBufferSize = preferred_buffer_size;    // shorthand to buffer size in samples
+	ArAsioOutputAudio* output_audio = first_output_audio_of_current_segment;	    // pointer to channel 0 of current segment stimulus
+	ArAsioInputAudio* input_audio = first_input_audio_of_current_segment;	    // pointer to channel 0 of current segment response
 
 	if (!driver_has_started)
 		return 0L;
 
-	// perform the processing
-	for (i = 0; i < total_input_and_output_channels; i++) {
+	for (int32_t i = 0; i < total_input_and_output_channels; i++) {
 		if (bufferInfos[i].isInput == false) {
-			// OUTPUT (STIMULUS) buffer
-
 			switch (channelInfos[i].type) {
 			case ASIOSTInt32LSB:
 				/*
 				Tone - all of the cards tested here are Int32LSB, including:
 				CardDeluxe, Gina24, Layla24, and M-Audio Delta Audiophile 2496
 				*/
-				if (!ar_asio_write_device_buffer(bufferInfos[i].buffers[index], lngAsioBufferSize, ptrStimulusData))
-					break;	// ???
-		//		    return 0L;
+				if (!ar_asio_write_device_buffer(bufferInfos[i].buffers[index], lngAsioBufferSize, output_audio))
+					break;
 				break;
 			default:
-				FDBUG((_arS, "Channel type is [%ld], and no provisions were made for this type.\n", channelInfos[i].type));
 				break;
-			} /* hciws */
-
-			ptrStimulusData++;			// point to next channel's output/stimulus structure
-
+			}
+			output_audio++;
 		}
 		else {
-			// INPUT (RESPONSE) buffer
-
 			switch (channelInfos[i].type) {
 			case ASIOSTInt32LSB:
-				if (!ar_asio_read_device_buffer(bufferInfos[i].buffers[index], lngAsioBufferSize, ptrResponseData))
-					break;	// ???
-		//		    return 0L;
+				if (!ar_asio_read_device_buffer(bufferInfos[i].buffers[index], lngAsioBufferSize, input_audio))
+					break;
 				break;
 			default:
-				FDBUG((_arS, "Channel type is [%ld], and no provisions were made for this type.\n", channelInfos[i].type));
 				break;
-			} /* hciws */
-
-			ptrResponseData++;				// point to next channel's input/response structure
-
-		} /* fi isInput */
-	} /* rof */
+			}
+			input_audio++;
+		}
+	}
 
 	// finally if the driver supports the ASIOOutputReady() optimization, do it here, all data are in place
 	if (sbolPostOutput)
@@ -1160,20 +1127,11 @@ ASIOTime* bufferSwitchTimeInfo(ASIOTime* timeInfo, long index, ASIOBool processN
 	return 0L;
 }
 
-//----------------------------------------------------------------------------------
-void bufferSwitch(long index, ASIOBool processNow)
-{	// the actual processing callback.
-	// Beware that this is normally in a seperate thread, hence be sure that you take care
-	// about thread synchronization. This is omitted here for simplicity.
-
+void bufferSwitch(long index, ASIOBool processNow) {
 	// as this is a "back door" into the bufferSwitchTimeInfo a timeInfo needs to be created
 	// though it will only set the timeInfo.samplePosition and timeInfo.systemTime fields and the according flags
 	ASIOTime  timeInfo;
 	memset(&timeInfo, 0, sizeof(timeInfo));
-
-	// get the time stamp of the buffer, not necessary if no
-	// synchronization to other media is required
-	// tone - it is kind of handy to see the counters . . . .
 	if (SDKAsioGetSamplePosition(&timeInfo.timeInfo.samplePosition, &timeInfo.timeInfo.systemTime))
 		timeInfo.timeInfo.flags = kSystemTimeValid | kSamplePositionValid;
 
@@ -1181,21 +1139,11 @@ void bufferSwitch(long index, ASIOBool processNow)
 }
 
 
-//----------------------------------------------------------------------------------
 void sampleRateChanged(ASIOSampleRate sRate)
 {
-	// do whatever you need to do if the sample rate changed
-	// usually this only happens during external sync.
-	// Audio processing is not stopped by the driver, actual sample rate
-	// might not have even changed, maybe only the sample rate status of an
-	// AES/EBU or S/PDIF digital input at the audio device.
-	// You might have to update time/sample related conversion routines, etc.
 }
 
-//----------------------------------------------------------------------------------
-long asioMessages(long selector, long value, void* message, double* opt)
-{
-	// currently the parameters "value", "message" and "opt" are not used.
+long asioMessages(long selector, long value, void* message, double* opt) {
 	long ret = 0;
 	switch (selector)
 	{
@@ -1257,5 +1205,3 @@ long asioMessages(long selector, long value, void* message, double* opt)
 }
 
 #endif // ASIO
-
-/**************************************************************************/
