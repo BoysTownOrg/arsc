@@ -400,7 +400,7 @@ _ar_asio_io_prepare(int32_t di)
 	The pointer "first_output_audio_of_current_segment" will point to the first (channel 0)
 	global_output_audio for the current segment.
 	*/
-	int32_t segments = ar_current_device->segswp;
+	size_t segments = ar_current_device->segswp;
 	if ((global_output_audio = calloc(ar_current_device->ncda * segments, sizeof(ArAsioOutputAudio))) == NULL)
 		return -1;
 
@@ -418,19 +418,16 @@ _ar_asio_io_prepare(int32_t di)
 		output_audio++;
 	}
 
-	// Fill global_input_audio (INPUT) blocks
-	ArAsioInputAudio* ptrResponseData = global_input_audio;				// Initialize
-	first_input_audio_of_current_segment = global_input_audio;			// Set to SEG0 CH0 to start.
+	ArAsioInputAudio* ptrResponseData = global_input_audio;
+	first_input_audio_of_current_segment = global_input_audio;
 	for (int32_t i = 0; i < ar_current_device->ncad * segments; i++) {
-		ptrResponseData->channel = i % ar_current_device->ncad;		// e.g. 0, 1, 0, 1, . . . 
-		ptrResponseData->segment = i / ar_current_device->ncad;		// segment number
+		ptrResponseData->channel = i % ar_current_device->ncad;
+		ptrResponseData->segment = i / ar_current_device->ncad;
 		ptrResponseData->data = ar_current_device->i_data[i];
-		ptrResponseData->Index = 0;				// initialize to the first sample
+		ptrResponseData->Index = 0;
 		ptrResponseData->size = ar_current_device->sizptr[i / ar_current_device->ncad];
-
 		// Only segment 0 need be concerned with latency
 		ptrResponseData->LatencyReached = (ptrResponseData->segment != 0);
-
 		ptrResponseData++;
 	}
 

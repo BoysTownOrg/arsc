@@ -44,6 +44,8 @@ static void setup(void) {
 
 static void teardown(void) {
 	free_device(device_index);
+	free(global_input_audio);
+	free(global_output_audio);
 }
 
 static void io_prepare(void) {
