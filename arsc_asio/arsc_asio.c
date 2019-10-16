@@ -51,7 +51,6 @@ static ArAsioInputAudio* global_input_audio;   // pointer to the main response b
 static ArAsioInputAudio* first_input_audio_of_current_segment;   // Points to the current segment response (channel 0)
 static long	preferred_buffer_size;   // Returned by the driver
 static long	total_input_and_output_channels = 0;   // Need the total number of used input and output channels
-static long	slngTotalPossibleChannels = 0;  // Total possible channels
 static long	slngInputLatency, slngOutputLatency;  // Latencies as polled from the card.
 static bool	sbolPostOutput = false;  // flag - true if driver uses ASIOOutputReady optimization
 static bool	sbolBuffersCreated = false; // flag - true if buffers have been created
@@ -98,14 +97,9 @@ static int32_t pPollAsioDrivers(void);
 static int32_t pLockAndLoadImpl(int32_t aintDevice);
 static int32_t pBuildVirtualDevices(int32_t aintDriver);
 
-/*
-_ar_asio_num_dev_impl - return number of ASIO devices
-*/
-
 static int32_t
 ar_asio_devices_impl()
 {
-
 	// Has the number of devices already been polled?
 	if (asio_device_count > 0) {
 		FDBUG((_arS, "_ar_asio_dev_name(): Already have number of devices [%d]\n", asio_device_count));
@@ -181,8 +175,6 @@ _ar_asio_list_rates(int32_t di)
 
 int32_t(*ar_asio_list_rates)(int32_t) = _ar_asio_list_rates;
 
-/* _ar_asio_io_stop - stop I/O */
-
 static void
 _ar_asio_io_stop(int32_t di)
 {
@@ -193,17 +185,10 @@ _ar_asio_io_stop(int32_t di)
 		SDKAsioStop();
 		driver_has_started = false;
 	}
-
-	// Let the calling window know that we are done.
-	if (_arsc_wind)
-		PostMessage((HWND)_arsc_wind, WM_ARSC, AM_Stopped, device_identifier_offset);
 }
 
 void (*ar_asio_io_stop)(int32_t) = _ar_asio_io_stop;
 
-/*
-_ar_asio_close - close I/O device
-*/
 static void
 _ar_asio_close(int32_t di) {
 
@@ -243,7 +228,6 @@ _ar_asio_close(int32_t di) {
 
 	// Clear resp blocks
 	if (global_output_audio != NULL) {
-		global_input_audio->Magic = 0;	// Indentification for debugging
 		free(global_input_audio);
 		global_input_audio = NULL;
 	}
@@ -254,12 +238,10 @@ _ar_asio_close(int32_t di) {
 		SDKAsioExit();
 	}
 
-	sintAsioIntializedDriver = -1;										// Let 'em know driver is unloaded
+	sintAsioIntializedDriver = -1;
 }
 
 void (*ar_asio_close)(int32_t) = _ar_asio_close;
-
-/* _ar_asio_open - open I/O device */
 
 int32_t _ar_asio_open(int32_t di)
 {
@@ -330,11 +312,9 @@ int32_t _ar_asio_open(int32_t di)
 
 	// Figure out the channel offset in case there are multiple ASIO cards.
 	// Count all "devices" up to the card in question.
-	for (int32_t i = 0; i < sintAsioIntializedDriver; i++) {
-		if (asio_drivers[i].valid) {
+	for (int32_t i = 0; i < sintAsioIntializedDriver; i++)
+		if (asio_drivers[i].valid)
 			intChannelOffset += asio_drivers[i].devices;
-		}
-	}
 	intChannelOffset = (di - device_identifier_offset) - intChannelOffset;
 	FDBUG((_arS, "Channel Offset [%d]\n", intChannelOffset));
 
@@ -976,7 +956,7 @@ int32_t pBuildVirtualDevices(int32_t aintDriver) {
 		FDBUG((_arS, "GetChannels failed\n"));
 		return 0;
 	}
-	slngTotalPossibleChannels = max_input_channels + max_output_channels;
+	long slngTotalPossibleChannels = max_input_channels + max_output_channels;
 
 
 	// Allocate enough memory for every channel info, but only until we get the device information
@@ -1039,7 +1019,7 @@ int32_t pLockAndLoadImpl(int32_t aintDevice) {
 	else {
 		FDBUG((_arS, "MaxInputChannels [%d] MaxOutputChannels [%d]\n", max_input_channels, max_output_channels));
 	}
-	slngTotalPossibleChannels = max_input_channels + max_output_channels;
+	long slngTotalPossibleChannels = max_input_channels + max_output_channels;
 
 	// Allocate enough memory for every channel info
 	if ((channelInfos = (ASIOChannelInfo*)calloc(slngTotalPossibleChannels, sizeof(ASIOChannelInfo))) == NULL)
