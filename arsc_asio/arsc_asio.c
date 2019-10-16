@@ -44,7 +44,7 @@ ASIOBufferInfo* bufferInfos = NULL;  // Pointer to array of bufferInfos; one for
 static ASIOChannelInfo* channelInfos = NULL; // Pointer to array of channelInfos; one for each channel (input + output)
 ArAsioOutputAudio* global_output_audio;   // pointer to the main stimulus block
 static ArAsioOutputAudio* first_output_audio_of_current_segment;   // Points to the current segment stimulus (channel 0)
-static ArAsioInputAudio* global_input_audio;   // pointer to the main response block
+ArAsioInputAudio* global_input_audio;   // pointer to the main response block
 static ArAsioInputAudio* first_input_audio_of_current_segment;   // Points to the current segment response (channel 0)
 static long	preferred_buffer_size;   // Returned by the driver
 static long	total_input_and_output_channels = 0;   // Need the total number of used input and output channels
@@ -404,7 +404,7 @@ _ar_asio_io_prepare(int32_t di)
 	if ((global_output_audio = calloc(ar_current_device->ncda * segments, sizeof(ArAsioOutputAudio))) == NULL)
 		return -1;
 
-	if ((global_input_audio = (ArAsioInputAudio*)calloc(ar_current_device->ncad * segments, sizeof(ArAsioInputAudio))) == NULL)
+	if ((global_input_audio = calloc(ar_current_device->ncad * segments, sizeof(ArAsioInputAudio))) == NULL)
 		return -1;
 
 	ArAsioOutputAudio* output_audio = global_output_audio;
