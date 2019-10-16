@@ -2,7 +2,8 @@
 #include "arsc_asio_tests_common.h"
 
 enum {
-	sufficiently_large = 100
+	sufficiently_large = 100,
+	device_index = 0
 };
 
 static void* output_buffers[sufficiently_large];
@@ -29,17 +30,20 @@ static void assign_device_sizes(int device, int32_t* sizes) {
 	devices(device)->sizptr = sizes;
 }
 
-static void setup_io_prepare(void) {
-	allocate_device(0);
-	assign_device_input_channels(0, 0);
-	assign_device_segments(0, 1);
-	assign_device_output_buffers(0, output_buffers);
-	assign_device_sizes(0, buffer_size);
-	assign_device_input_buffers(0, input_buffers);
+static void set_segments(int32_t n) {
+	assign_device_segments(device_index, n);
 }
 
-static void teardown_io_prepare(void) {
-	free_device(0);
+static void setup(void) {
+	allocate_device(device_index);
+	set_segments(1);
+	assign_device_sizes(device_index, buffer_size);
+	assign_device_output_buffers(device_index, output_buffers);
+	assign_device_input_buffers(device_index, input_buffers);
+}
+
+static void teardown(void) {
+	free_device(device_index);
 }
 
 static void io_prepare(void) {
@@ -78,11 +82,19 @@ static int32_t* global_input_audio_data(int i) {
 	return global_input_audio_(i)->data;
 }
 
-#define ASSERT_OUTPUT_AUDIO_BUFFER(a, b)\
-	ASSERT_EQUAL_ANY(a, global_output_audio_data(b));
+static void set_output_channels(int32_t n) {
+	assign_device_output_channels(device_index, n);
+}
 
-#define ASSERT_INPUT_AUDIO_BUFFER(a, b)\
-	ASSERT_EQUAL_ANY(a, global_input_audio_data(b));
+static void set_input_channels(int32_t n) {
+	assign_device_input_channels(device_index, n);
+}
+
+#define ASSERT_OUTPUT_AUDIO_AT_BUFFER(a, b)\
+	ASSERT_EQUAL_ANY(b, global_output_audio_data(a));
+
+#define ASSERT_INPUT_AUDIO_AT_BUFFER(a, b)\
+	ASSERT_EQUAL_ANY(b, global_input_audio_data(a));
 
 #define ASSERT_OUTPUT_AUDIO_AT_SIZE(a, b)\
 	ASSERT_EQUAL_ANY(b, global_output_audio_(a)->size)
@@ -97,8 +109,8 @@ static int32_t* global_input_audio_data(int i) {
 	ASSERT_EQUAL_ANY(b, global_output_audio_(a)->Index)
 
 START_TEST(io_prepare_initializes_output_audio) {
-	assign_device_output_channels(0, 2);
-	assign_device_segments(0, 3);
+	set_output_channels(2);
+	set_segments(3);
 	assign_output_buffer_size(0, 4);
 	assign_output_buffer_size(1, 5);
 	assign_output_buffer_size(2, 6);
@@ -135,7 +147,7 @@ START_TEST(io_prepare_initializes_output_audio) {
 }
 
 START_TEST(io_prepare_initializes_output_audio_data) {
-	assign_device_output_channels(0, 3);
+	set_output_channels(3);
 	int32_t first;
 	assign_output_buffer(0, &first);
 	int32_t second;
@@ -145,13 +157,13 @@ START_TEST(io_prepare_initializes_output_audio_data) {
 
 	io_prepare();
 
-	ASSERT_OUTPUT_AUDIO_BUFFER(&first, 0);
-	ASSERT_OUTPUT_AUDIO_BUFFER(&second, 1);
-	ASSERT_OUTPUT_AUDIO_BUFFER(&third, 2);
+	ASSERT_OUTPUT_AUDIO_AT_BUFFER(0, &first);
+	ASSERT_OUTPUT_AUDIO_AT_BUFFER(1, &second);
+	ASSERT_OUTPUT_AUDIO_AT_BUFFER(2, &third);
 }
 
 START_TEST(io_prepare_initializes_input_audio_data) {
-	assign_device_input_channels(0, 3);
+	set_input_channels(3);
 	int32_t first;
 	assign_input_buffer(0, &first);
 	int32_t second;
@@ -161,15 +173,15 @@ START_TEST(io_prepare_initializes_input_audio_data) {
 
 	io_prepare();
 
-	ASSERT_INPUT_AUDIO_BUFFER(&first, 0);
-	ASSERT_INPUT_AUDIO_BUFFER(&second, 1);
-	ASSERT_INPUT_AUDIO_BUFFER(&third, 2);
+	ASSERT_INPUT_AUDIO_AT_BUFFER(0, &first);
+	ASSERT_INPUT_AUDIO_AT_BUFFER(1, &second);
+	ASSERT_INPUT_AUDIO_AT_BUFFER(2, &third);
 }
 
 Suite* arsc_asio_io_prepare_suite() {
 	Suite* suite = suite_create("arsc_asio_io_prepare");
 	TCase* io_prepare_test_case = tcase_create("io_prepare");
-	tcase_add_checked_fixture(io_prepare_test_case, setup_io_prepare, teardown_io_prepare);
+	tcase_add_checked_fixture(io_prepare_test_case, setup, teardown);
 	add_test(io_prepare_test_case, io_prepare_initializes_output_audio);
 	add_test(io_prepare_test_case, io_prepare_initializes_output_audio_data);
 	add_test(io_prepare_test_case, io_prepare_initializes_input_audio_data);
