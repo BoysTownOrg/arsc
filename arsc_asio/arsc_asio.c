@@ -59,11 +59,6 @@ static bool	driver_has_started = false;  // flag - true if driver is started
 static int32_t sintTotalSamples = 0;  // Total samples processed
 static long	slngLatencyOffset = 0;  // LatencyOffset specified by app
 static int32_t sintSegmentFinished = 0; // semaphore-like variable to tell when segment is finished
-static FILE* fhResponse0 = NULL;
-static FILE* fhStimulus0 = NULL;
-static FILE* fhResponse1 = NULL;
-static FILE* fhStimulus1 = NULL;
-static FILE* fhBD = NULL;
 static int32_t	good_sample_rates;
 ARDEV* ar_current_device;
 
@@ -99,7 +94,6 @@ void bufferSwitch(long index, ASIOBool processNow);
 ASIOTime* bufferSwitchTimeInfo(ASIOTime* timeInfo, long index, ASIOBool processNow);
 void sampleRateChanged(ASIOSampleRate sRate);
 long asioMessages(long selector, long value, void* message, double* opt);
-static int32_t pWriteBufferDemarcation(int32_t aintChunkSize, int32_t aintAbsAmplitude);
 static int32_t pPollAsioDrivers(void);
 static int32_t pLockAndLoadImpl(int32_t aintDevice);
 static int32_t pBuildVirtualDevices(int32_t aintDriver);
@@ -214,17 +208,6 @@ static void
 _ar_asio_close(int32_t di) {
 
 	FDBUG((_arS, "_ar_asio_close(): sintAsioIntializedDriver is [%d] and di is [%d].\n", sintAsioIntializedDriver, di));
-
-	if (fhResponse0)
-		fclose(fhResponse0);
-	if (fhStimulus0)
-		fclose(fhStimulus0);
-	if (fhResponse1)
-		fclose(fhResponse1);
-	if (fhStimulus1)
-		fclose(fhStimulus1);
-	if (fhBD)
-		fclose(fhBD);
 
 	// Stop the driver if it is running
 	if (driver_has_started) {
@@ -655,7 +638,7 @@ static void copy(int32_t* destination, int32_t* source, int32_t count) {
 	memcpy(destination, source, count * sizeof(int32_t));
 }
 
-static void update_if_last_channel(ArAsioOutputAudio* audio) {
+static void update_if_last_output_channel(ArAsioOutputAudio* audio) {
 	if (is_last_output_channel(audio)) {
 		// If there are no input channels, the out channel determines the segment end
 		if (!ar_current_device->a_ncad)
@@ -675,7 +658,7 @@ int32_t ar_asio_write_device_buffer(int32_t* destination, int32_t size, ArAsioOu
 		copied += to_copy;
 		audio->Index += to_copy;
 		if (output_is_exhausted(audio)) {
-			update_if_last_channel(audio);
+			update_if_last_output_channel(audio);
 			int32_t output_channels = ar_current_device->a_ncda;
 			audio += is_last_output_segment(audio)
 				? -output_channels * (ar_current_device->segswp - 1)
@@ -692,9 +675,6 @@ The response buffer is filled by the sound card.
 
 Line up the input (response) waveform to the output (stimulus) wave form.
 Any samples due to device latency are skipped.
-
-The BYPASS compiler directive will send the raw INPUT data.  This is
-only for testing, only.
 */
 int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAudio* audio) {
 	int32_t copied = 0;
@@ -762,43 +742,6 @@ int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAud
 		else
 			return 1;
 	}
-}
-
-
-/*
-This writes a file with a single sample of amplitude aintAbsAmplitude
-whenever the buffer switches.  This is used for reference in MATLAB plotting
-of input and output waveforms.
-
-Typically aintAbsAmplitude is SCALE_32BIT, but sometimes needs to be dropped
-down to SCALE_24BIT depending upon the input/output waveform amplitude(s).
-*/
-int32_t pWriteBufferDemarcation(int32_t aintChunkSize, int32_t aintAbsAmplitude) {
-
-	int32_t* ptrBlock;
-	int32_t* ptrInteger;
-	int32_t		intNumWritten;
-
-	// Allocate memory for exactly one buffer-width chunk.
-	if ((ptrBlock = (int32_t*)calloc(aintChunkSize, sizeof(int32_t))) == NULL)
-		return -1;
-
-	// Fill this memory with zeros
-	memset(ptrBlock, 0, aintChunkSize * sizeof(int32_t));
-
-	// Give the first one a large value
-	ptrInteger = ptrBlock;
-	*ptrInteger = aintAbsAmplitude;
-
-	// Give the last one a negative large value
-	//Inc ( ptrInteger, aintChunkSize - 1 );
-	//ptrInteger^ := - aintAbsAmplitude;
-
-	intNumWritten = (int32_t)fwrite(ptrBlock, sizeof(int32_t), aintChunkSize, fhBD);
-
-	free(ptrBlock);
-
-	return 1;
 }
 
 static long
