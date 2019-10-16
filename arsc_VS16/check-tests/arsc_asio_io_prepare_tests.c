@@ -52,30 +52,30 @@ static void assign_output_buffer(int i, void* buffer) {
 	assign_pointer_array(output_buffers, i, buffer);
 }
 
-static ArAsioOutputAudio* global_asio_segment_(int i) {
+static ArAsioOutputAudio* global_output_audio_(int i) {
 	return global_output_audio + i;
 }
 
-static int32_t* global_asio_segment_data(int i) {
-	return global_asio_segment_(i)->data;
+static int32_t* global_output_audio_data(int i) {
+	return global_output_audio_(i)->data;
 }
 
-#define ASSERT_SEGMENT_BUFFER(a, b)\
-	ASSERT_EQUAL_ANY(a, global_asio_segment_data(b));
+#define ASSERT_OUTPUT_AUDIO_BUFFER(a, b)\
+	ASSERT_EQUAL_ANY(a, global_output_audio_data(b));
 
-#define ASSERT_SEGMENT_SAMPLES(a, b)\
-	ASSERT_EQUAL_ANY(a, global_asio_segment_(b)->size)
+#define ASSERT_OUTPUT_AUDIO_SAMPLES(a, b)\
+	ASSERT_EQUAL_ANY(a, global_output_audio_(b)->size)
 
-#define ASSERT_SEGMENT_SEGMENT(a, b)\
-	ASSERT_EQUAL_ANY(a, global_asio_segment_(b)->segment)
+#define ASSERT_OUTPUT_AUDIO_SEGMENT(a, b)\
+	ASSERT_EQUAL_ANY(a, global_output_audio_(b)->segment)
 
-#define ASSERT_SEGMENT_CHANNEL(a, b)\
-	ASSERT_EQUAL_ANY(a, global_asio_segment_(b)->channel)
+#define ASSERT_OUTPUT_AUDIO_CHANNEL(a, b)\
+	ASSERT_EQUAL_ANY(a, global_output_audio_(b)->channel)
 
-#define ASSERT_SEGMENT_INDEX(a, b)\
-	ASSERT_EQUAL_ANY(a, global_asio_segment_(b)->Index)
+#define ASSERT_OUTPUT_AUDIO_INDEX(a, b)\
+	ASSERT_EQUAL_ANY(a, global_output_audio_(b)->Index)
 
-START_TEST(io_prepare_initializes_segments) {
+START_TEST(io_prepare_initializes_output_audio) {
 	assign_device_output_channels(0, 2);
 	assign_device_segments(0, 3);
 	assign_output_buffer_size(0, 4);
@@ -84,36 +84,36 @@ START_TEST(io_prepare_initializes_segments) {
 
 	io_prepare();
 
-	ASSERT_SEGMENT_SAMPLES(4, 0);
-	ASSERT_SEGMENT_SAMPLES(4, 1);
-	ASSERT_SEGMENT_SAMPLES(5, 2);
-	ASSERT_SEGMENT_SAMPLES(5, 3);
-	ASSERT_SEGMENT_SAMPLES(6, 4);
-	ASSERT_SEGMENT_SAMPLES(6, 5);
+	ASSERT_OUTPUT_AUDIO_SAMPLES(4, 0);
+	ASSERT_OUTPUT_AUDIO_SAMPLES(4, 1);
+	ASSERT_OUTPUT_AUDIO_SAMPLES(5, 2);
+	ASSERT_OUTPUT_AUDIO_SAMPLES(5, 3);
+	ASSERT_OUTPUT_AUDIO_SAMPLES(6, 4);
+	ASSERT_OUTPUT_AUDIO_SAMPLES(6, 5);
 
-	ASSERT_SEGMENT_SEGMENT(0, 0);
-	ASSERT_SEGMENT_SEGMENT(0, 1);
-	ASSERT_SEGMENT_SEGMENT(1, 2);
-	ASSERT_SEGMENT_SEGMENT(1, 3);
-	ASSERT_SEGMENT_SEGMENT(2, 4);
-	ASSERT_SEGMENT_SEGMENT(2, 5);
+	ASSERT_OUTPUT_AUDIO_SEGMENT(0, 0);
+	ASSERT_OUTPUT_AUDIO_SEGMENT(0, 1);
+	ASSERT_OUTPUT_AUDIO_SEGMENT(1, 2);
+	ASSERT_OUTPUT_AUDIO_SEGMENT(1, 3);
+	ASSERT_OUTPUT_AUDIO_SEGMENT(2, 4);
+	ASSERT_OUTPUT_AUDIO_SEGMENT(2, 5);
 
-	ASSERT_SEGMENT_CHANNEL(0, 0);
-	ASSERT_SEGMENT_CHANNEL(1, 1);
-	ASSERT_SEGMENT_CHANNEL(0, 2);
-	ASSERT_SEGMENT_CHANNEL(1, 3);
-	ASSERT_SEGMENT_CHANNEL(0, 4);
-	ASSERT_SEGMENT_CHANNEL(1, 5);
+	ASSERT_OUTPUT_AUDIO_CHANNEL(0, 0);
+	ASSERT_OUTPUT_AUDIO_CHANNEL(1, 1);
+	ASSERT_OUTPUT_AUDIO_CHANNEL(0, 2);
+	ASSERT_OUTPUT_AUDIO_CHANNEL(1, 3);
+	ASSERT_OUTPUT_AUDIO_CHANNEL(0, 4);
+	ASSERT_OUTPUT_AUDIO_CHANNEL(1, 5);
 
-	ASSERT_SEGMENT_INDEX(0, 0);
-	ASSERT_SEGMENT_INDEX(0, 1);
-	ASSERT_SEGMENT_INDEX(0, 2);
-	ASSERT_SEGMENT_INDEX(0, 3);
-	ASSERT_SEGMENT_INDEX(0, 4);
-	ASSERT_SEGMENT_INDEX(0, 5);
+	ASSERT_OUTPUT_AUDIO_INDEX(0, 0);
+	ASSERT_OUTPUT_AUDIO_INDEX(0, 1);
+	ASSERT_OUTPUT_AUDIO_INDEX(0, 2);
+	ASSERT_OUTPUT_AUDIO_INDEX(0, 3);
+	ASSERT_OUTPUT_AUDIO_INDEX(0, 4);
+	ASSERT_OUTPUT_AUDIO_INDEX(0, 5);
 }
 
-START_TEST(io_prepare_initializes_segment_data) {
+START_TEST(io_prepare_initializes_output_audio_data) {
 	assign_device_output_channels(0, 3);
 	int32_t first;
 	assign_output_buffer(0, &first);
@@ -124,17 +124,17 @@ START_TEST(io_prepare_initializes_segment_data) {
 
 	io_prepare();
 
-	ASSERT_SEGMENT_BUFFER(&first, 0);
-	ASSERT_SEGMENT_BUFFER(&second, 1);
-	ASSERT_SEGMENT_BUFFER(&third, 2);
+	ASSERT_OUTPUT_AUDIO_BUFFER(&first, 0);
+	ASSERT_OUTPUT_AUDIO_BUFFER(&second, 1);
+	ASSERT_OUTPUT_AUDIO_BUFFER(&third, 2);
 }
 
 Suite* arsc_asio_io_prepare_suite() {
 	Suite* suite = suite_create("arsc_asio_io_prepare");
 	TCase* io_prepare_test_case = tcase_create("io_prepare");
 	tcase_add_checked_fixture(io_prepare_test_case, setup_io_prepare, teardown_io_prepare);
-	add_test(io_prepare_test_case, io_prepare_initializes_segments);
-	add_test(io_prepare_test_case, io_prepare_initializes_segment_data);
+	add_test(io_prepare_test_case, io_prepare_initializes_output_audio);
+	add_test(io_prepare_test_case, io_prepare_initializes_output_audio_data);
 	suite_add_tcase(suite, io_prepare_test_case);
 	return suite;
 }
