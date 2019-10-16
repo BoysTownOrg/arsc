@@ -1,6 +1,9 @@
 #include "arsc_asio_tests_common.h"
 #include "arsc_asio_write_device_buffer_tests.h"
 #include <stdlib.h>
+#include <process.h>
+#include <synchapi.h>
+#include <winnt.h>
 
 enum {
 	sufficiently_large = 100,
@@ -287,6 +290,34 @@ START_TEST(write_device_buffer_two_segments_three_channels) {
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(4, 15);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(5, 16);
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(6, 17);
+}
+
+static LONG exit_client = 0;
+
+static void client(void *ignored) {
+	while (1) {
+		_ar_asio_chk_seg(device_index, 0);
+		if (InterlockedCompareExchange(&exit_client, 0, 1))
+			return;
+	}
+}
+
+static void audio_thread(void* ignored) {
+	write_device_buffer_(buffer_count - 1);
+	InterlockedIncrement(&exit_client);
+}
+
+START_TEST(tbd) {
+	HANDLE client_handle = (HANDLE)_beginthread(client, 0, NULL);
+	HANDLE audio_handle = (HANDLE)_beginthread(audio_thread, 0, NULL);
+	WaitForSingleObject(audio_handle, INFINITE);
+	WaitForSingleObject(client_handle, INFINITE);
+	ASSERT_EQUAL_ANY(0, _ar_asio_chk_seg(device_index, 0));
+	client_handle = (HANDLE)_beginthread(client, 0, NULL);
+	audio_handle = (HANDLE)_beginthread(audio_thread, 0, NULL);
+	WaitForSingleObject(audio_handle, INFINITE);
+	WaitForSingleObject(client_handle, INFINITE);
+	ASSERT_EQUAL_ANY(1, _ar_asio_chk_seg(device_index, 0));
 }
 
 Suite* arsc_asio_write_device_buffer_suite() {

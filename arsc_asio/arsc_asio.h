@@ -47,6 +47,7 @@ extern ARDEV* ar_current_device;
 
 int32_t _ar_asio_open(int32_t);
 int32_t _ar_asio_io_prepare(int32_t);
+int32_t _ar_asio_chk_seg(int32_t di, int32_t b);
 int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t aintBufferSize, ArAsioOutputAudio* ptrStimulusData);
 int32_t ar_asio_read_device_buffer(int32_t* buffer, int32_t aintBufferSize, ArAsioInputAudio* ptrStimulusData);
 

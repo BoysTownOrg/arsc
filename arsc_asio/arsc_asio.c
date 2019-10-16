@@ -446,8 +446,7 @@ _ar_asio_xfer_seg(int32_t di, int32_t b)
 
 int32_t(*ar_asio_transfer_segment)(int32_t, int32_t) = _ar_asio_xfer_seg;
 
-static int32_t
-_ar_asio_chk_seg(int32_t di, int32_t b)
+int32_t _ar_asio_chk_seg(int32_t di, int32_t b)
 {
 	/*
 	This function will tell the current segment that is running.
