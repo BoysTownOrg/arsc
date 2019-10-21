@@ -85,10 +85,6 @@ static void assign_device_output_channels(int device, int32_t channels) {
 static void setup(void) {
 	allocate_device(0);
 	allocate_device(1);
-	assign_device_input_channels(0, -2);
-	assign_device_input_channels(1, -2);
-	assign_device_output_channels(0, -2);
-	assign_device_output_channels(1, -2);
 	devices_restore = ar_asio_devices;
 	device_name_restore = ar_asio_device_name;
 	io_stop_restore = ar_asio_io_stop;

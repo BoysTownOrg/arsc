@@ -11,11 +11,15 @@ static bool (*SDKAsioGetBufferSizeRestore)(
 	long* alngMaxBufferSize,
 	long* aslngPreferredBufferSize,
 	long* alngGranularity
-	);
+);
+static bool (*SDKAsioCreateBuffersRestore)(
+	ASIOBufferInfo* bufferInfos,
+	long numChannels,
+	long bufferSize,
+	ASIOCallbacks* callbacks
+);
+static bool (*SDKAsioGetLatenciesRestore)(long* inputLatency, long* outputLatency);
 
-static int32_t device_count;
-static char* device_name;
-static int32_t opened_device;
 static int32_t rates;
 static int32_t list_rates_device;
 
@@ -47,6 +51,24 @@ static int32_t pLockAndLoadStub(int32_t device) {
 	return 1;
 }
 
+static bool SDKAsioCreateBuffersStub(
+	ASIOBufferInfo* bufferInfo,
+	long numChannels,
+	long bufferSize,
+	ASIOCallbacks* callbacks
+) {
+	bufferInfo;
+	numChannels;
+	bufferSize;
+	callbacks;
+	return 1;
+}
+
+static bool SDKAsioGetLatenciesStub(long* inputLatency, long* outputLatency) {
+	inputLatency;
+	outputLatency;
+	return 1;
+}
 static void assign_device_input_channels(int device, int32_t channels) {
 	devices(device)->ncad = channels;
 }
@@ -66,10 +88,14 @@ static void setup(void) {
 	pLockAndLoadRestore = pLockAndLoad;
 	SDKAsioSetSampleRateRestore = SDKAsioSetSampleRate;
 	SDKAsioGetBufferSizeRestore = SDKAsioGetBufferSize;
+	SDKAsioCreateBuffersRestore = SDKAsioCreateBuffers;
+	SDKAsioGetLatenciesRestore = SDKAsioGetLatencies;
 	ar_asio_list_rates = list_rates_stub;
 	pLockAndLoad = pLockAndLoadStub;
 	SDKAsioSetSampleRate = SDKAsioSetSampleRateStub;
 	SDKAsioGetBufferSize = SDKAsioGetBufferSizeStub;
+	SDKAsioCreateBuffers = SDKAsioCreateBuffersStub;
+	SDKAsioGetLatencies = SDKAsioGetLatenciesStub;
 }
 
 static void teardown(void) {
@@ -77,6 +103,8 @@ static void teardown(void) {
 	pLockAndLoad = pLockAndLoadRestore;
 	SDKAsioSetSampleRate = SDKAsioSetSampleRateRestore;
 	SDKAsioGetBufferSize = SDKAsioGetBufferSizeRestore;
+	SDKAsioCreateBuffers = SDKAsioCreateBuffersRestore;
+	SDKAsioGetLatencies = SDKAsioGetLatenciesRestore;
 	free_device(0);
 	free_device(1);
 }
@@ -87,18 +115,6 @@ static int32_t open_device(int32_t n) {
 
 static int32_t open() {
 	return open_device(0);
-}
-
-static void set_devices(int32_t n) {
-	device_count = n;
-}
-
-static void set_nonzero_devices(void) {
-	set_devices(1);
-}
-
-static ARDVT device_types(int32_t device_type) {
-	return _ardvt[device_type];
 }
 
 static ASIOBufferInfo* bufferInfo_(int i) {
