@@ -143,6 +143,10 @@ for (int i = a; i < b; ++i)\
 
 #define ASSERT_BUFFER_INFO_CHANNEL_NUMBER(a, b) ASSERT_EQUAL_ANY(a, bufferInfoChannelNumber(b))
 
+START_TEST(open_returns_zero_on_success) {
+	ASSERT_EQUAL_ANY(0, open());
+}
+
 START_TEST(open_assigns_good_sample_rates) {
 	rates = 1;
 	open();
@@ -171,6 +175,7 @@ Suite* arsc_asio_open_device_suite() {
 	Suite* suite = suite_create("arsc_asio_open_device");
 	TCase* test_case = tcase_create("open_device");
 	tcase_add_checked_fixture(test_case, setup, teardown);
+	add_test(test_case, open_returns_zero_on_success);
 	add_test(test_case, open_assigns_good_sample_rates);
 	add_test(test_case, open_passes_device_to_list_rates);
 	add_test(test_case, open_initializes_buffer_infos);
