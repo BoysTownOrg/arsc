@@ -1,4 +1,4 @@
-#include "arsc_asio_bind_and_open_tests.h"
+#include "arsc_asio_bind_tests.h"
 #include "arsc_asio_read_device_buffer_tests.h"
 #include "arsc_asio_write_device_buffer_tests.h"
 #include "arsc_asio_io_prepare_tests.h"

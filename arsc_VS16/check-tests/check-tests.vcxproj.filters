@@ -30,10 +30,10 @@
     <ClCompile Include="arsc_asio_read_device_buffer_tests.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="arsc_asio_bind_and_open_tests.c">
+    <ClCompile Include="arsc_asio_open_device_tests.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="arsc_asio_open_device_tests.c">
+    <ClCompile Include="arsc_asio_bind_tests.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -50,10 +50,10 @@
     <ClInclude Include="arsc_asio_read_device_buffer_tests.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="arsc_asio_bind_and_open_tests.h">
+    <ClInclude Include="arsc_asio_open_device_tests.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="arsc_asio_open_device_tests.h">
+    <ClInclude Include="arsc_asio_bind_tests.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
