@@ -402,30 +402,6 @@ START_TEST(bind_assigns_latency_to_device_type_one_when_nonzero_devices) {
 	ASSERT_BIND_ASSIGNS_LATENCY_IMPL_WHEN_NONZERO_DEVICES(1);
 }
 
-START_TEST(open_assigns_good_sample_rates) {
-	rates = 1;
-	open();
-	ASSERT_EQUAL_ANY(1, devices(0)->gdsr);
-}
-
-START_TEST(open_passes_device_to_list_rates) {
-	open_device(1);
-	ASSERT_EQUAL_ANY(1, list_rates_device);
-}
-
-START_TEST(open_initializes_buffer_infos) {
-	set_device_desired_output_channels(1, 2);
-	set_device_desired_input_channels(1, 3);
-	open_device(1);
-	ASSERT_BUFFER_INFO_IS_INPUT_FOR_DEVICE_RANGE(0, 2);
-	ASSERT_BUFFER_INFO_IS_OUTPUT_FOR_DEVICE_RANGE(2, 2 + 3);
-	ASSERT_BUFFER_INFO_CHANNEL_NUMBER(0, 0);
-	ASSERT_BUFFER_INFO_CHANNEL_NUMBER(1, 1);
-	ASSERT_BUFFER_INFO_CHANNEL_NUMBER(0, 2);
-	ASSERT_BUFFER_INFO_CHANNEL_NUMBER(1, 3);
-	ASSERT_BUFFER_INFO_CHANNEL_NUMBER(2, 4);
-}
-
 Suite* arsc_asio_test_suite() {
 	Suite* suite = suite_create("arsc_asio_bind_and_open");
 	TCase* test_case = tcase_create("bind_and_open");
@@ -453,9 +429,6 @@ Suite* arsc_asio_test_suite() {
 	add_test(test_case, bind_assigns_check_segment_to_device_type_one_when_nonzero_devices);
 	add_test(test_case, bind_assigns_latency_to_device_type_zero_when_nonzero_devices);
 	add_test(test_case, bind_assigns_latency_to_device_type_one_when_nonzero_devices);
-	add_test(test_case, open_assigns_good_sample_rates);
-	add_test(test_case, open_passes_device_to_list_rates);
-	add_test(test_case, open_initializes_buffer_infos);
 	suite_add_tcase(suite, test_case);
 	return suite;
 }

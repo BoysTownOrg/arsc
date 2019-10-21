@@ -160,9 +160,11 @@
     <ClCompile Include="arsc_asio_tests_common.c" />
     <ClCompile Include="arsc_asio_write_device_buffer_tests.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="arsc_asio_open_device_tests.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="arsc_asio_io_prepare_tests.h" />
+    <ClInclude Include="arsc_asio_open_device_tests.h" />
     <ClInclude Include="arsc_asio_read_device_buffer_tests.h" />
     <ClInclude Include="arsc_asio_bind_and_open_tests.h" />
     <ClInclude Include="arsc_asio_tests_common.h" />
