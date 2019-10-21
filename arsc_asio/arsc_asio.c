@@ -68,13 +68,13 @@ bool SDKAsioGetBufferSizeImpl(long* alngMinBufferSize,
 	long* aslngPreferredBufferSize,
 	long* alngGranularity);
 bool SDKAsioGetChannelInfo(ASIOChannelInfo* info);
-bool SDKAsioCreateBuffers(ASIOBufferInfo* bufferInfos,
+bool SDKAsioCreateBuffersImpl(ASIOBufferInfo* bufferInfos,
 	long numChannels,
 	long bufferSize,
 	ASIOCallbacks* callbacks);
-bool SDKAsioOutputReady();
+bool SDKAsioOutputReadyImpl();
 bool SDKAsioGetSamplePosition(ASIOSamples* sPos, ASIOTimeStamp* tStamp);
-bool SDKAsioGetLatencies(long* inputLatency, long* outputLatency);
+bool SDKAsioGetLatenciesImpl(long* inputLatency, long* outputLatency);
 bool SDKAsioDisposeBuffers(void);
 bool SDKAsioStop(void);
 bool SDKAsioStart(void);
@@ -86,6 +86,15 @@ bool (*SDKAsioGetBufferSize)(
 	long* aslngPreferredBufferSize,
 	long* alngGranularity
 	) = SDKAsioGetBufferSizeImpl;
+bool (*SDKAsioOutputReady)() = SDKAsioOutputReadyImpl;
+bool (*SDKAsioCreateBuffers)(
+	ASIOBufferInfo* bufferInfos,
+	long numChannels,
+	long bufferSize,
+	ASIOCallbacks* callbacks
+) = SDKAsioCreateBuffersImpl;
+bool (*SDKAsioGetLatencies)(long* inputLatency, long* outputLatency) = SDKAsioGetLatenciesImpl;
+
 void bufferSwitch(long index, ASIOBool processNow);
 ASIOTime* bufferSwitchTimeInfo(ASIOTime* timeInfo, long index, ASIOBool processNow);
 void sampleRateChanged(ASIOSampleRate sRate);
@@ -1090,7 +1099,7 @@ ASIOTime* bufferSwitchTimeInfo(ASIOTime* timeInfo, long index, ASIOBool processN
 
 	// finally if the driver supports the ASIOOutputReady() optimization, do it here, all data are in place
 	if (sbolPostOutput)
-		SDKAsioOutputReady();
+		SDKAsioOutputReadyImpl();
 
 	// The total samples is really the count of buffer dimensions.
 	// Because it is outside the channels loop, it is independent of

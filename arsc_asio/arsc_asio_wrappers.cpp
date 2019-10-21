@@ -157,7 +157,7 @@ EXTERN_CPP bool SDKAsioGetChannelInfo ( ASIOChannelInfo *info ) {
 	return bolReturn;
 }
 
-EXTERN_CPP bool SDKAsioCreateBuffers ( ASIOBufferInfo *bufferInfos,
+EXTERN_CPP bool SDKAsioCreateBuffersImpl ( ASIOBufferInfo *bufferInfos,
 										long numChannels,
 										long bufferSize,
 										ASIOCallbacks *callbacks ) {
@@ -190,7 +190,7 @@ EXTERN_CPP bool SDKAsioCreateBuffers ( ASIOBufferInfo *bufferInfos,
 	return bolReturn;
 }
 
-EXTERN_CPP bool SDKAsioOutputReady ( ) {
+EXTERN_CPP bool SDKAsioOutputReadyImpl ( ) {
 
 	if ( ASIOOutputReady() == ASE_OK )
 		return true;
@@ -227,7 +227,7 @@ EXTERN_CPP bool SDKAsioGetSamplePosition ( ASIOSamples *sPos, ASIOTimeStamp *tSt
 Returns the input and output latencies.  This includes device specific
 delays like FIFOs, etc.
 */
-EXTERN_CPP bool SDKAsioGetLatencies ( long *inputLatency, long *outputLatency ) {
+EXTERN_CPP bool SDKAsioGetLatenciesImpl ( long *inputLatency, long *outputLatency ) {
 
 	ASIOError aseError = ASIOGetLatencies ( inputLatency, outputLatency );
 	bool bolReturn = false;

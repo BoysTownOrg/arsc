@@ -11,6 +11,15 @@ extern bool (*SDKAsioGetBufferSize)(
 	long* aslngPreferredBufferSize,
 	long* alngGranularity
 );
+extern bool (*SDKAsioOutputReady)();
+extern bool (*SDKAsioCreateBuffers)(
+	ASIOBufferInfo* bufferInfos,
+	long numChannels,
+	long bufferSize,
+	ASIOCallbacks* callbacks
+);
+extern bool (*SDKAsioGetLatencies)(long* inputLatency, long* outputLatency);
+
 extern ASIOBufferInfo* bufferInfos;
 
 #endif
