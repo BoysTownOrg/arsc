@@ -16,17 +16,13 @@ static int32_t(*check_segment_restore)(int32_t, int32_t);
 static int32_t(*latency_restore)(int32_t, int32_t);
 
 static int32_t device_count;
-static char* device_name;
-static int32_t opened_device;
-static int32_t rates;
-static int32_t list_rates_device;
 
 static int32_t devices_stub() {
 	return device_count;
 }
 
 static char* device_name_stub(int32_t n) {
-	return device_name;
+	return NULL;
 }
 
 static void io_stop_stub(int32_t n) {
@@ -39,7 +35,7 @@ static void close_stub(int32_t n) {
 
 static int32_t open_stub(int32_t n) {
 	n;
-	return opened_device;
+	return 0;
 }
 
 static int32_t io_prepare_stub(int32_t n) {
@@ -48,8 +44,8 @@ static int32_t io_prepare_stub(int32_t n) {
 }
 
 static int32_t list_rates_stub(int32_t n) {
-	list_rates_device = n;
-	return rates;
+	n;
+	return 0;
 }
 
 static void io_start_stub(int32_t n) {
