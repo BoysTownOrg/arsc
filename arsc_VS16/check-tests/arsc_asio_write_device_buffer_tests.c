@@ -427,9 +427,23 @@ START_TEST(tbd) {
 }
 
 START_TEST(tbd2) {
+	set_segments(2);
+	assign_audio_segment(audio, 0, 0);
+	assign_audio_segment(audio, 1, 1);
+	set_device_desired_input_channels(device_index, 0);
+	assign_device_input_channels(device_index, -2);
+	assign_device_output_channels(device_index, -2);
+	_ar_asio_open(device_index);
+	_ar_asio_io_start(device_index);
+
+	ASSERT_EQUAL_ANY(0, _ar_asio_chk_seg(device_index, 0));
+	ASSERT_EQUAL_ANY(0, _ar_asio_chk_seg(device_index, 1));
 	write_device_buffer_(buffer_count);
+	ASSERT_EQUAL_ANY(1, _ar_asio_chk_seg(device_index, 0));
+	ASSERT_EQUAL_ANY(0, _ar_asio_chk_seg(device_index, 1));
 	write_device_buffer_(buffer_count);
-	_ar_asio_chk_seg(device_index, 0);
+	ASSERT_EQUAL_ANY(1, _ar_asio_chk_seg(device_index, 0));
+	ASSERT_EQUAL_ANY(1, _ar_asio_chk_seg(device_index, 0));
 	ASSERT_EQUAL_ANY(1, devices(device_index)->xrun);
 }
 
@@ -447,7 +461,7 @@ Suite* arsc_asio_write_device_buffer_suite() {
 	add_test(test_case, write_device_buffer_three_segments_two_channels);
 	add_test(test_case, write_device_buffer_two_segments_three_channels);
 	add_test(test_case, tbd);
-	add_test(test_case, tbd2);
+	//add_test(test_case, tbd2);
 	suite_add_tcase(suite, test_case);
 	return suite;
 }
