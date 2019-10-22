@@ -10,20 +10,12 @@ static void* output_buffers[sufficiently_large];
 static void* input_buffers[sufficiently_large];
 static int32_t buffer_size[sufficiently_large];
 
-static void assign_device_input_channels(int device, int32_t channels) {
-	devices(device)->ncad = channels;
-}
-
 static void assign_device_output_buffers(int device, void** buffers) {
 	devices(device)->o_data = buffers;
 }
 
 static void assign_device_input_buffers(int device, void** buffers) {
 	devices(device)->i_data = buffers;
-}
-
-static void assign_device_output_channels(int device, int32_t channels) {
-	devices(device)->ncda = channels;
 }
 
 static void assign_device_sizes(int device, int32_t* sizes) {

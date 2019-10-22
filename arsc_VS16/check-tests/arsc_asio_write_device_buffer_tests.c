@@ -399,15 +399,14 @@ static void client(void *ignored) {
 
 static void audio_thread(void* ignored) {
 	write_device_buffer_(buffer_count - 1);
-	InterlockedIncrement(&exit_client);
+	InterlockedOr(&exit_client, 1);
 }
 
-static void assign_device_input_channels(int device, int32_t channels) {
-	devices(device)->ncad = channels;
-}
-
-static void assign_device_output_channels(int device, int32_t channels) {
-	devices(device)->ncda = channels;
+static void simulate_audio_and_client_threads(void) {
+	HANDLE client_handle = (HANDLE)_beginthread(client, 0, NULL);
+	HANDLE audio_handle = (HANDLE)_beginthread(audio_thread, 0, NULL);
+	WaitForSingleObject(audio_handle, INFINITE);
+	WaitForSingleObject(client_handle, INFINITE);
 }
 
 START_TEST(tbd) {
@@ -416,16 +415,15 @@ START_TEST(tbd) {
 	assign_device_output_channels(device_index, -2);
 	_ar_asio_open(device_index);
 	_ar_asio_io_start(device_index);
-	HANDLE client_handle = (HANDLE)_beginthread(client, 0, NULL);
-	HANDLE audio_handle = (HANDLE)_beginthread(audio_thread, 0, NULL);
-	WaitForSingleObject(audio_handle, INFINITE);
-	WaitForSingleObject(client_handle, INFINITE);
+	
+	simulate_audio_and_client_threads();
+	
 	check_sum += _ar_asio_chk_seg(device_index, 0);
 	ASSERT_EQUAL_ANY(0, check_sum);
-	client_handle = (HANDLE)_beginthread(client, 0, NULL);
-	audio_handle = (HANDLE)_beginthread(audio_thread, 0, NULL);
-	WaitForSingleObject(audio_handle, INFINITE);
-	WaitForSingleObject(client_handle, INFINITE);
+	ASSERT_EQUAL_ANY(0, _ar_asio_chk_seg(device_index, 0));
+	
+	simulate_audio_and_client_threads();
+
 	check_sum += _ar_asio_chk_seg(device_index, 0);
 	ASSERT_EQUAL_ANY(1, check_sum);
 	ASSERT_EQUAL_ANY(0, _ar_asio_chk_seg(device_index, 0));

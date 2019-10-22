@@ -36,6 +36,14 @@ void add_test(TCase* test_case, const TTest* test) {
 	tcase_add_test(test_case, test);
 }
 
+void assign_device_output_channels(int device, int32_t channels) {
+	devices(device)->ncda = channels;
+}
+
+void assign_device_input_channels(int device, int32_t channels) {
+	devices(device)->ncad = channels;
+}
+
 int32_t read_integer_array_at(int32_t* a, int i) {
 	return *integer_array_at(a, i);
 }

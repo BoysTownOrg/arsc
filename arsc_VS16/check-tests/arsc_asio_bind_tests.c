@@ -74,14 +74,6 @@ static int32_t latency_stub(int32_t m, int32_t n) {
 	return 1;
 }
 
-static void assign_device_input_channels(int device, int32_t channels) {
-	devices(device)->ncad = channels;
-}
-
-static void assign_device_output_channels(int device, int32_t channels) {
-	devices(device)->ncda = channels;
-}
-
 static void setup(void) {
 	allocate_device(0);
 	allocate_device(1);
