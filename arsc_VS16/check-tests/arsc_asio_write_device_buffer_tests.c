@@ -426,6 +426,13 @@ START_TEST(tbd) {
 	ASSERT_EQUAL_ANY(0, _ar_asio_chk_seg(device_index, 0));
 }
 
+START_TEST(tbd2) {
+	write_device_buffer_(buffer_count);
+	write_device_buffer_(buffer_count);
+	_ar_asio_chk_seg(device_index, 0);
+	ASSERT_EQUAL_ANY(1, devices(device_index)->xrun);
+}
+
 Suite* arsc_asio_write_device_buffer_suite() {
 	Suite* suite = suite_create("arsc_asio_write_device_buffer");
 	TCase* test_case = tcase_create("write_device_buffer");
@@ -440,6 +447,7 @@ Suite* arsc_asio_write_device_buffer_suite() {
 	add_test(test_case, write_device_buffer_three_segments_two_channels);
 	add_test(test_case, write_device_buffer_two_segments_three_channels);
 	add_test(test_case, tbd);
+	add_test(test_case, tbd2);
 	suite_add_tcase(suite, test_case);
 	return suite;
 }
