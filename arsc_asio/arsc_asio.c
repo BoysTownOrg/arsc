@@ -77,7 +77,7 @@ bool SDKAsioGetSamplePosition(ASIOSamples* sPos, ASIOTimeStamp* tStamp);
 bool SDKAsioGetLatenciesImpl(long* inputLatency, long* outputLatency);
 bool SDKAsioDisposeBuffers(void);
 bool SDKAsioStop(void);
-bool SDKAsioStart(void);
+bool SDKAsioStartImpl(void);
 bool SDKAsioSetSampleRateImpl(ASIOSampleRate aSampleRate);
 bool (*SDKAsioSetSampleRate)(ASIOSampleRate aSampleRate) = SDKAsioSetSampleRateImpl;
 bool (*SDKAsioGetBufferSize)(
@@ -94,6 +94,7 @@ bool (*SDKAsioCreateBuffers)(
 	ASIOCallbacks* callbacks
 ) = SDKAsioCreateBuffersImpl;
 bool (*SDKAsioGetLatencies)(long* inputLatency, long* outputLatency) = SDKAsioGetLatenciesImpl;
+bool (*SDKAsioStart)(void) = SDKAsioStartImpl;
 
 void bufferSwitch(long index, ASIOBool processNow);
 ASIOTime* bufferSwitchTimeInfo(ASIOTime* timeInfo, long index, ASIOBool processNow);
@@ -507,7 +508,7 @@ int32_t _ar_asio_chk_seg(int32_t di, int32_t b)
 
 int32_t(*ar_asio_check_segment)(int32_t, int32_t) = _ar_asio_chk_seg;
 
-static void
+void
 _ar_asio_io_start(int32_t di)
 {
 	sintTotalSamples = 0;

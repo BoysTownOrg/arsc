@@ -19,6 +19,7 @@ extern bool (*SDKAsioCreateBuffers)(
 	ASIOCallbacks* callbacks
 );
 extern bool (*SDKAsioGetLatencies)(long* inputLatency, long* outputLatency);
+extern bool (*SDKAsioStart)(void);
 
 extern ASIOBufferInfo* bufferInfos;
 

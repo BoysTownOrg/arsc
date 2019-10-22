@@ -69,6 +69,7 @@ static bool SDKAsioGetLatenciesStub(long* inputLatency, long* outputLatency) {
 	outputLatency;
 	return 1;
 }
+
 static void assign_device_input_channels(int device, int32_t channels) {
 	devices(device)->ncad = channels;
 }

@@ -1,9 +1,82 @@
 #include "arsc_asio_tests_common.h"
 #include "arsc_asio_write_device_buffer_tests.h"
+#include <arsc_asio_wrappers.h>
 #include <stdlib.h>
 #include <process.h>
 #include <synchapi.h>
 #include <winnt.h>
+
+static int32_t(*list_rates_restore)(int32_t);
+static int32_t(*pLockAndLoadRestore)(int32_t);
+static bool(*SDKAsioSetSampleRateRestore)(ASIOSampleRate);
+static bool (*SDKAsioGetBufferSizeRestore)(
+	long* alngMinBufferSize,
+	long* alngMaxBufferSize,
+	long* aslngPreferredBufferSize,
+	long* alngGranularity
+	);
+static bool (*SDKAsioCreateBuffersRestore)(
+	ASIOBufferInfo* bufferInfos,
+	long numChannels,
+	long bufferSize,
+	ASIOCallbacks* callbacks
+	);
+static bool (*SDKAsioGetLatenciesRestore)(long* inputLatency, long* outputLatency);
+static bool (*SDKAsioStartRestore)(void);
+
+static int32_t rates;
+static int32_t list_rates_device;
+
+static int32_t list_rates_stub(int32_t n) {
+	list_rates_device = n;
+	return rates;
+}
+
+static bool SDKAsioSetSampleRateStub(ASIOSampleRate r) {
+	r;
+	return 1;
+}
+
+static bool SDKAsioGetBufferSizeStub(
+	long* alngMinBufferSize,
+	long* alngMaxBufferSize,
+	long* aslngPreferredBufferSize,
+	long* alngGranularity
+) {
+	alngMinBufferSize;
+	alngMaxBufferSize;
+	aslngPreferredBufferSize;
+	alngGranularity;
+	return 1;
+}
+
+static int32_t pLockAndLoadStub(int32_t device) {
+	device;
+	return 1;
+}
+
+static bool SDKAsioCreateBuffersStub(
+	ASIOBufferInfo* bufferInfo,
+	long numChannels,
+	long bufferSize,
+	ASIOCallbacks* callbacks
+) {
+	bufferInfo;
+	numChannels;
+	bufferSize;
+	callbacks;
+	return 1;
+}
+
+static bool SDKAsioGetLatenciesStub(long* inputLatency, long* outputLatency) {
+	inputLatency;
+	outputLatency;
+	return 1;
+}
+
+static bool SDKAsioStartStub(void) {
+	return 1;
+}
 
 enum {
 	sufficiently_large = 100,
@@ -74,9 +147,30 @@ static void setup(void) {
 	set_output_channels(1);
 	ar_current_device = devices(0);
 	global_output_audio = audio;
+	list_rates_restore = ar_asio_list_rates;
+	pLockAndLoadRestore = pLockAndLoad;
+	SDKAsioSetSampleRateRestore = SDKAsioSetSampleRate;
+	SDKAsioGetBufferSizeRestore = SDKAsioGetBufferSize;
+	SDKAsioCreateBuffersRestore = SDKAsioCreateBuffers;
+	SDKAsioGetLatenciesRestore = SDKAsioGetLatencies;
+	SDKAsioStartRestore = SDKAsioStart;
+	ar_asio_list_rates = list_rates_stub;
+	pLockAndLoad = pLockAndLoadStub;
+	SDKAsioSetSampleRate = SDKAsioSetSampleRateStub;
+	SDKAsioGetBufferSize = SDKAsioGetBufferSizeStub;
+	SDKAsioCreateBuffers = SDKAsioCreateBuffersStub;
+	SDKAsioGetLatencies = SDKAsioGetLatenciesStub;
+	SDKAsioStart = SDKAsioStartStub;
 }
 
 static void teardown(void) {
+	ar_asio_list_rates = list_rates_restore;
+	pLockAndLoad = pLockAndLoadRestore;
+	SDKAsioSetSampleRate = SDKAsioSetSampleRateRestore;
+	SDKAsioGetBufferSize = SDKAsioGetBufferSizeRestore;
+	SDKAsioCreateBuffers = SDKAsioCreateBuffersRestore;
+	SDKAsioGetLatencies = SDKAsioGetLatenciesRestore;
+	SDKAsioStart = SDKAsioStartRestore;
 	memset(device_buffer, 0, sizeof device_buffer);
 	memset(audio, 0, sizeof audio);
 	memset(audio_buffers, 0, sizeof audio_buffers);
@@ -293,10 +387,11 @@ START_TEST(write_device_buffer_two_segments_three_channels) {
 }
 
 static LONG exit_client = 0;
+static int32_t check_sum = 0;
 
 static void client(void *ignored) {
 	while (1) {
-		_ar_asio_chk_seg(device_index, 0);
+		check_sum += _ar_asio_chk_seg(device_index, 0);
 		if (InterlockedCompareExchange(&exit_client, 0, 1))
 			return;
 	}
@@ -307,17 +402,33 @@ static void audio_thread(void* ignored) {
 	InterlockedIncrement(&exit_client);
 }
 
+static void assign_device_input_channels(int device, int32_t channels) {
+	devices(device)->ncad = channels;
+}
+
+static void assign_device_output_channels(int device, int32_t channels) {
+	devices(device)->ncda = channels;
+}
+
 START_TEST(tbd) {
+	set_device_desired_input_channels(device_index, 0);
+	assign_device_input_channels(device_index, -2);
+	assign_device_output_channels(device_index, -2);
+	_ar_asio_open(device_index);
+	_ar_asio_io_start(device_index);
 	HANDLE client_handle = (HANDLE)_beginthread(client, 0, NULL);
 	HANDLE audio_handle = (HANDLE)_beginthread(audio_thread, 0, NULL);
 	WaitForSingleObject(audio_handle, INFINITE);
 	WaitForSingleObject(client_handle, INFINITE);
-	ASSERT_EQUAL_ANY(0, _ar_asio_chk_seg(device_index, 0));
+	check_sum += _ar_asio_chk_seg(device_index, 0);
+	ASSERT_EQUAL_ANY(0, check_sum);
 	client_handle = (HANDLE)_beginthread(client, 0, NULL);
 	audio_handle = (HANDLE)_beginthread(audio_thread, 0, NULL);
 	WaitForSingleObject(audio_handle, INFINITE);
 	WaitForSingleObject(client_handle, INFINITE);
-	ASSERT_EQUAL_ANY(1, _ar_asio_chk_seg(device_index, 0));
+	check_sum += _ar_asio_chk_seg(device_index, 0);
+	ASSERT_EQUAL_ANY(1, check_sum);
+	ASSERT_EQUAL_ANY(0, _ar_asio_chk_seg(device_index, 0));
 }
 
 Suite* arsc_asio_write_device_buffer_suite() {
@@ -333,6 +444,7 @@ Suite* arsc_asio_write_device_buffer_suite() {
 	add_test(test_case, write_device_buffer_two_segments_wrap_one_channel);
 	add_test(test_case, write_device_buffer_three_segments_two_channels);
 	add_test(test_case, write_device_buffer_two_segments_three_channels);
+	add_test(test_case, tbd);
 	suite_add_tcase(suite, test_case);
 	return suite;
 }

@@ -50,5 +50,6 @@ int32_t _ar_asio_io_prepare(int32_t);
 int32_t _ar_asio_chk_seg(int32_t di, int32_t b);
 int32_t ar_asio_write_device_buffer(int32_t* buffer, int32_t size, ArAsioOutputAudio* audio);
 int32_t ar_asio_read_device_buffer(int32_t* buffer, int32_t size, ArAsioInputAudio* audio);
+void _ar_asio_io_start(int32_t di);
 
 #endif

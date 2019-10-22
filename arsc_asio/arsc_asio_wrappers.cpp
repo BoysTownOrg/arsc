@@ -299,7 +299,7 @@ Start input and output processing synchronously.
 Note: There is no restriction on the time that ASIOStart() takes to 
 perform ( that is, it is not considered a real-time trigger ).
 */
-EXTERN_CPP bool SDKAsioStart ( void ) {
+EXTERN_CPP bool SDKAsioStartImpl ( void ) {
 
 	ASIOError aseError = ASIOStart ( );
 	bool bolReturn = false;
