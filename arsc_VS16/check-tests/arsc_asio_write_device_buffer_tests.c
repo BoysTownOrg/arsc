@@ -24,12 +24,9 @@ static bool (*SDKAsioCreateBuffersRestore)(
 static bool (*SDKAsioGetLatenciesRestore)(long* inputLatency, long* outputLatency);
 static bool (*SDKAsioStartRestore)(void);
 
-static int32_t rates;
-static int32_t list_rates_device;
-
 static int32_t list_rates_stub(int32_t n) {
-	list_rates_device = n;
-	return rates;
+	n;
+	return 0;
 }
 
 static bool SDKAsioSetSampleRateStub(ASIOSampleRate r) {

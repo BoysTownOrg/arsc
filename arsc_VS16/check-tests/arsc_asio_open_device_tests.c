@@ -134,7 +134,11 @@ for (int i = a; i < b; ++i)\
 for (int i = a; i < b; ++i)\
 	ASSERT_BUFFER_INFO_IS_INPUT_EQUALS(ASIOTrue, i)
 
-#define ASSERT_BUFFER_INFO_CHANNEL_NUMBER(a, b) ASSERT_EQUAL_ANY(a, bufferInfoChannelNumber(b))
+#define ASSERT_BUFFER_INFO_CHANNEL_NUMBER(a, b)\
+	ASSERT_EQUAL_ANY(a, bufferInfoChannelNumber(b))
+
+#define ASSERT_BUFFER_INFO_CHANNEL_NUMBER_AT(a, b)\
+	ASSERT_EQUAL_ANY(b, bufferInfoChannelNumber(a))
 
 START_TEST(open_returns_zero_on_success) {
 	ASSERT_EQUAL_ANY(0, open());
@@ -142,7 +146,7 @@ START_TEST(open_returns_zero_on_success) {
 
 START_TEST(open_assigns_good_sample_rates) {
 	rates = 1;
-	open();
+	open_device(0);
 	ASSERT_EQUAL_ANY(1, devices(0)->gdsr);
 }
 
@@ -152,16 +156,16 @@ START_TEST(open_passes_device_to_list_rates) {
 }
 
 START_TEST(open_initializes_buffer_infos) {
-	set_device_desired_output_channels(1, 2);
-	set_device_desired_input_channels(1, 3);
-	open_device(1);
+	set_device_desired_output_channels(0, 2);
+	set_device_desired_input_channels(0, 3);
+	open_device(0);
 	ASSERT_BUFFER_INFO_IS_INPUT_FOR_DEVICE_RANGE(0, 2);
 	ASSERT_BUFFER_INFO_IS_OUTPUT_FOR_DEVICE_RANGE(2, 2 + 3);
-	ASSERT_BUFFER_INFO_CHANNEL_NUMBER(0, 0);
-	ASSERT_BUFFER_INFO_CHANNEL_NUMBER(1, 1);
-	ASSERT_BUFFER_INFO_CHANNEL_NUMBER(0, 2);
-	ASSERT_BUFFER_INFO_CHANNEL_NUMBER(1, 3);
-	ASSERT_BUFFER_INFO_CHANNEL_NUMBER(2, 4);
+	ASSERT_BUFFER_INFO_CHANNEL_NUMBER_AT(0, 0);
+	ASSERT_BUFFER_INFO_CHANNEL_NUMBER_AT(1, 1);
+	ASSERT_BUFFER_INFO_CHANNEL_NUMBER_AT(2, 0);
+	ASSERT_BUFFER_INFO_CHANNEL_NUMBER_AT(3, 1);
+	ASSERT_BUFFER_INFO_CHANNEL_NUMBER_AT(4, 2);
 }
 
 Suite* arsc_asio_open_device_suite() {
