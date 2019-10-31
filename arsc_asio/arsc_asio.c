@@ -5,15 +5,18 @@
 #include "asio.h"
 #include "arsc_asio_wrappers.h"
 
-#define MAX_REGISTRY_KEY_LENGTH	255
+enum { 
+	max_registry_key_length = 255,
+	max_asio_drivers = 32, // PortAudio allows a max of 32, so we will too
+	max_driver_name_length = 40
+};
+
 #define ASIO_PATH "software\\asio"
-#define MAX_ASIO_DRIVERS 32  // PortAudio allows a max of 32, so we will too
-#define MAX_DRIVER_NAME_LENGTH 40
 
 typedef struct {
 	CLSID clsid;
-	char name[MAX_DRIVER_NAME_LENGTH];
-	char description[MAX_DRIVER_NAME_LENGTH];
+	char name[max_driver_name_length];
+	char description[max_driver_name_length];
 	bool valid;
 	int32_t	devices;
 } TAsioDriver;
@@ -34,7 +37,7 @@ typedef struct {
 // the ASIO devices are listed, e.g. 6.
 static int32_t device_identifier_offset = 0;
 
-static TAsioDriver asio_drivers[MAX_ASIO_DRIVERS];
+static TAsioDriver asio_drivers[max_asio_drivers];
 static TVirtualDevice VirtualDevice[MAXDEV];  // To hold the device names and the driver to which they associate
 static int32_t	sintAsioIntializedDriver = -1;  // Index into the AsioDriverList[] for the loaded ASIO driver
 static int32_t	asio_device_count = 0;   // Number of valid ASIO devices
@@ -810,11 +813,11 @@ int32_t pPollAsioDrivers(void) {
 	long		lRet;
 	HKEY		hkEnum = 0;
 	HKEY		hkDriver = 0;
-	char		keyname[MAX_REGISTRY_KEY_LENGTH];
+	char		keyname[max_registry_key_length];
 	DWORD		index = 0;
 	DWORD		type, size;
-	char		strFullKeyPath[MAX_REGISTRY_KEY_LENGTH];
-	char		value[MAX_REGISTRY_KEY_LENGTH];		// Arbitrary value type
+	char		strFullKeyPath[max_registry_key_length];
+	char		value[max_registry_key_length];		// Arbitrary value type
 	int32_t		intDriver;			// looping variable
 	ASIODriverInfo	asioDriverInfo;			// needed for ASIOInit()
 
@@ -828,7 +831,7 @@ int32_t pPollAsioDrivers(void) {
 
 	while (lRet == ERROR_SUCCESS) {
 		// http://msdn.microsoft.com/library/en-us/sysinfo/base/regenumkey.asp
-		if ((lRet = RegEnumKey(hkEnum, index, (LPTSTR)keyname, MAX_REGISTRY_KEY_LENGTH)) == ERROR_SUCCESS) {
+		if ((lRet = RegEnumKey(hkEnum, index, (LPTSTR)keyname, max_registry_key_length)) == ERROR_SUCCESS) {
 			// Print out the ASIO card name
 			FDBUG((_arS, "[%d] [%s]\n", index, keyname));
 
@@ -845,7 +848,7 @@ int32_t pPollAsioDrivers(void) {
 			strcpy(asio_drivers[index].name, keyname);
 
 			// CLSID
-			size = MAX_REGISTRY_KEY_LENGTH;
+			size = max_registry_key_length;
 			lRet = RegQueryValueEx(hkDriver, "CLSID", 0, &type, (LPBYTE)value, &size);
 			if (lRet == ERROR_SUCCESS) {
 				char* ptrClsid = (char*)value;	// Shorthand
@@ -868,7 +871,7 @@ int32_t pPollAsioDrivers(void) {
 
 			// Description
 			// The description is not necessarily the same as the name of the driver.
-			size = MAX_REGISTRY_KEY_LENGTH;
+			size = max_registry_key_length;
 			if (RegQueryValueEx(hkDriver, "Description", 0, &type, (LPBYTE)value, &size) == ERROR_SUCCESS) {
 				strcpy(asio_drivers[index].description, value);
 			}
@@ -891,7 +894,7 @@ int32_t pPollAsioDrivers(void) {
 	Need to test each one out to see if it opens.
 	*/
 	asio_device_count = 0;
-	for (intDriver = 0; intDriver < MAX_ASIO_DRIVERS; intDriver++) {
+	for (intDriver = 0; intDriver < max_asio_drivers; intDriver++) {
 		if (strlen(asio_drivers[intDriver].name) > 0) {
 
 			// In case multiple ASIO sound cards exist, terminate the AudioStreamIO.
