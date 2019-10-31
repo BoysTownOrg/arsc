@@ -8,14 +8,7 @@ This code needs to be CPP to interface to the SDK.
 
 #include <objbase.h>										/* For working w/ CLSIDs */
 #include "asiosys.h"										/* platform definition from Steinberg SDK */
-#include "asio.h"											/* from Steinberg SDK */
-#include "..\arsc_common.h"									/* Common to .dll, .exe, and/or .lib */
-
-#ifndef __GNUC__
-#define EXTERN_CPP extern "C"
-#else
-#define EXTERN_CPP
-#endif // __GNUC__
+#include "arsc_asio_wrappers.h"
 
 // External prototypes
 bool loadAsioDriver ( char *name );
@@ -24,12 +17,12 @@ bool loadAsioDriver ( char *name );
 This function is in CPP because it calls functions in the
 Steinberg SDK which are written in CPP.
 */
-EXTERN_CPP bool SDKLoadAsioDriver ( char *name ) {
+bool SDKLoadAsioDriver ( char *name ) {
 	CoInitialize(0);
 	return loadAsioDriver(name);
 }
 
-EXTERN_CPP bool SDKAsioExit ( ) {
+bool SDKAsioExit ( ) {
 	ASIOError		aseError = ASE_OK;
 
 	if ( ( aseError = ASIOExit ( ) ) == ASE_OK )
@@ -40,7 +33,7 @@ EXTERN_CPP bool SDKAsioExit ( ) {
 	}
 }
 
-EXTERN_CPP bool SDKAsioInit ( ASIODriverInfo *info ) {
+bool SDKAsioInit ( ASIODriverInfo *info ) {
 	ASIOError		aseError = ASE_OK;
 
 	if ( ( aseError = ASIOInit ( info ) ) == ASE_OK )
@@ -51,7 +44,7 @@ EXTERN_CPP bool SDKAsioInit ( ASIODriverInfo *info ) {
 	}
 }
 
-EXTERN_CPP bool SDKAsioGetChannels ( long *alngInputChannels, long *alngOutputChannels ) {
+bool SDKAsioGetChannels ( long *alngInputChannels, long *alngOutputChannels ) {
 	ASIOError		aseError = ASE_OK;
 
 	if ( ( aseError = ASIOGetChannels ( alngInputChannels, alngOutputChannels ) ) == ASE_OK )
@@ -62,7 +55,7 @@ EXTERN_CPP bool SDKAsioGetChannels ( long *alngInputChannels, long *alngOutputCh
 	}
 }
 
-EXTERN_CPP bool SDKAsioCanSampleRate ( ASIOSampleRate aSampleRate ) {
+bool SDKAsioCanSampleRate ( ASIOSampleRate aSampleRate ) {
 
 	ASIOError aseError = ASIOCanSampleRate ( aSampleRate );
 	bool bolReturn = false;
@@ -85,7 +78,7 @@ EXTERN_CPP bool SDKAsioCanSampleRate ( ASIOSampleRate aSampleRate ) {
 }
 
 
-EXTERN_CPP bool SDKAsioSetSampleRateImpl ( ASIOSampleRate aSampleRate ) {
+bool SDKAsioSetSampleRateImpl ( ASIOSampleRate aSampleRate ) {
 	ASIOError aseError = ASIOSetSampleRate ( aSampleRate );
 	bool bolReturn = false;
 
@@ -110,7 +103,7 @@ EXTERN_CPP bool SDKAsioSetSampleRateImpl ( ASIOSampleRate aSampleRate ) {
 	return bolReturn;
 }
 
-EXTERN_CPP bool SDKAsioGetBufferSizeImpl (	long *alngMinBufferSize,
+bool SDKAsioGetBufferSizeImpl (	long *alngMinBufferSize,
 										long *alngMaxBufferSize,
 										long *aslngPreferredBufferSize,
 										long *alngGranularity ) {
@@ -140,7 +133,7 @@ EXTERN_CPP bool SDKAsioGetBufferSizeImpl (	long *alngMinBufferSize,
 
 }
 
-EXTERN_CPP bool SDKAsioGetChannelInfo ( ASIOChannelInfo *info ) {
+bool SDKAsioGetChannelInfo ( ASIOChannelInfo *info ) {
 	ASIOError aseError = ASIOGetChannelInfo ( info );
 	bool bolReturn = false;
 
@@ -157,7 +150,7 @@ EXTERN_CPP bool SDKAsioGetChannelInfo ( ASIOChannelInfo *info ) {
 	return bolReturn;
 }
 
-EXTERN_CPP bool SDKAsioCreateBuffersImpl ( ASIOBufferInfo *bufferInfos,
+bool SDKAsioCreateBuffersImpl ( ASIOBufferInfo *bufferInfos,
 										long numChannels,
 										long bufferSize,
 										ASIOCallbacks *callbacks ) {
@@ -190,7 +183,7 @@ EXTERN_CPP bool SDKAsioCreateBuffersImpl ( ASIOBufferInfo *bufferInfos,
 	return bolReturn;
 }
 
-EXTERN_CPP bool SDKAsioOutputReadyImpl ( ) {
+bool SDKAsioOutputReadyImpl ( ) {
 
 	if ( ASIOOutputReady() == ASE_OK )
 		return true;
@@ -201,7 +194,7 @@ EXTERN_CPP bool SDKAsioOutputReadyImpl ( ) {
 /*
 Inquires the sample position/time stamp pair.
 */
-EXTERN_CPP bool SDKAsioGetSamplePosition ( ASIOSamples *sPos, ASIOTimeStamp *tStamp ) {
+bool SDKAsioGetSamplePosition ( ASIOSamples *sPos, ASIOTimeStamp *tStamp ) {
 	
 	ASIOError aseError = ASIOGetSamplePosition ( sPos, tStamp );
 	bool bolReturn = false;
@@ -227,7 +220,7 @@ EXTERN_CPP bool SDKAsioGetSamplePosition ( ASIOSamples *sPos, ASIOTimeStamp *tSt
 Returns the input and output latencies.  This includes device specific
 delays like FIFOs, etc.
 */
-EXTERN_CPP bool SDKAsioGetLatenciesImpl ( long *inputLatency, long *outputLatency ) {
+bool SDKAsioGetLatenciesImpl ( long *inputLatency, long *outputLatency ) {
 
 	ASIOError aseError = ASIOGetLatencies ( inputLatency, outputLatency );
 	bool bolReturn = false;
@@ -250,7 +243,7 @@ EXTERN_CPP bool SDKAsioGetLatenciesImpl ( long *inputLatency, long *outputLatenc
 /*
 Clear buffers
 */
-EXTERN_CPP bool SDKAsioDisposeBuffers ( void ) {
+bool SDKAsioDisposeBuffers ( void ) {
 
 	ASIOError aseError = ASIODisposeBuffers ( );
 	bool bolReturn = false;
@@ -275,7 +268,7 @@ EXTERN_CPP bool SDKAsioDisposeBuffers ( void ) {
 /*
 Stop the driver
 */
-EXTERN_CPP bool SDKAsioStop ( void ) {
+bool SDKAsioStop ( void ) {
 
 	ASIOError aseError = ASIOStop ( );
 	bool bolReturn = false;
@@ -299,7 +292,7 @@ Start input and output processing synchronously.
 Note: There is no restriction on the time that ASIOStart() takes to 
 perform ( that is, it is not considered a real-time trigger ).
 */
-EXTERN_CPP bool SDKAsioStartImpl ( void ) {
+bool SDKAsioStartImpl ( void ) {
 
 	ASIOError aseError = ASIOStart ( );
 	bool bolReturn = false;

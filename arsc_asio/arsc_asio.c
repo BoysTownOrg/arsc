@@ -58,30 +58,9 @@ static bool	buffers_have_been_created = false; // flag - true if buffers have be
 static bool	driver_has_started = false;  // flag - true if driver is started
 static int32_t total_samples_processed = 0;  // Total samples processed
 static long	latency_offset = 0;  // LatencyOffset specified by app
-static int32_t sintSegmentFinished = 0; // semaphore-like variable to tell when segment is finished
+static int32_t segment_has_finished = 0; // semaphore-like variable to tell when segment is finished
 static int32_t	good_sample_rates;
 
-bool SDKLoadAsioDriver(char* name);
-bool SDKAsioInit(ASIODriverInfo* info);
-bool SDKAsioExit(void);
-bool SDKAsioGetChannels(long* alngInputChannels, long* alngOutputChannels);
-bool SDKAsioCanSampleRate(ASIOSampleRate aSampleRate);
-bool SDKAsioGetBufferSizeImpl(long* alngMinBufferSize,
-	long* alngMaxBufferSize,
-	long* aslngPreferredBufferSize,
-	long* alngGranularity);
-bool SDKAsioGetChannelInfo(ASIOChannelInfo* info);
-bool SDKAsioCreateBuffersImpl(ASIOBufferInfo* bufferInfos,
-	long numChannels,
-	long bufferSize,
-	ASIOCallbacks* callbacks);
-bool SDKAsioOutputReadyImpl();
-bool SDKAsioGetSamplePosition(ASIOSamples* sPos, ASIOTimeStamp* tStamp);
-bool SDKAsioGetLatenciesImpl(long* inputLatency, long* outputLatency);
-bool SDKAsioDisposeBuffers(void);
-bool SDKAsioStop(void);
-bool SDKAsioStartImpl(void);
-bool SDKAsioSetSampleRateImpl(ASIOSampleRate aSampleRate);
 bool (*SDKAsioSetSampleRate)(ASIOSampleRate aSampleRate) = SDKAsioSetSampleRateImpl;
 bool (*SDKAsioGetBufferSize)(
 	long* alngMinBufferSize,
@@ -384,7 +363,7 @@ int32_t _ar_asio_open(int32_t di)
 
 	total_samples_processed = 0;	// Total samples processed
 	latency_offset = 0;	// LatencyOffset specified by app
-	sintSegmentFinished = 0;	// semaphore-like variable to tell when segment is finished
+	segment_has_finished = 0;	// semaphore-like variable to tell when segment is finished
 
 	return (0);
 err:
@@ -487,13 +466,13 @@ int32_t _ar_asio_chk_seg(int32_t di, int32_t b)
 		return -1;
 	}
 
-	switch (sintSegmentFinished) {
+	switch (segment_has_finished) {
 	case 0:
 		break;
 	case 1:
 		// The segment has just finished.  If this routine is called frequently
 		// enough, we should get this within moments of it happening.
-		sintSegmentFinished--;
+		segment_has_finished--;
 
 		FDBUG((_arS, "Got semaphore for segment [%d] [%d]\n", global_ar_asio_current_device->seg_ic, global_ar_asio_current_device->seg_oc));
 		return true;
@@ -612,7 +591,7 @@ static void update_if_last_output_channel(ArAsioOutputAudio* audio) {
 	if (is_last_output_channel(audio)) {
 		// If there are no input channels, the out channel determines the segment end
 		if (!global_ar_asio_current_device->a_ncad)
-			sintSegmentFinished++;
+			segment_has_finished++;
 		first_output_audio_of_current_segment = is_last_output_segment(audio)
 			? global_ar_asio_output_audio
 			: audio + 1;
@@ -695,7 +674,7 @@ int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAud
 		audio->Index += to_copy;
 		if (input_is_exhausted(audio)) {
 			if (is_last_input_channel(audio)) {
-				sintSegmentFinished++;
+				segment_has_finished++;
 				first_input_audio_of_current_segment = is_last_input_segment(audio)
 					? global_ar_asio_input_audio
 					: audio + 1;
