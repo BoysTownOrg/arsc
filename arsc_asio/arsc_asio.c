@@ -91,7 +91,7 @@ ar_asio_devices_impl()
 {
 	// Has the number of devices already been polled?
 	if (device_count > 0) {
-		FDBUG((_arS, "_ar_asio_dev_name(): Already have number of devices [%d]\n", device_count));
+		
 		return device_count;
 	}
 	else {
@@ -117,19 +117,19 @@ _ar_asio_dev_name(int32_t di)
 {
 	// In case this is called before we are ready
 	if (device_count == 0) {
-		FDBUG((_arS, "_ar_asio_dev_name(): Repoll\n"));
+		
 		if (!pPollAsioDrivers())
 			return NULL;
 	}
 
 	for (int32_t i = 0; i < MAXDEV; i++) {
 		if (i == (di - device_identifier_offset)) {
-			FDBUG((_arS, "_ar_asio_dev_name(): Found name [%s]\n", VirtualDevice[i].name));
+			
 			return VirtualDevice[i].name;
 		}
 	}
 
-	FDBUG((_arS, "_ar_asio_dev_name(): Could not find channel information for di [%d] dio [%d]\n", di, device_identifier_offset));
+	
 
 	return NULL;
 }
@@ -145,19 +145,19 @@ _ar_asio_list_rates(int32_t di)
 {
 	// In case this is called before we are ready
 	if (device_count == 0) {
-		FDBUG((_arS, "_ar_asio_dev_name(): Repoll\n"));
+		
 		if (!pPollAsioDrivers())
 			return 0;
 	}
 
 	for (int32_t i = 0; i < MAXDEV; i++) {
 		if (i == (di - device_identifier_offset)) {
-			FDBUG((_arS, "_ar_asio_list_rates(): good_sampling_rates=%0X\n", VirtualDevice[i].good_sampling_rates));
+			
 			return VirtualDevice[i].good_sampling_rates;
 		}
 	}
 
-	FDBUG((_arS, "Could not find channel information for di [%d] dio [%d]\n", di, device_identifier_offset));
+	
 
 	return 0;
 }
@@ -170,7 +170,7 @@ _ar_asio_io_stop(int32_t di)
 	global_ar_asio_current_device = _ardev[di];
 
 	if (driver_has_started) {
-		FDBUG((_arS, "_ar_asio_io_stop(): Calling SDKAsioStop().\n"));
+		
 		SDKAsioStop();
 		driver_has_started = false;
 	}
@@ -181,7 +181,7 @@ void (*ar_asio_io_stop)(int32_t) = _ar_asio_io_stop;
 static void
 _ar_asio_close(int32_t di) {
 
-	FDBUG((_arS, "_ar_asio_close(): sintAsioIntializedDriver is [%d] and di is [%d].\n", initialized_driver, di));
+	
 
 	// Stop the driver if it is running
 	if (driver_has_started) {
@@ -190,7 +190,7 @@ _ar_asio_close(int32_t di) {
 		Sleep(1);	// 1-ms delay delay before freeing buffers
 	}
 
-	FDBUG((_arS, "_ar_asio_close(): Disposing of buffers\n"));
+	
 
 	SDKAsioDisposeBuffers();
 	buffers_have_been_created = false;
@@ -199,14 +199,14 @@ _ar_asio_close(int32_t di) {
 	if (channelInfos != NULL) {
 		free(channelInfos);
 		channelInfos = NULL;
-		FDBUG((_arS, "_ar_asio_close(): Freed channelInfos\n"));
+		
 	}
 
 	// Clear the buffers
 	if (global_asio_buffer_info != NULL) {
 		free(global_asio_buffer_info);
 		global_asio_buffer_info = NULL;
-		FDBUG((_arS, "_ar_asio_close(): Freed bufferInfos\n"));
+		
 	}
 
 	// Clear stim blocks
@@ -223,7 +223,7 @@ _ar_asio_close(int32_t di) {
 
 	// Unload the ASIO driver
 	if (initialized_driver != -1) {
-		FDBUG((_arS, "_ar_asio_close(): Calling SDKAsioExit().\n"));
+		
 		SDKAsioExit();
 	}
 
@@ -240,11 +240,11 @@ int32_t _ar_asio_open(int32_t di)
 	global_ar_asio_current_device = _ardev[di];
 	// Loon test
 	if (intChannelOffset + global_ar_asio_current_device->ncda > max_output_channels) {
-		FDBUG((_arS, "_ar_asio_open(): too many output channels requested for device\n"));
+		
 		goto err;
 	}
 	if (intChannelOffset + global_ar_asio_current_device->ncad > max_input_channels) {
-		FDBUG((_arS, "_ar_asio_open(): too many input channels requested for device\n"));
+		
 		goto err;
 	}
 
@@ -273,7 +273,7 @@ int32_t _ar_asio_open(int32_t di)
 	// check whether the driver requires the ASIOOutputReady() optimization
 	// (can be used by the driver to reduce output latency by one block)
 	output_ready_optimization = SDKAsioOutputReady();
-	FDBUG((_arS, "ASIOOutputReady(); - %s\n", output_ready_optimization ? "Supported" : "Not supported"));
+	
 
 	/*
 	Get the buffer size information from the driver.  This
@@ -289,7 +289,7 @@ int32_t _ar_asio_open(int32_t di)
 		&lngGranularity))
 		goto err;
 	else {
-		FDBUG((_arS, "Preferred buffer size [%d]\n", preferred_buffer_size));
+		
 	}
 
 	/*
@@ -305,7 +305,7 @@ int32_t _ar_asio_open(int32_t di)
 		if (drivers[i].valid)
 			intChannelOffset += drivers[i].devices;
 	intChannelOffset = (di - device_identifier_offset) - intChannelOffset;
-	FDBUG((_arS, "Channel Offset [%d]\n", intChannelOffset));
+	
 
 	ASIOBufferInfo* bufferInfo_ = global_asio_buffer_info;
 	for (int32_t i = 0; i < global_ar_asio_current_device->a_ncda; i++) {
@@ -341,7 +341,7 @@ int32_t _ar_asio_open(int32_t di)
 		&asioCallbacks
 	);
 	if (!buffers_have_been_created) {
-		FDBUG((_arS, "_ar_asio_open(): unable to create buffers\n"));
+		
 		goto err;
 	}
 
@@ -351,7 +351,7 @@ int32_t _ar_asio_open(int32_t di)
 	// (output latency is the time the first sample in the currently returned audio block requires to get to the output)
 	if (!SDKAsioGetLatencies(&input_latency, &output_latency))
 		goto err;
-	FDBUG((_arS, "Latencies: input (%d) output (%d)\n", input_latency, output_latency));
+	
 
 	// Clear the buffers because CardDeluxe has known issues
 	bufferInfo_ = global_asio_buffer_info;
@@ -375,7 +375,7 @@ int32_t(*ar_asio_open)(int32_t) = _ar_asio_open;
 int32_t
 _ar_asio_io_prepare(int32_t di)
 {
-	FDBUG((_arS, "asio_io_prepare:\n"));
+	
 	global_ar_asio_current_device = _ardev[di];
 	/*
 	Set up stimulus (OUTPUT) blocks
@@ -474,13 +474,13 @@ int32_t _ar_asio_chk_seg(int32_t di, int32_t b)
 		// enough, we should get this within moments of it happening.
 		segment_has_finished--;
 
-		FDBUG((_arS, "Got semaphore for segment [%d] [%d]\n", global_ar_asio_current_device->seg_ic, global_ar_asio_current_device->seg_oc));
+		
 		return true;
 		break;
 	default:
 		// Segment overrun
 		// This can happen when clicking to another window while the app is running.
-		FDBUG((_arS, "._._._ S E G M E N T  O V E R R U N _._._.\n"));
+		
 		global_ar_asio_current_device->xrun++;
 		return true;
 	}
@@ -494,7 +494,7 @@ void
 _ar_asio_io_start(int32_t di)
 {
 	total_samples_processed = 0;
-	FDBUG((_arS, "_ar_asio_io_start(): entered.\n"));
+	
 	driver_has_started = SDKAsioStart();
 }
 
@@ -526,7 +526,7 @@ static ARDVT* device_type(int32_t n) {
 int32_t
 _ar_asio_bind(int32_t ndt, int32_t tnd)
 {
-	FDBUG((_arS, "asio_bind\n"));
+	
 	// Get the number of ASIO devices.  This is not the same as the 
 	// number of ASIO Drivers in the registry.  This will either be
 	// 1 or 0.
@@ -704,10 +704,10 @@ check_rates(void) {
 	for (i = 0; i < SRLSTSZ; i++) {
 		if (SDKAsioCanSampleRate(_ar_SRlist[i]) == true) {
 			good_sample_rates |= 1 << i;
-			FDBUG((_arS, "Sample Rate [%ld] is supported.\n", _ar_SRlist[i]));
+			
 		}
 	}
-	FDBUG((_arS, "good_sample_rates is [%x]\n", good_sample_rates));
+	
 	return (good_sample_rates);
 }
 
@@ -748,7 +748,7 @@ int32_t pGetChannelDetails(int32_t aintDriver) {
 		// Gets channel information from the driver
 		if (!SDKAsioGetChannelInfo(ptrChannelInfo))
 			return -1;
-		FDBUG((_arS, "--- %s: Output Channel #%d\n", ptrChannelInfo->name, i));
+		
 
 		if (bolOutput) {
 			// Set the VirtualDevice information
@@ -769,7 +769,7 @@ int32_t pGetChannelDetails(int32_t aintDriver) {
 		// Gets channel information from the driver
 		if (!SDKAsioGetChannelInfo(ptrChannelInfo))
 			return -1;
-		FDBUG((_arS, "--- %s: Input Channel #%d\n", ptrChannelInfo->name, i));
+		
 
 		if (!bolOutput) {
 			// Set the VirtualDevice information
@@ -804,7 +804,7 @@ int32_t pPollAsioDrivers(void) {
 	// http://msdn.microsoft.com/library/en-us/sysinfo/base/regopenkey.asp
 	lRet = RegOpenKey(HKEY_LOCAL_MACHINE, ASIO_PATH, &hkEnum);
 	if (lRet != ERROR_SUCCESS) {
-		FDBUG((_arS, "pPollAsioDrivers(): Couldn't open key\n"));
+		
 		return 0;
 	}
 
@@ -812,13 +812,13 @@ int32_t pPollAsioDrivers(void) {
 		// http://msdn.microsoft.com/library/en-us/sysinfo/base/regenumkey.asp
 		if ((lRet = RegEnumKey(hkEnum, index, (LPTSTR)keyname, max_registry_key_length)) == ERROR_SUCCESS) {
 			// Print out the ASIO card name
-			FDBUG((_arS, "[%d] [%s]\n", index, keyname));
+			
 
 			// Get the subkey that this keyname represents
 			sprintf(strFullKeyPath, "%s\\%s", ASIO_PATH, keyname);
 			lRet = RegOpenKey(HKEY_LOCAL_MACHINE, strFullKeyPath, &hkDriver);
 			if (lRet != ERROR_SUCCESS) {
-				FDBUG((_arS, "pPollAsioDrivers(): Couldn't open key [%s]\n", strFullKeyPath));
+				
 				return 0;
 			}
 
@@ -838,13 +838,13 @@ int32_t pPollAsioDrivers(void) {
 					MultiByteToWideChar(CP_ACP, 0, (LPCSTR)ptrClsid, -1, (LPWSTR)wData, 100);
 
 					if (CLSIDFromString((LPOLESTR)wData, (LPCLSID) & (drivers[index].clsid)) != S_OK) {
-						FDBUG((_arS, "CLSIDFromString() was not able to convert [%s]\n", ptrClsid));
+						
 					}
 				}
 			}
 			else {
 				// All ASIO drivers should have a CLSID
-				FDBUG((_arS, "ReqQueryValueEx(): returned [%ld] for key [%s]\n", lRet, strFullKeyPath));
+				
 				return 0;
 			}
 
@@ -866,7 +866,7 @@ int32_t pPollAsioDrivers(void) {
 	if (hkEnum)
 		RegCloseKey(hkEnum);
 
-	FDBUG((_arS, "pPollAsioDrivers(): Found [%d] ASIO drivers\n", index));
+	
 
 	/*
 	The number of available drivers is not the same as the available ASIO devices.
@@ -882,7 +882,7 @@ int32_t pPollAsioDrivers(void) {
 				SDKAsioExit();
 
 			if (SDKLoadAsioDriver(drivers[intDriver].name)) {
-				FDBUG((_arS, "Success: Driver [%s] loaded fine\n", drivers[intDriver].name));
+				
 
 				// But loading isn't enough.  The Echo Gina will load even if it isn't installed.
 				// Initialize the AudioStreamIO.
@@ -893,7 +893,7 @@ int32_t pPollAsioDrivers(void) {
 					// ASIO driver at a time, there may be multiple sound cards in the same
 					// box, so we aren't done yet.
 					drivers[intDriver].valid = true;
-					FDBUG((_arS, "INIT Valid! Driver [%s] is ok to use\n", drivers[intDriver].name));
+					
 
 					// For now, this sets the last ASIO driver as the one used.
 					initialized_driver = intDriver;
@@ -904,11 +904,11 @@ int32_t pPollAsioDrivers(void) {
 
 				}
 				else {
-					FDBUG((_arS, "INIT Failed: Driver [%s] did not init\n", drivers[intDriver].name));
+					
 				}
 			}
 			else {
-				FDBUG((_arS, "Failed: Driver [%s] did not load\n", drivers[intDriver].name));
+				
 			} // fi SDKLoadAsioDriver
 		}
 		else {
@@ -922,7 +922,7 @@ int32_t pPollAsioDrivers(void) {
 	if (initialized_driver > 0) {
 		SDKAsioExit();
 		initialized_driver = -1;
-		FDBUG((_arS, "There should be no driver initialized at this point.\n"));
+		
 	}
 
 	return 1;
@@ -938,7 +938,7 @@ int32_t pBuildVirtualDevices(int32_t aintDriver) {
 
 	// Gets the number of channels for this card
 	if (!SDKAsioGetChannels(&max_input_channels, &max_output_channels)) {
-		FDBUG((_arS, "GetChannels failed\n"));
+		
 		return 0;
 	}
 	long slngTotalPossibleChannels = max_input_channels + max_output_channels;
@@ -957,7 +957,7 @@ int32_t pBuildVirtualDevices(int32_t aintDriver) {
 	if (channelInfos != NULL) {
 		free(channelInfos);
 		channelInfos = NULL;
-		FDBUG((_arS, "pBuildVirtualDevices(): Freed channelInfos\n"));
+		
 	}
 
 	return 1;
@@ -974,35 +974,35 @@ int32_t pLockAndLoadImpl(int32_t aintDevice) {
 	int32_t		i;
 
 
-	FDBUG((_arS, "pLockAndLoad: Device [%d] dio [%d] driver [%d]\n", aintDevice, device_identifier_offset, intDriver));
+	
 
 	if (SDKLoadAsioDriver(drivers[intDriver].name)) {
-		FDBUG((_arS, "pLockAndLoad: Driver [%s] loaded fine\n", drivers[intDriver].name));
+		
 
 		asioDriverInfo.driverVersion = 2;				// ASIO 2.0
 		asioDriverInfo.sysRef = GetDesktopWindow();			// Application main window handle
 		if (SDKAsioInit(&asioDriverInfo) == true) {
-			FDBUG((_arS, "pLockAndLoad: Driver [%s] is intialized\n", drivers[intDriver].name));
+			
 
 			// Hold for later
 			initialized_driver = intDriver;
 		}
 		else {
-			FDBUG((_arS, "pLockAndLoad: Driver [%s] did not init\n", drivers[intDriver].name));
+			
 			return 0;
 		}
 	}
 	else {
-		FDBUG((_arS, "pLockAndLoad: Driver [%s] did not load\n", drivers[intDriver].name));
+		
 		return 0;
 	} // fi SDKLoadAsioDriver
 
 	// Gets the number of channels for this card
 	if (!SDKAsioGetChannels(&max_input_channels, &max_output_channels)) {
-		FDBUG((_arS, "GetChannels failed\n"));
+		
 	}
 	else {
-		FDBUG((_arS, "MaxInputChannels [%d] MaxOutputChannels [%d]\n", max_input_channels, max_output_channels));
+		
 	}
 	long slngTotalPossibleChannels = max_input_channels + max_output_channels;
 
