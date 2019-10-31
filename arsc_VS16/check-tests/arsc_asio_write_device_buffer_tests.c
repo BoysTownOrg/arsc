@@ -142,7 +142,7 @@ static void setup(void) {
 	allocate_device(device_index);
 	set_segments(1);
 	set_output_channels(1);
-	ar_current_device = devices(0);
+	global_ar_asio_current_device = devices(0);
 	global_ar_asio_output_audio = audio;
 	list_rates_restore = ar_asio_list_rates;
 	pLockAndLoadRestore = pLockAndLoad;

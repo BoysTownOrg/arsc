@@ -43,7 +43,7 @@ extern int32_t(*ar_asio_list_rates)(int32_t);
 extern int32_t (*pLockAndLoad)(int32_t aintDevice);
 extern ArAsioOutputAudio* global_ar_asio_output_audio;
 extern ArAsioInputAudio* global_ar_asio_input_audio;
-extern ARDEV* ar_current_device;
+extern ARDEV* global_ar_asio_current_device;
 
 int32_t _ar_asio_open(int32_t);
 int32_t _ar_asio_io_prepare(int32_t);

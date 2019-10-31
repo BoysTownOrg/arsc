@@ -7,7 +7,7 @@
 
 enum {
 	max_registry_key_length = 255,
-	max_asio_drivers = 32, // PortAudio allows a max of 32, so we will too
+	max_drivers = 32, // PortAudio allows a max of 32, so we will too
 	max_driver_name_length = 40
 };
 
@@ -31,35 +31,35 @@ typedef struct {
 	bool IsOutput;
 } TVirtualDevice;
 
+ASIOBufferInfo* global_asio_buffer_info = NULL;  // Pointer to array of bufferInfos; one for each channel (input + output)
+ArAsioOutputAudio* global_ar_asio_output_audio;   // pointer to the main stimulus block
+ArAsioInputAudio* global_ar_asio_input_audio;   // pointer to the main response block
+ARDEV* global_ar_asio_current_device;
+
 // device identifier offset
 // for multiple platforms such as when WIND and ASIO are both set in the 
 // compilation.  The WIND devices are listed first, for example 0 to 5, then 
 // the ASIO devices are listed, e.g. 6.
 static int32_t device_identifier_offset = 0;
-
-static TAsioDriver asio_drivers[max_asio_drivers];
+static TAsioDriver drivers[max_drivers];
 static TVirtualDevice VirtualDevice[MAXDEV];  // To hold the device names and the driver to which they associate
 static int32_t	initialized_driver = -1;  // Index into the AsioDriverList[] for the loaded ASIO driver
 static int32_t	device_count = 0;   // Number of valid ASIO devices
 static int32_t	max_input_channels = -1;   // Maximum as reported by the driver
 static int32_t	max_output_channels = -1;   // Maximum as reported by the driver
-ASIOBufferInfo* global_asio_buffer_info = NULL;  // Pointer to array of bufferInfos; one for each channel (input + output)
 static ASIOChannelInfo* channelInfos = NULL; // Pointer to array of channelInfos; one for each channel (input + output)
-ArAsioOutputAudio* global_ar_asio_output_audio;   // pointer to the main stimulus block
 static ArAsioOutputAudio* first_output_audio_of_current_segment;   // Points to the current segment stimulus (channel 0)
-ArAsioInputAudio* global_ar_asio_input_audio;   // pointer to the main response block
 static ArAsioInputAudio* first_input_audio_of_current_segment;   // Points to the current segment response (channel 0)
 static long	preferred_buffer_size;   // Returned by the driver
 static long	total_input_and_output_channels = 0;   // Need the total number of used input and output channels
-static long	slngInputLatency, slngOutputLatency;  // Latencies as polled from the card.
-static bool	sbolPostOutput = false;  // flag - true if driver uses ASIOOutputReady optimization
-static bool	sbolBuffersCreated = false; // flag - true if buffers have been created
+static long	input_latency, output_latency;  // Latencies as polled from the card.
+static bool	output_ready_optimization = false;  // flag - true if driver uses ASIOOutputReady optimization
+static bool	buffers_have_been_created = false; // flag - true if buffers have been created
 static bool	driver_has_started = false;  // flag - true if driver is started
-static int32_t sintTotalSamples = 0;  // Total samples processed
-static long	slngLatencyOffset = 0;  // LatencyOffset specified by app
+static int32_t total_samples_processed = 0;  // Total samples processed
+static long	latency_offset = 0;  // LatencyOffset specified by app
 static int32_t sintSegmentFinished = 0; // semaphore-like variable to tell when segment is finished
 static int32_t	good_sample_rates;
-ARDEV* ar_current_device;
 
 bool SDKLoadAsioDriver(char* name);
 bool SDKAsioInit(ASIODriverInfo* info);
@@ -188,7 +188,7 @@ int32_t(*ar_asio_list_rates)(int32_t) = _ar_asio_list_rates;
 static void
 _ar_asio_io_stop(int32_t di)
 {
-	ar_current_device = _ardev[di];
+	global_ar_asio_current_device = _ardev[di];
 
 	if (driver_has_started) {
 		FDBUG((_arS, "_ar_asio_io_stop(): Calling SDKAsioStop().\n"));
@@ -214,7 +214,7 @@ _ar_asio_close(int32_t di) {
 	FDBUG((_arS, "_ar_asio_close(): Disposing of buffers\n"));
 
 	SDKAsioDisposeBuffers();
-	sbolBuffersCreated = false;
+	buffers_have_been_created = false;
 
 	// Clear the channels
 	if (channelInfos != NULL) {
@@ -258,13 +258,13 @@ int32_t _ar_asio_open(int32_t di)
 	bool		bolOutput;
 	int32_t		intChannelOffset = 0;
 
-	ar_current_device = _ardev[di];
+	global_ar_asio_current_device = _ardev[di];
 	// Loon test
-	if (intChannelOffset + ar_current_device->ncda > max_output_channels) {
+	if (intChannelOffset + global_ar_asio_current_device->ncda > max_output_channels) {
 		FDBUG((_arS, "_ar_asio_open(): too many output channels requested for device\n"));
 		goto err;
 	}
-	if (intChannelOffset + ar_current_device->ncad > max_input_channels) {
+	if (intChannelOffset + global_ar_asio_current_device->ncad > max_input_channels) {
 		FDBUG((_arS, "_ar_asio_open(): too many input channels requested for device\n"));
 		goto err;
 	}
@@ -277,24 +277,24 @@ int32_t _ar_asio_open(int32_t di)
 
 	// This is always true for ASIO.  This lets the API code use the 
 	// segments as is because of the ef (effective) flag.
-	ar_current_device->nbps = 4;
-	ar_current_device->ntlv = 0;
+	global_ar_asio_current_device->nbps = 4;
+	global_ar_asio_current_device->ntlv = 0;
 
 	/*
 	Ensure a good sample rate, then set it.
 	gdsr is a bitwise combintation of our list of 27 sample rates.
 	Once known, we don't have to look it up again.
 	*/
-	if (!ar_current_device->gdsr)
-		ar_current_device->gdsr = ar_asio_list_rates(di);
-	ar_current_device->rate = _ar_adjust_rate(di, ar_current_device->a_rate);
-	if (!SDKAsioSetSampleRate((double)ar_current_device->rate))
+	if (!global_ar_asio_current_device->gdsr)
+		global_ar_asio_current_device->gdsr = ar_asio_list_rates(di);
+	global_ar_asio_current_device->rate = _ar_adjust_rate(di, global_ar_asio_current_device->a_rate);
+	if (!SDKAsioSetSampleRate((double)global_ar_asio_current_device->rate))
 		goto err;
 
 	// check whether the driver requires the ASIOOutputReady() optimization
 	// (can be used by the driver to reduce output latency by one block)
-	sbolPostOutput = SDKAsioOutputReady();
-	FDBUG((_arS, "ASIOOutputReady(); - %s\n", sbolPostOutput ? "Supported" : "Not supported"));
+	output_ready_optimization = SDKAsioOutputReady();
+	FDBUG((_arS, "ASIOOutputReady(); - %s\n", output_ready_optimization ? "Supported" : "Not supported"));
 
 	/*
 	Get the buffer size information from the driver.  This
@@ -316,20 +316,20 @@ int32_t _ar_asio_open(int32_t di)
 	/*
 	Allocate bufferInfos
 	*/
-	total_input_and_output_channels = ar_current_device->a_ncad + ar_current_device->a_ncda;
+	total_input_and_output_channels = global_ar_asio_current_device->a_ncad + global_ar_asio_current_device->a_ncda;
 	if ((global_asio_buffer_info = (ASIOBufferInfo*)calloc(total_input_and_output_channels, sizeof(ASIOBufferInfo))) == NULL)
 		goto err;
 
 	// Figure out the channel offset in case there are multiple ASIO cards.
 	// Count all "devices" up to the card in question.
 	for (int32_t i = 0; i < initialized_driver; i++)
-		if (asio_drivers[i].valid)
-			intChannelOffset += asio_drivers[i].devices;
+		if (drivers[i].valid)
+			intChannelOffset += drivers[i].devices;
 	intChannelOffset = (di - device_identifier_offset) - intChannelOffset;
 	FDBUG((_arS, "Channel Offset [%d]\n", intChannelOffset));
 
 	ASIOBufferInfo* bufferInfo_ = global_asio_buffer_info;
-	for (int32_t i = 0; i < ar_current_device->a_ncda; i++) {
+	for (int32_t i = 0; i < global_ar_asio_current_device->a_ncda; i++) {
 		bufferInfo_->isInput = ASIOFalse;
 		bufferInfo_->channelNum = i;
 		bufferInfo_->buffers[0] = NULL;
@@ -337,7 +337,7 @@ int32_t _ar_asio_open(int32_t di)
 		bufferInfo_++;
 	}
 
-	for (int32_t i = 0; i < ar_current_device->a_ncad; i++) {		// loop over output channels
+	for (int32_t i = 0; i < global_ar_asio_current_device->a_ncad; i++) {		// loop over output channels
 		bufferInfo_->isInput = ASIOTrue;	// create an input buffer
 		bufferInfo_->channelNum = i;		// (di - dio) handles channel offsets
 		bufferInfo_->buffers[0] = NULL;	// clear buffer 1/2 channels
@@ -355,13 +355,13 @@ int32_t _ar_asio_open(int32_t di)
 	/*
 	Create the ASIO buffers, both input and output.  Also set up the callbacks.
 	*/
-	sbolBuffersCreated = SDKAsioCreateBuffers(
+	buffers_have_been_created = SDKAsioCreateBuffers(
 		global_asio_buffer_info,
 		total_input_and_output_channels,
 		preferred_buffer_size,
 		&asioCallbacks
 	);
-	if (!sbolBuffersCreated) {
+	if (!buffers_have_been_created) {
 		FDBUG((_arS, "_ar_asio_open(): unable to create buffers\n"));
 		goto err;
 	}
@@ -370,9 +370,9 @@ int32_t _ar_asio_open(int32_t di)
 	// Latencies often are only valid after ASIOCreateBuffers()
 	// (input latency is the age of the first sample in the currently returned audio block)
 	// (output latency is the time the first sample in the currently returned audio block requires to get to the output)
-	if (!SDKAsioGetLatencies(&slngInputLatency, &slngOutputLatency))
+	if (!SDKAsioGetLatencies(&input_latency, &output_latency))
 		goto err;
-	FDBUG((_arS, "Latencies: input (%d) output (%d)\n", slngInputLatency, slngOutputLatency));
+	FDBUG((_arS, "Latencies: input (%d) output (%d)\n", input_latency, output_latency));
 
 	// Clear the buffers because CardDeluxe has known issues
 	bufferInfo_ = global_asio_buffer_info;
@@ -382,8 +382,8 @@ int32_t _ar_asio_open(int32_t di)
 		bufferInfo_++;
 	}
 
-	sintTotalSamples = 0;	// Total samples processed
-	slngLatencyOffset = 0;	// LatencyOffset specified by app
+	total_samples_processed = 0;	// Total samples processed
+	latency_offset = 0;	// LatencyOffset specified by app
 	sintSegmentFinished = 0;	// semaphore-like variable to tell when segment is finished
 
 	return (0);
@@ -397,7 +397,7 @@ int32_t
 _ar_asio_io_prepare(int32_t di)
 {
 	FDBUG((_arS, "asio_io_prepare:\n"));
-	ar_current_device = _ardev[di];
+	global_ar_asio_current_device = _ardev[di];
 	/*
 	Set up stimulus (OUTPUT) blocks
 	This is just a contiguous array of ArAsioChannelBuffers.  The bufferSwitch
@@ -413,32 +413,32 @@ _ar_asio_io_prepare(int32_t di)
 	The pointer "first_output_audio_of_current_segment" will point to the first (channel 0)
 	global_output_audio for the current segment.
 	*/
-	size_t segments = ar_current_device->segswp;
-	if ((global_ar_asio_output_audio = calloc(ar_current_device->ncda * segments, sizeof(ArAsioOutputAudio))) == NULL)
+	size_t segments = global_ar_asio_current_device->segswp;
+	if ((global_ar_asio_output_audio = calloc(global_ar_asio_current_device->ncda * segments, sizeof(ArAsioOutputAudio))) == NULL)
 		return -1;
 
-	if ((global_ar_asio_input_audio = calloc(ar_current_device->ncad * segments, sizeof(ArAsioInputAudio))) == NULL)
+	if ((global_ar_asio_input_audio = calloc(global_ar_asio_current_device->ncad * segments, sizeof(ArAsioInputAudio))) == NULL)
 		return -1;
 
 	ArAsioOutputAudio* output_audio = global_ar_asio_output_audio;
 	first_output_audio_of_current_segment = global_ar_asio_output_audio;
-	for (int32_t i = 0; i < ar_current_device->ncda * segments; i++) {
-		output_audio->channel = i % ar_current_device->ncda;
-		output_audio->segment = i / ar_current_device->ncda;
-		output_audio->data = ar_current_device->o_data[i];
+	for (int32_t i = 0; i < global_ar_asio_current_device->ncda * segments; i++) {
+		output_audio->channel = i % global_ar_asio_current_device->ncda;
+		output_audio->segment = i / global_ar_asio_current_device->ncda;
+		output_audio->data = global_ar_asio_current_device->o_data[i];
 		output_audio->Index = 0;
-		output_audio->size = ar_current_device->sizptr[i / ar_current_device->ncda];
+		output_audio->size = global_ar_asio_current_device->sizptr[i / global_ar_asio_current_device->ncda];
 		output_audio++;
 	}
 
 	ArAsioInputAudio* ptrResponseData = global_ar_asio_input_audio;
 	first_input_audio_of_current_segment = global_ar_asio_input_audio;
-	for (int32_t i = 0; i < ar_current_device->ncad * segments; i++) {
-		ptrResponseData->channel = i % ar_current_device->ncad;
-		ptrResponseData->segment = i / ar_current_device->ncad;
-		ptrResponseData->data = ar_current_device->i_data[i];
+	for (int32_t i = 0; i < global_ar_asio_current_device->ncad * segments; i++) {
+		ptrResponseData->channel = i % global_ar_asio_current_device->ncad;
+		ptrResponseData->segment = i / global_ar_asio_current_device->ncad;
+		ptrResponseData->data = global_ar_asio_current_device->i_data[i];
 		ptrResponseData->Index = 0;
-		ptrResponseData->size = ar_current_device->sizptr[i / ar_current_device->ncad];
+		ptrResponseData->size = global_ar_asio_current_device->sizptr[i / global_ar_asio_current_device->ncad];
 		// Only segment 0 need be concerned with latency
 		ptrResponseData->LatencyReached = (ptrResponseData->segment != 0);
 		ptrResponseData++;
@@ -481,7 +481,7 @@ int32_t _ar_asio_chk_seg(int32_t di, int32_t b)
 	current segment that is needed.
 	*/
 
-	ar_current_device = _ardev[di];
+	global_ar_asio_current_device = _ardev[di];
 
 	if (!driver_has_started) {
 		return -1;
@@ -495,14 +495,14 @@ int32_t _ar_asio_chk_seg(int32_t di, int32_t b)
 		// enough, we should get this within moments of it happening.
 		sintSegmentFinished--;
 
-		FDBUG((_arS, "Got semaphore for segment [%d] [%d]\n", ar_current_device->seg_ic, ar_current_device->seg_oc));
+		FDBUG((_arS, "Got semaphore for segment [%d] [%d]\n", global_ar_asio_current_device->seg_ic, global_ar_asio_current_device->seg_oc));
 		return true;
 		break;
 	default:
 		// Segment overrun
 		// This can happen when clicking to another window while the app is running.
 		FDBUG((_arS, "._._._ S E G M E N T  O V E R R U N _._._.\n"));
-		ar_current_device->xrun++;
+		global_ar_asio_current_device->xrun++;
 		return true;
 	}
 
@@ -514,7 +514,7 @@ int32_t(*ar_asio_check_segment)(int32_t, int32_t) = _ar_asio_chk_seg;
 void
 _ar_asio_io_start(int32_t di)
 {
-	sintTotalSamples = 0;
+	total_samples_processed = 0;
 	FDBUG((_arS, "_ar_asio_io_start(): entered.\n"));
 	driver_has_started = SDKAsioStart();
 }
@@ -527,15 +527,15 @@ static int32_t
 _ar_asio_latency(int32_t di, int32_t nsmp)
 {
 	long max_latency;
-	ar_current_device = _ardev[di];			// get access to application parameters
+	global_ar_asio_current_device = _ardev[di];			// get access to application parameters
 	if (nsmp != ARSC_GET_LATENCY) {
-		max_latency = slngInputLatency + slngOutputLatency; // sum of driver input/output latencies
+		max_latency = input_latency + output_latency; // sum of driver input/output latencies
 		max_latency -= max_latency % 256;		    // subtract impulse latency, if any
 		if (nsmp > max_latency)
 			nsmp = max_latency;
-		slngLatencyOffset = nsmp;
+		latency_offset = nsmp;
 	}
-	return slngLatencyOffset;
+	return latency_offset;
 }
 
 int32_t(*ar_asio_latency)(int32_t, int32_t) = _ar_asio_latency;
@@ -573,17 +573,17 @@ _ar_asio_bind(int32_t ndt, int32_t tnd)
 }
 
 static int is_last_output_segment(ArAsioOutputAudio* audio) {
-	return audio->segment + 1 == ar_current_device->segswp;
+	return audio->segment + 1 == global_ar_asio_current_device->segswp;
 }
 
 static int is_last_output_channel(ArAsioOutputAudio* audio) {
-	int32_t output_channels = ar_current_device->a_ncda;
+	int32_t output_channels = global_ar_asio_current_device->a_ncda;
 	int32_t last_channel = output_channels - 1;
 	return audio->channel == last_channel;
 }
 
 static int is_last_input_channel(ArAsioInputAudio* audio) {
-	int32_t input_channels = ar_current_device->a_ncad;
+	int32_t input_channels = global_ar_asio_current_device->a_ncad;
 	int32_t last_channel = input_channels - 1;
 	return audio->channel == last_channel;
 }
@@ -597,7 +597,7 @@ static int input_is_exhausted(ArAsioInputAudio* audio) {
 }
 
 static int is_last_input_segment(ArAsioInputAudio* audio) {
-	return audio->segment + 1 == ar_current_device->segswp;
+	return audio->segment + 1 == global_ar_asio_current_device->segswp;
 }
 
 static int32_t minimum(int32_t a, int32_t b) {
@@ -611,7 +611,7 @@ static void copy(int32_t* destination, int32_t* source, int32_t count) {
 static void update_if_last_output_channel(ArAsioOutputAudio* audio) {
 	if (is_last_output_channel(audio)) {
 		// If there are no input channels, the out channel determines the segment end
-		if (!ar_current_device->a_ncad)
+		if (!global_ar_asio_current_device->a_ncad)
 			sintSegmentFinished++;
 		first_output_audio_of_current_segment = is_last_output_segment(audio)
 			? global_ar_asio_output_audio
@@ -629,9 +629,9 @@ int32_t ar_asio_write_device_buffer(int32_t* destination, int32_t size, ArAsioOu
 		audio->Index += to_copy;
 		if (output_is_exhausted(audio)) {
 			update_if_last_output_channel(audio);
-			int32_t output_channels = ar_current_device->a_ncda;
+			int32_t output_channels = global_ar_asio_current_device->a_ncda;
 			audio += is_last_output_segment(audio)
-				? -output_channels * (ar_current_device->segswp - 1)
+				? -output_channels * (global_ar_asio_current_device->segswp - 1)
 				: output_channels;
 			audio->Index = 0;
 		}
@@ -659,9 +659,9 @@ int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAud
 		// close.
 		//intLoopbackLatency = slngInputLatency + slngOutputLatency + slngLatencyOffset;    // Tone's version
 		// Changed default LoopbackLatecy to match WDM latency [STN:Jun-2007]
-		int32_t intLoopbackLatency = slngInputLatency + slngOutputLatency;	    // sum of driver input/output latencies
+		int32_t intLoopbackLatency = input_latency + output_latency;	    // sum of driver input/output latencies
 		int32_t intImpulseLatency = intLoopbackLatency % 256;			    // extract impulse latency, if any
-		intLoopbackLatency -= slngLatencyOffset + intImpulseLatency;    // subtract app & impulse latencies
+		intLoopbackLatency -= latency_offset + intImpulseLatency;    // subtract app & impulse latencies
 		// With the passed buffer, are we past the latency?
 		if (audio->SkippedSamples + size >= intLoopbackLatency) {
 			// Partial buffer needs to be sent
@@ -700,9 +700,9 @@ int32_t ar_asio_read_device_buffer(int32_t* source, int32_t size, ArAsioInputAud
 					? global_ar_asio_input_audio
 					: audio + 1;
 			}
-			int32_t input_channels = ar_current_device->a_ncad;
+			int32_t input_channels = global_ar_asio_current_device->a_ncad;
 			audio += is_last_input_segment(audio)
-				? -input_channels * (ar_current_device->segswp - 1)
+				? -input_channels * (global_ar_asio_current_device->segswp - 1)
 				: input_channels;
 			audio->Index = 0;
 		}
@@ -756,9 +756,9 @@ int32_t pGetChannelDetails(int32_t aintDriver) {
 	// Hold onto the number of "devices" for this driver.  This is used 
 	// later in calculating the channel offset from the device number.
 	if (bolOutput)
-		asio_drivers[aintDriver].devices = max_output_channels;
+		drivers[aintDriver].devices = max_output_channels;
 	else
-		asio_drivers[aintDriver].devices = max_input_channels;;
+		drivers[aintDriver].devices = max_input_channels;;
 
 	// Channel details
 	ptrChannelInfo = channelInfos;
@@ -845,7 +845,7 @@ int32_t pPollAsioDrivers(void) {
 
 			// name
 			// The name is the key in the registry.
-			strcpy(asio_drivers[index].name, keyname);
+			strcpy(drivers[index].name, keyname);
 
 			// CLSID
 			size = max_registry_key_length;
@@ -858,7 +858,7 @@ int32_t pPollAsioDrivers(void) {
 				if (strlen(ptrClsid) == 38) {		// Must be 38 long, including { }
 					MultiByteToWideChar(CP_ACP, 0, (LPCSTR)ptrClsid, -1, (LPWSTR)wData, 100);
 
-					if (CLSIDFromString((LPOLESTR)wData, (LPCLSID) & (asio_drivers[index].clsid)) != S_OK) {
+					if (CLSIDFromString((LPOLESTR)wData, (LPCLSID) & (drivers[index].clsid)) != S_OK) {
 						FDBUG((_arS, "CLSIDFromString() was not able to convert [%s]\n", ptrClsid));
 					}
 				}
@@ -873,11 +873,11 @@ int32_t pPollAsioDrivers(void) {
 			// The description is not necessarily the same as the name of the driver.
 			size = max_registry_key_length;
 			if (RegQueryValueEx(hkDriver, "Description", 0, &type, (LPBYTE)value, &size) == ERROR_SUCCESS) {
-				strcpy(asio_drivers[index].description, value);
+				strcpy(drivers[index].description, value);
 			}
 			else {
 				// Some ASIO drivers don't have a description
-				strcpy(asio_drivers[index].description, keyname);
+				strcpy(drivers[index].description, keyname);
 			}
 
 			index++;
@@ -894,16 +894,16 @@ int32_t pPollAsioDrivers(void) {
 	Need to test each one out to see if it opens.
 	*/
 	device_count = 0;
-	for (intDriver = 0; intDriver < max_asio_drivers; intDriver++) {
-		if (strlen(asio_drivers[intDriver].name) > 0) {
+	for (intDriver = 0; intDriver < max_drivers; intDriver++) {
+		if (strlen(drivers[intDriver].name) > 0) {
 
 			// In case multiple ASIO sound cards exist, terminate the AudioStreamIO.
 			// This may not be necessary.
 			if (initialized_driver > 0)
 				SDKAsioExit();
 
-			if (SDKLoadAsioDriver(asio_drivers[intDriver].name)) {
-				FDBUG((_arS, "Success: Driver [%s] loaded fine\n", asio_drivers[intDriver].name));
+			if (SDKLoadAsioDriver(drivers[intDriver].name)) {
+				FDBUG((_arS, "Success: Driver [%s] loaded fine\n", drivers[intDriver].name));
 
 				// But loading isn't enough.  The Echo Gina will load even if it isn't installed.
 				// Initialize the AudioStreamIO.
@@ -913,8 +913,8 @@ int32_t pPollAsioDrivers(void) {
 					// This ASIO driver can be used.  Although we can use only one
 					// ASIO driver at a time, there may be multiple sound cards in the same
 					// box, so we aren't done yet.
-					asio_drivers[intDriver].valid = true;
-					FDBUG((_arS, "INIT Valid! Driver [%s] is ok to use\n", asio_drivers[intDriver].name));
+					drivers[intDriver].valid = true;
+					FDBUG((_arS, "INIT Valid! Driver [%s] is ok to use\n", drivers[intDriver].name));
 
 					// For now, this sets the last ASIO driver as the one used.
 					initialized_driver = intDriver;
@@ -925,11 +925,11 @@ int32_t pPollAsioDrivers(void) {
 
 				}
 				else {
-					FDBUG((_arS, "INIT Failed: Driver [%s] did not init\n", asio_drivers[intDriver].name));
+					FDBUG((_arS, "INIT Failed: Driver [%s] did not init\n", drivers[intDriver].name));
 				}
 			}
 			else {
-				FDBUG((_arS, "Failed: Driver [%s] did not load\n", asio_drivers[intDriver].name));
+				FDBUG((_arS, "Failed: Driver [%s] did not load\n", drivers[intDriver].name));
 			} // fi SDKLoadAsioDriver
 		}
 		else {
@@ -997,24 +997,24 @@ int32_t pLockAndLoadImpl(int32_t aintDevice) {
 
 	FDBUG((_arS, "pLockAndLoad: Device [%d] dio [%d] driver [%d]\n", aintDevice, device_identifier_offset, intDriver));
 
-	if (SDKLoadAsioDriver(asio_drivers[intDriver].name)) {
-		FDBUG((_arS, "pLockAndLoad: Driver [%s] loaded fine\n", asio_drivers[intDriver].name));
+	if (SDKLoadAsioDriver(drivers[intDriver].name)) {
+		FDBUG((_arS, "pLockAndLoad: Driver [%s] loaded fine\n", drivers[intDriver].name));
 
 		asioDriverInfo.driverVersion = 2;				// ASIO 2.0
 		asioDriverInfo.sysRef = GetDesktopWindow();			// Application main window handle
 		if (SDKAsioInit(&asioDriverInfo) == true) {
-			FDBUG((_arS, "pLockAndLoad: Driver [%s] is intialized\n", asio_drivers[intDriver].name));
+			FDBUG((_arS, "pLockAndLoad: Driver [%s] is intialized\n", drivers[intDriver].name));
 
 			// Hold for later
 			initialized_driver = intDriver;
 		}
 		else {
-			FDBUG((_arS, "pLockAndLoad: Driver [%s] did not init\n", asio_drivers[intDriver].name));
+			FDBUG((_arS, "pLockAndLoad: Driver [%s] did not init\n", drivers[intDriver].name));
 			return 0;
 		}
 	}
 	else {
-		FDBUG((_arS, "pLockAndLoad: Driver [%s] did not load\n", asio_drivers[intDriver].name));
+		FDBUG((_arS, "pLockAndLoad: Driver [%s] did not load\n", drivers[intDriver].name));
 		return 0;
 	} // fi SDKLoadAsioDriver
 
@@ -1102,13 +1102,13 @@ ASIOTime* bufferSwitchTimeInfo(ASIOTime* timeInfo, long index, ASIOBool processN
 	}
 
 	// finally if the driver supports the ASIOOutputReady() optimization, do it here, all data are in place
-	if (sbolPostOutput)
+	if (output_ready_optimization)
 		SDKAsioOutputReadyImpl();
 
 	// The total samples is really the count of buffer dimensions.
 	// Because it is outside the channels loop, it is independent of
 	// channel.  It is as though one channel was tallied.
-	sintTotalSamples += lngAsioBufferSize;
+	total_samples_processed += lngAsioBufferSize;
 
 	return 0L;
 }

@@ -73,7 +73,7 @@ static void setup(void) {
 	allocate_device(device_index);
 	set_segments(1);
 	set_input_channels(1);
-	ar_current_device = devices(0);
+	global_ar_asio_current_device = devices(0);
 }
 
 static void teardown(void) {
