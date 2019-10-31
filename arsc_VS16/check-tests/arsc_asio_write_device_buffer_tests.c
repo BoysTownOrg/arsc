@@ -143,7 +143,7 @@ static void setup(void) {
 	set_segments(1);
 	set_output_channels(1);
 	ar_current_device = devices(0);
-	global_output_audio = audio;
+	global_ar_asio_output_audio = audio;
 	list_rates_restore = ar_asio_list_rates;
 	pLockAndLoadRestore = pLockAndLoad;
 	SDKAsioSetSampleRateRestore = SDKAsioSetSampleRate;

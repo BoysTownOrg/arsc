@@ -111,7 +111,7 @@ static int32_t open() {
 }
 
 static ASIOBufferInfo* bufferInfo_(int i) {
-	return bufferInfos + i;
+	return global_asio_buffer_info + i;
 }
 
 static ASIOBool bufferInfoIsInput(int i) {

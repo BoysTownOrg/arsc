@@ -36,8 +36,8 @@ static void setup(void) {
 
 static void teardown(void) {
 	free_device(device_index);
-	free(global_input_audio);
-	free(global_output_audio);
+	free(global_ar_asio_input_audio);
+	free(global_ar_asio_output_audio);
 }
 
 static void io_prepare(void) {
@@ -61,11 +61,11 @@ static void assign_input_buffer(int i, void* buffer) {
 }
 
 static ArAsioOutputAudio* global_output_audio_(int i) {
-	return global_output_audio + i;
+	return global_ar_asio_output_audio + i;
 }
 
 static ArAsioInputAudio* global_input_audio_(int i) {
-	return global_input_audio + i;
+	return global_ar_asio_input_audio + i;
 }
 
 static int32_t* global_output_audio_data(int i) {
