@@ -268,22 +268,22 @@ int32_t _ar_asio_open(int32_t di) {
             intChannelOffset += drivers[i].devices;
     intChannelOffset = (di - device_identifier_offset) - intChannelOffset;
 
-    ASIOBufferInfo *bufferInfo_ = global_asio_buffer_info;
+    ASIOBufferInfo *bufferInfo = global_asio_buffer_info;
     for (int32_t i = 0; i < global_ar_asio_current_device->a_ncda; i++) {
-        bufferInfo_->isInput = ASIOFalse;
-        bufferInfo_->channelNum = i;
-        bufferInfo_->buffers[0] = NULL;
-        bufferInfo_->buffers[1] = NULL;
-        bufferInfo_++;
+        bufferInfo->isInput = ASIOFalse;
+        bufferInfo->channelNum = i;
+        bufferInfo->buffers[0] = NULL;
+        bufferInfo->buffers[1] = NULL;
+        bufferInfo++;
     }
 
     for (int32_t i = 0; i < global_ar_asio_current_device->a_ncad;
          i++) { // loop over output channels
-        bufferInfo_->isInput = ASIOTrue; // create an input buffer
-        bufferInfo_->channelNum = i; // (di - dio) handles channel offsets
-        bufferInfo_->buffers[0] = NULL; // clear buffer 1/2 channels
-        bufferInfo_->buffers[1] = NULL; // clear buffer 1/2 channels
-        bufferInfo_++;
+        bufferInfo->isInput = ASIOTrue; // create an input buffer
+        bufferInfo->channelNum = i; // (di - dio) handles channel offsets
+        bufferInfo->buffers[0] = NULL; // clear buffer 1/2 channels
+        bufferInfo->buffers[1] = NULL; // clear buffer 1/2 channels
+        bufferInfo++;
     }
 
     ASIOCallbacks asioCallbacks;
@@ -311,13 +311,13 @@ int32_t _ar_asio_open(int32_t di) {
         goto err;
 
     // Clear the buffers because CardDeluxe has known issues
-    bufferInfo_ = global_asio_buffer_info;
+    bufferInfo = global_asio_buffer_info;
     for (int32_t i = 0; i < total_input_and_output_channels; i++) {
-        memset(bufferInfo_->buffers[0], 0,
+        memset(bufferInfo->buffers[0], 0,
             preferred_buffer_size * sizeof(int32_t));
-        memset(bufferInfo_->buffers[1], 0,
+        memset(bufferInfo->buffers[1], 0,
             preferred_buffer_size * sizeof(int32_t));
-        bufferInfo_++;
+        bufferInfo++;
     }
 
     total_samples_processed = 0; // Total samples processed
