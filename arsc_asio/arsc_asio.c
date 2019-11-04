@@ -199,7 +199,7 @@ static void _ar_asio_close(int32_t di) {
 }
 
 void (*ar_asio_close)(int32_t) = _ar_asio_close;
-
+static ASIOCallbacks asioCallbacks;
 int32_t _ar_asio_open(int32_t di) {
     int32_t intChannelOffset = 0;
     global_ar_asio_current_device = _ardev[di];
@@ -286,7 +286,6 @@ int32_t _ar_asio_open(int32_t di) {
         bufferInfo++;
     }
 
-    ASIOCallbacks asioCallbacks;
     // set up the asioCallback structure and create the ASIO data buffer
     asioCallbacks.bufferSwitch = &bufferSwitch;
     asioCallbacks.sampleRateDidChange = &sampleRateChanged;
