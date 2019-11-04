@@ -591,35 +591,20 @@ int32_t ar_asio_read_device_buffer(
         // intLoopbackLatency = slngInputLatency + slngOutputLatency +
         // slngLatencyOffset;    // Tone's version
         // Changed default LoopbackLatecy to match WDM latency [STN:Jun-2007]
-        int32_t intLoopbackLatency = input_latency +
+        int32_t loopback_latency = input_latency +
             output_latency; // sum of driver input/output latencies
-        int32_t intImpulseLatency =
-            intLoopbackLatency % 256; // extract impulse latency, if any
-        intLoopbackLatency -= latency_offset +
-            intImpulseLatency; // subtract app & impulse latencies
+        int32_t impulse_latency =
+            loopback_latency % 256; // extract impulse latency, if any
+        loopback_latency -= latency_offset +
+            impulse_latency; // subtract app & impulse latencies
         // With the passed buffer, are we past the latency?
-        if (audio->SkippedSamples + size >= intLoopbackLatency) {
-            // Partial buffer needs to be sent
-            int32_t intDifference = intLoopbackLatency - audio->SkippedSamples;
-            if (intDifference < 0)
-                intDifference = 0;
-            int32_t *source_ = source;
-            source_ += intDifference;
-            audio->LatencyReached = true;
-
-            // Check for abnormally large buffers
-            int32_t intRemainder = size - intDifference;
-            if (intRemainder < audio->size) {
-                int32_t *destination = audio->data + audio->Index;
-                copy(destination, source_, intRemainder);
-                audio->Index += intRemainder;
-            } else if (!ar_asio_read_device_buffer(
-                           source_, intRemainder, audio))
-                return 0L;
-        } else
-            // Entire buffer is worthless.  Still need to track # of skipped
-            // samples until LatencyReached.
-            audio->SkippedSamples += size;
+        int32_t samples_skipped =
+            minimum(loopback_latency - audio->SkippedSamples, size);
+        audio->SkippedSamples += samples_skipped;
+        size -= samples_skipped;
+        source += samples_skipped;
+        audio->LatencyReached =
+            audio->SkippedSamples == loopback_latency;
     }
     while (1) {
         int32_t *destination = audio->data + audio->Index;
