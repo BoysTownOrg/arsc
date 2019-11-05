@@ -3,6 +3,7 @@
 #include "arsc_asio_wrappers.h"
 #include "../arsclib.h"
 #include <Windows.h>
+#include <stdio.h>
 
 enum {
     max_registry_key_length = 255,
