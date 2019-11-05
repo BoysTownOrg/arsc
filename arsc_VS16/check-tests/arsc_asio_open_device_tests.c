@@ -5,20 +5,20 @@
 
 static int32_t(*list_rates_restore)(int32_t);
 static int32_t(*pLockAndLoadRestore)(int32_t);
-static bool(*SDKAsioSetSampleRateRestore)(ASIOSampleRate);
-static bool (*SDKAsioGetBufferSizeRestore)(
+static int(*SDKAsioSetSampleRateRestore)(ASIOSampleRate);
+static int(*SDKAsioGetBufferSizeRestore)(
 	long* alngMinBufferSize,
 	long* alngMaxBufferSize,
 	long* aslngPreferredBufferSize,
 	long* alngGranularity
 );
-static bool (*SDKAsioCreateBuffersRestore)(
+static int(*SDKAsioCreateBuffersRestore)(
 	ASIOBufferInfo* bufferInfos,
 	long numChannels,
 	long bufferSize,
 	ASIOCallbacks* callbacks
 );
-static bool (*SDKAsioGetLatenciesRestore)(long* inputLatency, long* outputLatency);
+static int(*SDKAsioGetLatenciesRestore)(long* inputLatency, long* outputLatency);
 
 static int32_t rates;
 static int32_t list_rates_device;
@@ -28,12 +28,12 @@ static int32_t list_rates_stub(int32_t n) {
 	return rates;
 }
 
-static bool SDKAsioSetSampleRateStub(ASIOSampleRate r) {
+static int SDKAsioSetSampleRateStub(ASIOSampleRate r) {
 	r;
 	return 1;
 }
 
-static bool SDKAsioGetBufferSizeStub(
+static int SDKAsioGetBufferSizeStub(
 	long* alngMinBufferSize,
 	long* alngMaxBufferSize,
 	long* aslngPreferredBufferSize,
@@ -51,7 +51,7 @@ static int32_t pLockAndLoadStub(int32_t device) {
 	return 1;
 }
 
-static bool SDKAsioCreateBuffersStub(
+static int SDKAsioCreateBuffersStub(
 	ASIOBufferInfo* bufferInfo,
 	long numChannels,
 	long bufferSize,
@@ -64,7 +64,7 @@ static bool SDKAsioCreateBuffersStub(
 	return 1;
 }
 
-static bool SDKAsioGetLatenciesStub(long* inputLatency, long* outputLatency) {
+static int SDKAsioGetLatenciesStub(long* inputLatency, long* outputLatency) {
 	inputLatency;
 	outputLatency;
 	return 1;
@@ -114,7 +114,7 @@ static ASIOBufferInfo* bufferInfo_(int i) {
 	return global_asio_buffer_info + i;
 }
 
-static ASIOBool bufferInfoIsInput(int i) {
+static int bufferInfoIsInput(int i) {
 	return bufferInfo_(i)->isInput;
 }
 

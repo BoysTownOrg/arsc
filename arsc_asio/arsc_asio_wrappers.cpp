@@ -6,9 +6,8 @@ This code needs to be CPP to interface to the SDK.
 
 #ifdef ASIO
 
-#include <objbase.h>										/* For working w/ CLSIDs */
-#include "asiosys.h"										/* platform definition from Steinberg SDK */
 #include "arsc_asio_wrappers.h"
+#include <objbase.h>
 
 // External prototypes
 bool loadAsioDriver ( char *name );
@@ -17,45 +16,42 @@ bool loadAsioDriver ( char *name );
 This function is in CPP because it calls functions in the
 Steinberg SDK which are written in CPP.
 */
-bool SDKLoadAsioDriver ( char *name ) {
+int SDKLoadAsioDriver ( char *name ) {
 	CoInitialize(0);
 	return loadAsioDriver(name);
 }
 
-bool SDKAsioExit ( ) {
+int SDKAsioExit ( ) {
 	ASIOError		aseError = ASE_OK;
 
 	if ( ( aseError = ASIOExit ( ) ) == ASE_OK )
 		return true;
 	else {
-		DBUG ( ( "ASIOExit() returned [%ld]\n", aseError ) );
 		return false;
 	}
 }
 
-bool SDKAsioInit ( ASIODriverInfo *info ) {
+int SDKAsioInit ( ASIODriverInfo *info ) {
 	ASIOError		aseError = ASE_OK;
 
 	if ( ( aseError = ASIOInit ( info ) ) == ASE_OK )
 		return true;
 	else {
-		DBUG ( ( "ASIOInit() returned [%ld]\n", aseError ) );
 		return false;
 	}
 }
 
-bool SDKAsioGetChannels ( long *alngInputChannels, long *alngOutputChannels ) {
+int SDKAsioGetChannels ( long *alngInputChannels, long *alngOutputChannels ) {
 	ASIOError		aseError = ASE_OK;
 
 	if ( ( aseError = ASIOGetChannels ( alngInputChannels, alngOutputChannels ) ) == ASE_OK )
 		return true;
 	else {
-		DBUG ( ( "AsioGetChannels() returned [%ld]\n", aseError ) );
 		return false;
 	}
 }
 
-bool SDKAsioCanSampleRate ( ASIOSampleRate aSampleRate ) {
+int SDKAsioCanSampleRate ( ASIOSampleRate aSampleRate ) {
 
 	ASIOError aseError = ASIOCanSampleRate ( aSampleRate );
 	bool bolReturn = false;
@@ -78,7 +74,7 @@ bool SDKAsioCanSampleRate ( ASIOSampleRate aSampleRate ) {
 }
 
 
-bool SDKAsioSetSampleRateImpl ( ASIOSampleRate aSampleRate ) {
+int SDKAsioSetSampleRateImpl ( ASIOSampleRate aSampleRate ) {
 	ASIOError aseError = ASIOSetSampleRate ( aSampleRate );
 	bool bolReturn = false;
 
@@ -87,15 +83,12 @@ bool SDKAsioSetSampleRateImpl ( ASIOSampleRate aSampleRate ) {
 			bolReturn = true;
 			break;
 		case ASE_NoClock:
-            DBUG ( ( "Sample rate [%f] is unknown\n", aSampleRate ) );
 			bolReturn = false;
 			break;
 		case ASE_InvalidMode:
-			DBUG ( ( "Sample rate [%f] is non-zero, but the clock is set to external.\n", aSampleRate ) );
 			bolReturn = false;
 			break;
 		case ASE_NotPresent:
-			DBUG ( ( "No input/output is present.\n" ) );
 			bolReturn = false;
 			break;
 	} /* hctiws */
@@ -103,7 +96,7 @@ bool SDKAsioSetSampleRateImpl ( ASIOSampleRate aSampleRate ) {
 	return bolReturn;
 }
 
-bool SDKAsioGetBufferSizeImpl (	long *alngMinBufferSize,
+int SDKAsioGetBufferSizeImpl (	long *alngMinBufferSize,
 										long *alngMaxBufferSize,
 										long *aslngPreferredBufferSize,
 										long *alngGranularity ) {
@@ -117,14 +110,8 @@ bool SDKAsioGetBufferSizeImpl (	long *alngMinBufferSize,
 	switch ( aseError ) {
 		case ASE_OK:
 			bolReturn = true;
-			// This might be useful information to the developer
-			DBUG ( ( "min [%ld] max [%ld] pref [%ld] gran [%ld].\n",	*alngMinBufferSize, 
-																		*alngMaxBufferSize, 
-																		*aslngPreferredBufferSize, 
-																		*alngGranularity ) );
 			break;
 		case ASE_NotPresent:
-			DBUG ( ( "No input/output is present.\n" ) );
 			bolReturn = false;
 			break;
 	} /* hctiws */
@@ -133,7 +120,7 @@ bool SDKAsioGetBufferSizeImpl (	long *alngMinBufferSize,
 
 }
 
-bool SDKAsioGetChannelInfo ( ASIOChannelInfo *info ) {
+int SDKAsioGetChannelInfo ( ASIOChannelInfo *info ) {
 	ASIOError aseError = ASIOGetChannelInfo ( info );
 	bool bolReturn = false;
 
@@ -142,7 +129,6 @@ bool SDKAsioGetChannelInfo ( ASIOChannelInfo *info ) {
 			bolReturn = true;
 			break;
 		case ASE_NotPresent:
-			DBUG ( ( "No input/output is present.\n" ) );
 			bolReturn = false;
 			break;
 	} /* hctiws */
@@ -150,7 +136,7 @@ bool SDKAsioGetChannelInfo ( ASIOChannelInfo *info ) {
 	return bolReturn;
 }
 
-bool SDKAsioCreateBuffersImpl ( ASIOBufferInfo *bufferInfos,
+int SDKAsioCreateBuffersImpl ( ASIOBufferInfo *bufferInfos,
 										long numChannels,
 										long bufferSize,
 										ASIOCallbacks *callbacks ) {
@@ -166,16 +152,13 @@ bool SDKAsioCreateBuffersImpl ( ASIOBufferInfo *bufferInfos,
 			bolReturn = true;
 			break;
 		case ASE_NotPresent:
-			DBUG ( ( "No input/output is present.\n" ) );
 			bolReturn = false;
 			break;
 		case ASE_NoMemory:
-			DBUG ( ( "Not enough memory available.\n" ) );
 			bolReturn = false;
 			break;
 		case ASE_InvalidMode:					// Documentation says this
 		case ASE_InvalidParameter:				// I think it may be this.
-			DBUG ( ( "Either bufferSize is not supported, or one or more of the bufferInfos elements contain invalid settings.\n" ) );
 			bolReturn = false;
 			break;
 	} /* hctiws */
@@ -183,7 +166,7 @@ bool SDKAsioCreateBuffersImpl ( ASIOBufferInfo *bufferInfos,
 	return bolReturn;
 }
 
-bool SDKAsioOutputReadyImpl ( ) {
+int SDKAsioOutputReadyImpl ( ) {
 
 	if ( ASIOOutputReady() == ASE_OK )
 		return true;
@@ -194,7 +177,7 @@ bool SDKAsioOutputReadyImpl ( ) {
 /*
 Inquires the sample position/time stamp pair.
 */
-bool SDKAsioGetSamplePosition ( ASIOSamples *sPos, ASIOTimeStamp *tStamp ) {
+int SDKAsioGetSamplePosition ( ASIOSamples *sPos, ASIOTimeStamp *tStamp ) {
 	
 	ASIOError aseError = ASIOGetSamplePosition ( sPos, tStamp );
 	bool bolReturn = false;
@@ -204,11 +187,9 @@ bool SDKAsioGetSamplePosition ( ASIOSamples *sPos, ASIOTimeStamp *tStamp ) {
 			bolReturn = true;
 			break;
 		case ASE_NotPresent:
-			DBUG ( ( "No input/output is present.\n" ) );
 			bolReturn = false;
 			break;
 		case ASE_SPNotAdvancing:
-			DBUG ( ( "No clock; sample position not advancing.\n" ) );
 			bolReturn = false;
 			break;
 	} /* hctiws */
@@ -220,7 +201,7 @@ bool SDKAsioGetSamplePosition ( ASIOSamples *sPos, ASIOTimeStamp *tStamp ) {
 Returns the input and output latencies.  This includes device specific
 delays like FIFOs, etc.
 */
-bool SDKAsioGetLatenciesImpl ( long *inputLatency, long *outputLatency ) {
+int SDKAsioGetLatenciesImpl ( long *inputLatency, long *outputLatency ) {
 
 	ASIOError aseError = ASIOGetLatencies ( inputLatency, outputLatency );
 	bool bolReturn = false;
@@ -229,10 +210,8 @@ bool SDKAsioGetLatenciesImpl ( long *inputLatency, long *outputLatency ) {
 		case ASE_OK:
 			bolReturn = true;
 			// Nice to let the developer know
-			DBUG ( ( "SDKAsioGetLatencies(): (input: %d, output: %d)\n", *inputLatency, *outputLatency ) );
 			break;
 		case ASE_NotPresent:
-			DBUG ( ( "No input/output is present.\n" ) );
 			bolReturn = false;
 			break;
 	} /* hctiws */
@@ -243,7 +222,7 @@ bool SDKAsioGetLatenciesImpl ( long *inputLatency, long *outputLatency ) {
 /*
 Clear buffers
 */
-bool SDKAsioDisposeBuffers ( void ) {
+int SDKAsioDisposeBuffers ( void ) {
 
 	ASIOError aseError = ASIODisposeBuffers ( );
 	bool bolReturn = false;
@@ -253,11 +232,9 @@ bool SDKAsioDisposeBuffers ( void ) {
 			bolReturn = true;
 			break;
 		case ASE_NotPresent:
-			DBUG ( ( "No input/output is present.\n" ) );
 			bolReturn = false;
 			break;
 		case ASE_InvalidMode:
-			DBUG ( ( "No buffers were ever prepared.\n" ) );
 			bolReturn = false;
 			break;
 	} /* hctiws */
@@ -268,7 +245,7 @@ bool SDKAsioDisposeBuffers ( void ) {
 /*
 Stop the driver
 */
-bool SDKAsioStop ( void ) {
+int SDKAsioStop ( void ) {
 
 	ASIOError aseError = ASIOStop ( );
 	bool bolReturn = false;
@@ -278,7 +255,6 @@ bool SDKAsioStop ( void ) {
 			bolReturn = true;
 			break;
 		case ASE_NotPresent:
-			DBUG ( ( "No input/output is present.\n" ) );
 			bolReturn = false;
 			break;
 	} /* hctiws */
@@ -292,7 +268,7 @@ Start input and output processing synchronously.
 Note: There is no restriction on the time that ASIOStart() takes to 
 perform ( that is, it is not considered a real-time trigger ).
 */
-bool SDKAsioStartImpl ( void ) {
+int SDKAsioStartImpl ( void ) {
 
 	ASIOError aseError = ASIOStart ( );
 	bool bolReturn = false;
@@ -302,11 +278,9 @@ bool SDKAsioStartImpl ( void ) {
 			bolReturn = true;
 			break;
 		case ASE_NotPresent:
-			DBUG ( ( "No input/output is present.\n" ) );
 			bolReturn = false;
 			break;
 		case ASE_HWMalfunction:
-			DBUG ( ( "The hardware failed to start.\n" ) );
 			bolReturn = false;
 			break;
 	} /* hctiws */

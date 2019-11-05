@@ -1,8 +1,8 @@
 #ifndef ARSC_ARSC_ASIO_ARSC_ASIO_WRAPPERS_H_
 #define ARSC_ARSC_ASIO_ARSC_ASIO_WRAPPERS_H_
 
+#include "asiosys.h"
 #include "asio.h"
-#include "../arsc_common.h"
 
 #ifdef __cplusplus
 #define EXTERN_CPP extern "C"
@@ -10,45 +10,48 @@
 #define EXTERN_CPP
 #endif
 
-extern bool (*SDKAsioSetSampleRate)(ASIOSampleRate aSampleRate);
-extern bool (*SDKAsioGetBufferSize)(
+extern int (*SDKAsioSetSampleRate)(ASIOSampleRate aSampleRate);
+extern int (*SDKAsioGetBufferSize)(
 	long* alngMinBufferSize,
 	long* alngMaxBufferSize,
 	long* aslngPreferredBufferSize,
 	long* alngGranularity
 );
-extern bool (*SDKAsioOutputReady)();
-extern bool (*SDKAsioCreateBuffers)(
+extern int (*SDKAsioOutputReady)();
+extern int (*SDKAsioCreateBuffers)(
 	ASIOBufferInfo* bufferInfos,
 	long numChannels,
 	long bufferSize,
 	ASIOCallbacks* callbacks
 );
-extern bool (*SDKAsioGetLatencies)(long* inputLatency, long* outputLatency);
-extern bool (*SDKAsioStart)(void);
+extern int (*SDKAsioGetLatencies)(long *inputLatency, long *outputLatency);
+extern int (*SDKAsioStart)(void);
 
 extern ASIOBufferInfo* global_asio_buffer_info;
 
-EXTERN_CPP bool SDKLoadAsioDriver(char* name);
-EXTERN_CPP bool SDKAsioInit(ASIODriverInfo* info);
-EXTERN_CPP bool SDKAsioExit(void);
-EXTERN_CPP bool SDKAsioGetChannels(long* alngInputChannels, long* alngOutputChannels);
-EXTERN_CPP bool SDKAsioCanSampleRate(ASIOSampleRate aSampleRate);
-EXTERN_CPP bool SDKAsioGetBufferSizeImpl(long* alngMinBufferSize,
+EXTERN_CPP int SDKLoadAsioDriver(char *name);
+EXTERN_CPP int SDKAsioInit(ASIODriverInfo *info);
+EXTERN_CPP int SDKAsioExit(void);
+EXTERN_CPP int SDKAsioGetChannels(
+    long *alngInputChannels, long *alngOutputChannels);
+EXTERN_CPP int SDKAsioCanSampleRate(ASIOSampleRate aSampleRate);
+EXTERN_CPP int SDKAsioGetBufferSizeImpl(long *alngMinBufferSize,
 	long* alngMaxBufferSize,
 	long* aslngPreferredBufferSize,
 	long* alngGranularity);
-EXTERN_CPP bool SDKAsioGetChannelInfo(ASIOChannelInfo* info);
-EXTERN_CPP bool SDKAsioCreateBuffersImpl(ASIOBufferInfo* bufferInfos,
+EXTERN_CPP int SDKAsioGetChannelInfo(ASIOChannelInfo *info);
+EXTERN_CPP int SDKAsioCreateBuffersImpl(ASIOBufferInfo *bufferInfos,
 	long numChannels,
 	long bufferSize,
 	ASIOCallbacks* callbacks);
-EXTERN_CPP bool SDKAsioOutputReadyImpl();
-EXTERN_CPP bool SDKAsioGetSamplePosition(ASIOSamples* sPos, ASIOTimeStamp* tStamp);
-EXTERN_CPP bool SDKAsioGetLatenciesImpl(long* inputLatency, long* outputLatency);
-EXTERN_CPP bool SDKAsioDisposeBuffers(void);
-EXTERN_CPP bool SDKAsioStop(void);
-EXTERN_CPP bool SDKAsioStartImpl(void);
-EXTERN_CPP bool SDKAsioSetSampleRateImpl(ASIOSampleRate aSampleRate);
+EXTERN_CPP int SDKAsioOutputReadyImpl();
+EXTERN_CPP int SDKAsioGetSamplePosition(
+    ASIOSamples *sPos, ASIOTimeStamp *tStamp);
+EXTERN_CPP int SDKAsioGetLatenciesImpl(
+    long *inputLatency, long *outputLatency);
+EXTERN_CPP int SDKAsioDisposeBuffers(void);
+EXTERN_CPP int SDKAsioStop(void);
+EXTERN_CPP int SDKAsioStartImpl(void);
+EXTERN_CPP int SDKAsioSetSampleRateImpl(ASIOSampleRate aSampleRate);
 
 #endif

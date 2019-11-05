@@ -1,8 +1,8 @@
 #ifdef ASIO
-
 #include "arsc_asio.h"
-#include "asiosys.h"
 #include "arsc_asio_wrappers.h"
+#include "../arsclib.h"
+#include <Windows.h>
 
 enum {
     max_registry_key_length = 255,
@@ -16,7 +16,7 @@ typedef struct {
     CLSID clsid;
     char name[max_driver_name_length];
     char description[max_driver_name_length];
-    bool valid;
+    int valid;
     int32_t devices;
 } TAsioDriver;
 
@@ -27,7 +27,7 @@ typedef struct {
     char name[ARSC_NAMLEN];
     int32_t driver; // index back to TAsioDriver struct
     int32_t good_sampling_rates;
-    bool IsOutput;
+    int IsOutput;
 } TVirtualDevice;
 
 ASIOBufferInfo *global_asio_buffer_info = NULL;
@@ -35,16 +35,16 @@ ArAsioOutputAudio *global_ar_asio_output_audio;
 ArAsioInputAudio *global_ar_asio_input_audio;
 ARDEV *global_ar_asio_current_device;
 
-bool (*SDKAsioSetSampleRate)(
+int (*SDKAsioSetSampleRate)(
     ASIOSampleRate aSampleRate) = SDKAsioSetSampleRateImpl;
-bool (*SDKAsioGetBufferSize)(long *min_buffer_size, long *max_buffer_size,
+int (*SDKAsioGetBufferSize)(long *min_buffer_size, long *max_buffer_size,
     long *preferred_buffer_size, long *granularity) = SDKAsioGetBufferSizeImpl;
-bool (*SDKAsioOutputReady)() = SDKAsioOutputReadyImpl;
-bool (*SDKAsioCreateBuffers)(ASIOBufferInfo *bufferInfos, long channels,
+int (*SDKAsioOutputReady)() = SDKAsioOutputReadyImpl;
+int (*SDKAsioCreateBuffers)(ASIOBufferInfo *bufferInfos, long channels,
     long buffer_size, ASIOCallbacks *callbacks) = SDKAsioCreateBuffersImpl;
-bool (*SDKAsioGetLatencies)(
+int (*SDKAsioGetLatencies)(
     long *inputLatency, long *outputLatency) = SDKAsioGetLatenciesImpl;
-bool (*SDKAsioStart)(void) = SDKAsioStartImpl;
+int (*SDKAsioStart)(void) = SDKAsioStartImpl;
 
 // device identifier offset
 // for multiple platforms such as when WIND and ASIO are both set in the
@@ -65,10 +65,10 @@ static ArAsioInputAudio *first_input_audio_of_current_segment;
 static long preferred_buffer_size; // Returned by the driver
 static long total_input_and_output_channels = 0;
 static long input_latency, output_latency; // Latencies as polled from the card.
-// flag - true if driver uses ASIOOutputReady optimization
-static bool output_ready_optimization = false;
-static bool buffers_have_been_created = false;
-static bool driver_has_started = false; // flag - true if driver is started
+// flag - 1 if driver uses ASIOOutputReady optimization
+static int output_ready_optimization = 0;
+static int buffers_have_been_created = 0;
+static int driver_has_started = 0; // flag - 1 if driver is started
 static int32_t total_samples_processed = 0; // Total samples processed
 static long latency_offset = 0; // LatencyOffset specified by app
 static int32_t segment_has_finished = 0;
@@ -149,7 +149,7 @@ static void _ar_asio_io_stop(int32_t di) {
     global_ar_asio_current_device = _ardev[di];
     if (driver_has_started) {
         SDKAsioStop();
-        driver_has_started = false;
+        driver_has_started = 0;
     }
 }
 
@@ -159,12 +159,12 @@ static void _ar_asio_close(int32_t di) {
     // Stop the driver if it is running
     if (driver_has_started) {
         _ar_asio_io_stop(di);
-        driver_has_started = false;
+        driver_has_started = 0;
         Sleep(1); // 1-ms delay delay before freeing buffers
     }
 
     SDKAsioDisposeBuffers();
-    buffers_have_been_created = false;
+    buffers_have_been_created = 0;
 
     // Clear the channels
     if (channelInfos != NULL) {
@@ -213,13 +213,13 @@ int32_t _ar_asio_open(int32_t di) {
         goto err;
     }
 
-    bool bolOutput = !(_arsc_find & ARSC_PREF_IN);
+    int bolOutput = !(_arsc_find & ARSC_PREF_IN);
 
     // Load the driver and initialize
     if (!pLockAndLoad(di))
         goto err;
 
-    // This is always true for ASIO.  This lets the API code use the
+    // This is always 1 for ASIO.  This lets the API code use the
     // segments as is because of the ef (effective) flag.
     global_ar_asio_current_device->nbps = 4;
     global_ar_asio_current_device->ntlv = 0;
@@ -434,7 +434,7 @@ int32_t _ar_asio_chk_seg(int32_t di, int32_t b) {
         // The segment has just finished.  If this routine is called frequently
         // enough, we should get this within moments of it happening.
         segment_has_finished--;
-        return true;
+        return 1;
         break;
     default:
         // Segment overrun
@@ -442,10 +442,10 @@ int32_t _ar_asio_chk_seg(int32_t di, int32_t b) {
         // running.
 
         global_ar_asio_current_device->xrun++;
-        return true;
+        return 1;
     }
 
-    return false; // false means the API xfer function isn't run
+    return 0; // 0 means the API xfer function isn't run
 }
 
 int32_t (*ar_asio_check_segment)(int32_t, int32_t) = _ar_asio_chk_seg;
@@ -576,7 +576,7 @@ int32_t ar_asio_read_device_buffer(
     Check to see that the latency between ouput and input has been reached.
     Each channel has the same latency (one would hope), and we only check
     the latency once for each channel of segment 0.  This was accomplished
-    by filling the LatencyReached flag to TRUE for segments 1..N
+    by filling the LatencyReached flag to 1 for segments 1..N
     */
     if (!audio->LatencyReached) {
         // An E-mail to the ASIO listserv suggested the calculation for the
@@ -625,7 +625,7 @@ static long check_rates(void) {
     */
     good_sample_rates = 0;
     for (int i = 0; i < SRLSTSZ; i++) {
-        if (SDKAsioCanSampleRate(_ar_SRlist[i]) == true) {
+        if (SDKAsioCanSampleRate(_ar_SRlist[i]) == 1) {
             good_sample_rates |= 1 << i;
         }
     }
@@ -647,7 +647,7 @@ int32_t pGetChannelDetails(int32_t aintDriver) {
     ASIOChannelInfo *ptrChannelInfo;
 
     // Are we interested in input or output channels?  Usually output.
-    bool bolOutput = !(_arsc_find & ARSC_PREF_IN);
+    int bolOutput = !(_arsc_find & ARSC_PREF_IN);
 
     // Hold onto the number of "devices" for this driver.  This is used
     // later in calculating the channel offset from the device number.
@@ -672,7 +672,7 @@ int32_t pGetChannelDetails(int32_t aintDriver) {
             VirtualDevice[device_count].driver = aintDriver;
             sprintf(VirtualDevice[device_count].name, "%s ASIO",
                 ptrChannelInfo->name);
-            VirtualDevice[device_count].IsOutput = true;
+            VirtualDevice[device_count].IsOutput = 1;
             VirtualDevice[device_count].good_sampling_rates = check_rates();
             device_count++;
         }
@@ -694,7 +694,7 @@ int32_t pGetChannelDetails(int32_t aintDriver) {
             sprintf(VirtualDevice[device_count].name, "%s (%s) ASIO %s",
                 ptrChannelInfo->name, "In",
                 ptrChannelInfo->isActive == ASIOTrue ? "*" : "");
-            VirtualDevice[device_count].IsOutput = false;
+            VirtualDevice[device_count].IsOutput = 0;
             VirtualDevice[device_count].good_sampling_rates = check_rates();
             device_count++;
         }
@@ -807,11 +807,11 @@ int32_t pPollAsioDrivers(void) {
                 asioDriverInfo.driverVersion = 2; // ASIO 2.0
                 asioDriverInfo.sysRef =
                     GetDesktopWindow(); // Application main window handle
-                if (SDKAsioInit(&asioDriverInfo) == true) {
+                if (SDKAsioInit(&asioDriverInfo) == 1) {
                     // This ASIO driver can be used.  Although we can use only
                     // one ASIO driver at a time, there may be multiple sound
                     // cards in the same box, so we aren't done yet.
-                    drivers[intDriver].valid = true;
+                    drivers[intDriver].valid = 1;
 
                     // For now, this sets the last ASIO driver as the one used.
                     initialized_driver = intDriver;
@@ -893,7 +893,7 @@ int32_t pLockAndLoadImpl(int32_t aintDevice) {
         asioDriverInfo.driverVersion = 2; // ASIO 2.0
         asioDriverInfo.sysRef =
             GetDesktopWindow(); // Application main window handle
-        if (SDKAsioInit(&asioDriverInfo) == true) {
+        if (SDKAsioInit(&asioDriverInfo) == 1) {
 
             // Hold for later
             initialized_driver = intDriver;
@@ -966,7 +966,7 @@ ASIOTime *bufferSwitchTimeInfo(
         return 0L;
 
     for (int32_t i = 0; i < total_input_and_output_channels; i++) {
-        if (global_asio_buffer_info[i].isInput == false) {
+        if (global_asio_buffer_info[i].isInput == 0) {
             switch (channelInfos[i].type) {
             case ASIOSTInt32LSB:
                 /*
@@ -1086,5 +1086,4 @@ long asioMessages(long selector, long value, void *message, double *opt) {
     }
     return ret;
 }
-
-#endif // ASIO
+#endif

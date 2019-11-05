@@ -1,7 +1,6 @@
 #ifndef ARSC_CHECK_TESTS_ARSC_ASIO_TESTS_COMMON_H_
 #define ARSC_CHECK_TESTS_ARSC_ASIO_TESTS_COMMON_H_
 
-#define ASIO
 #include <arsc_asio.h>
 #include <check.h>
 

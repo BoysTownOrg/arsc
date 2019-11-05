@@ -1,6 +1,7 @@
 #include "arsc_asio_tests_common.h"
 #include "arsc_asio_bind_tests.h"
 #include <arsc_asio_wrappers.h>
+#include <arsclib.h>
 #include <stdlib.h>
 
 static int32_t(*devices_restore)();
