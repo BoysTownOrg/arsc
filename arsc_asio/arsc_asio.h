@@ -2,7 +2,6 @@
 #define ARSC_ARSC_ASIO_ARSC_ASIO_H_
 
 #include "../arscdev.h"
-#include "../arsc_common.h"
 
 /*
 Channels are handled differently in ASIO than MME, so made sense to
@@ -26,7 +25,7 @@ typedef struct {
 	int32_t channel;
 	int32_t segment;
 	int32_t SkippedSamples; // Skipped samples before Latency kicks in
-	bool LatencyReached; // For each channel, but only segment 0
+	int LatencyReached; // For each channel, but only segment 0
 } ArAsioInputAudio;
 
 extern int32_t (*ar_asio_devices)();

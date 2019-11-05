@@ -1,4 +1,5 @@
 #include "arsc_asio_tests_common.h"
+#include <stdlib.h>
 
 ARDEV** devices_(int32_t device) {
 	return &_ardev[device];

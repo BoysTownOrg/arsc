@@ -1,5 +1,6 @@
 #include "arsc_asio_io_prepare_tests.h"
 #include "arsc_asio_tests_common.h"
+#include <stdlib.h>
 
 enum {
 	sufficiently_large = 100,

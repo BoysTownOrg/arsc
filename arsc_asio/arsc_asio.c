@@ -312,10 +312,10 @@ int32_t _ar_asio_open(int32_t di) {
     // Clear the buffers because CardDeluxe has known issues
     bufferInfo = global_asio_buffer_info;
     for (int32_t i = 0; i < total_input_and_output_channels; i++) {
-        memset(bufferInfo->buffers[0], 0,
-            preferred_buffer_size * sizeof(int32_t));
-        memset(bufferInfo->buffers[1], 0,
-            preferred_buffer_size * sizeof(int32_t));
+        memset(
+            bufferInfo->buffers[0], 0, preferred_buffer_size * sizeof(int32_t));
+        memset(
+            bufferInfo->buffers[1], 0, preferred_buffer_size * sizeof(int32_t));
         bufferInfo++;
     }
 
@@ -570,12 +570,8 @@ int32_t ar_asio_write_device_buffer(
     }
 }
 
-/*
-Any samples due to device latency are skipped.
-*/
 int32_t ar_asio_read_device_buffer(
     int32_t *source, int32_t size, ArAsioInputAudio *audio) {
-    int32_t copied = 0;
     /*
     Check to see that the latency between ouput and input has been reached.
     Each channel has the same latency (one would hope), and we only check
@@ -583,29 +579,21 @@ int32_t ar_asio_read_device_buffer(
     by filling the LatencyReached flag to TRUE for segments 1..N
     */
     if (!audio->LatencyReached) {
-        // Latency not yet reached
-        //
         // An E-mail to the ASIO listserv suggested the calculation for the
         // offset to be Input + Output latency.  These values are usually quite
         // close.
-        // intLoopbackLatency = slngInputLatency + slngOutputLatency +
-        // slngLatencyOffset;    // Tone's version
         // Changed default LoopbackLatecy to match WDM latency [STN:Jun-2007]
-        int32_t loopback_latency = input_latency +
-            output_latency; // sum of driver input/output latencies
-        int32_t impulse_latency =
-            loopback_latency % 256; // extract impulse latency, if any
-        loopback_latency -= latency_offset +
-            impulse_latency; // subtract app & impulse latencies
-        // With the passed buffer, are we past the latency?
+        int32_t loopback_latency = input_latency + output_latency;
+        int32_t impulse_latency = loopback_latency % 256;
+        loopback_latency -= latency_offset + impulse_latency;
         int32_t samples_skipped =
             minimum(loopback_latency - audio->SkippedSamples, size);
         audio->SkippedSamples += samples_skipped;
         size -= samples_skipped;
         source += samples_skipped;
-        audio->LatencyReached =
-            audio->SkippedSamples == loopback_latency;
+        audio->LatencyReached = audio->SkippedSamples == loopback_latency;
     }
+    int32_t copied = 0;
     while (1) {
         int32_t *destination = audio->data + audio->Index;
         int32_t to_copy = minimum(size - copied, audio->size - audio->Index);
