@@ -51,7 +51,7 @@ int SDKAsioGetChannels ( long *alngInputChannels, long *alngOutputChannels ) {
 	}
 }
 
-int SDKAsioCanSampleRate ( ASIOSampleRate aSampleRate ) {
+int SDKAsioCanSampleRate ( double aSampleRate ) {
 
 	ASIOError aseError = ASIOCanSampleRate ( aSampleRate );
 	bool bolReturn = false;
@@ -74,7 +74,7 @@ int SDKAsioCanSampleRate ( ASIOSampleRate aSampleRate ) {
 }
 
 
-int SDKAsioSetSampleRateImpl ( ASIOSampleRate aSampleRate ) {
+int SDKAsioSetSampleRateImpl ( double aSampleRate ) {
 	ASIOError aseError = ASIOSetSampleRate ( aSampleRate );
 	bool bolReturn = false;
 

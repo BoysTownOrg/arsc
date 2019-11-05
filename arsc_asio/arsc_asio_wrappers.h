@@ -10,7 +10,7 @@
 #define EXTERN_CPP
 #endif
 
-extern int (*SDKAsioSetSampleRate)(ASIOSampleRate aSampleRate);
+extern int (*SDKAsioSetSampleRate)(double aSampleRate);
 extern int (*SDKAsioGetBufferSize)(
 	long* alngMinBufferSize,
 	long* alngMaxBufferSize,
@@ -34,7 +34,7 @@ EXTERN_CPP int SDKAsioInit(ASIODriverInfo *info);
 EXTERN_CPP int SDKAsioExit(void);
 EXTERN_CPP int SDKAsioGetChannels(
     long *alngInputChannels, long *alngOutputChannels);
-EXTERN_CPP int SDKAsioCanSampleRate(ASIOSampleRate aSampleRate);
+EXTERN_CPP int SDKAsioCanSampleRate(double aSampleRate);
 EXTERN_CPP int SDKAsioGetBufferSizeImpl(long *alngMinBufferSize,
 	long* alngMaxBufferSize,
 	long* aslngPreferredBufferSize,
@@ -52,6 +52,6 @@ EXTERN_CPP int SDKAsioGetLatenciesImpl(
 EXTERN_CPP int SDKAsioDisposeBuffers(void);
 EXTERN_CPP int SDKAsioStop(void);
 EXTERN_CPP int SDKAsioStartImpl(void);
-EXTERN_CPP int SDKAsioSetSampleRateImpl(ASIOSampleRate aSampleRate);
+EXTERN_CPP int SDKAsioSetSampleRateImpl(double aSampleRate);
 
 #endif
