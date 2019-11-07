@@ -1,5 +1,5 @@
-#include "arsc_asio_tests_common.h"
 #include "arsc_asio_open_device_tests.h"
+#include "arsc_asio_tests_common.h"
 #include <arsc_asio_wrappers.h>
 #include <stdlib.h>
 
