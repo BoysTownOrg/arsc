@@ -1,9 +1,6 @@
-#include "arsc_asio_tests_common.h"
 #include "arsc_asio_write_device_buffer_tests.h"
+#include "arsc_asio_tests_common.h"
 #include <arsc_asio_wrappers.h>
-#include <Windows.h>
-#include <process.h>
-#include <synchapi.h>
 #include <stdlib.h>
 
 static int32_t(*list_rates_restore)(int32_t);
@@ -383,70 +380,6 @@ START_TEST(write_device_buffer_two_segments_three_channels) {
 	ASSERT_DEVICE_BUFFER_AT_EQUALS(6, 17);
 }
 
-static LONG exit_client = 0;
-static int32_t check_sum = 0;
-
-static void client(void *ignored) {
-	while (1) {
-		check_sum += _ar_asio_chk_seg(device_index, 0);
-		if (InterlockedCompareExchange(&exit_client, 0, 1))
-			return;
-	}
-}
-
-static void audio_thread(void* ignored) {
-	write_device_buffer_(buffer_count - 1);
-	InterlockedOr(&exit_client, 1);
-}
-
-static void simulate_audio_and_client_threads(void) {
-	HANDLE client_handle = (HANDLE)_beginthread(client, 0, NULL);
-	HANDLE audio_handle = (HANDLE)_beginthread(audio_thread, 0, NULL);
-	WaitForSingleObject(audio_handle, INFINITE);
-	WaitForSingleObject(client_handle, INFINITE);
-}
-
-START_TEST(tbd) {
-	set_device_desired_input_channels(device_index, 0);
-	assign_device_input_channels(device_index, -2);
-	assign_device_output_channels(device_index, -2);
-	_ar_asio_open(device_index);
-	_ar_asio_io_start(device_index);
-	
-	simulate_audio_and_client_threads();
-	
-	check_sum += _ar_asio_chk_seg(device_index, 0);
-	ASSERT_EQUAL_ANY(0, check_sum);
-	ASSERT_EQUAL_ANY(0, _ar_asio_chk_seg(device_index, 0));
-	
-	simulate_audio_and_client_threads();
-
-	check_sum += _ar_asio_chk_seg(device_index, 0);
-	ASSERT_EQUAL_ANY(1, check_sum);
-	ASSERT_EQUAL_ANY(0, _ar_asio_chk_seg(device_index, 0));
-}
-
-START_TEST(tbd2) {
-	set_segments(2);
-	assign_audio_segment(audio, 0, 0);
-	assign_audio_segment(audio, 1, 1);
-	set_device_desired_input_channels(device_index, 0);
-	assign_device_input_channels(device_index, -2);
-	assign_device_output_channels(device_index, -2);
-	_ar_asio_open(device_index);
-	_ar_asio_io_start(device_index);
-
-	ASSERT_EQUAL_ANY(0, _ar_asio_chk_seg(device_index, 0));
-	ASSERT_EQUAL_ANY(0, _ar_asio_chk_seg(device_index, 1));
-	write_device_buffer_(buffer_count);
-	ASSERT_EQUAL_ANY(1, _ar_asio_chk_seg(device_index, 0));
-	ASSERT_EQUAL_ANY(0, _ar_asio_chk_seg(device_index, 1));
-	write_device_buffer_(buffer_count);
-	ASSERT_EQUAL_ANY(1, _ar_asio_chk_seg(device_index, 0));
-	ASSERT_EQUAL_ANY(1, _ar_asio_chk_seg(device_index, 0));
-	ASSERT_EQUAL_ANY(1, devices(device_index)->xrun);
-}
-
 Suite* arsc_asio_write_device_buffer_suite() {
 	Suite* suite = suite_create("arsc_asio_write_device_buffer");
 	TCase* test_case = tcase_create("write_device_buffer");
@@ -460,8 +393,6 @@ Suite* arsc_asio_write_device_buffer_suite() {
 	add_test(test_case, write_device_buffer_two_segments_wrap_one_channel);
 	add_test(test_case, write_device_buffer_three_segments_two_channels);
 	add_test(test_case, write_device_buffer_two_segments_three_channels);
-	add_test(test_case, tbd);
-	//add_test(test_case, tbd2);
 	suite_add_tcase(suite, test_case);
 	return suite;
 }

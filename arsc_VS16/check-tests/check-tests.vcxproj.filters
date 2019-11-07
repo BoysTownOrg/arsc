@@ -36,6 +36,9 @@
     <ClCompile Include="arsc_asio_bind_tests.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="arsc_asio_combined_tests.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="arsc_asio_write_device_buffer_tests.h">
@@ -54,6 +57,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="arsc_asio_bind_tests.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="arsc_asio_combined_tests.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

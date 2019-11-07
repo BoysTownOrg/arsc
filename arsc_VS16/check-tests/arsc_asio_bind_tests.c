@@ -322,7 +322,7 @@ START_TEST(bind_assigns_latency_to_device_type_one_when_nonzero_devices) {
 	ASSERT_BIND_ASSIGNS_LATENCY_IMPL_WHEN_NONZERO_DEVICES(1);
 }
 
-Suite* arsc_asio_test_suite() {
+Suite* arsc_asio_bind_suite() {
 	Suite* suite = suite_create("arsc_asio_bind_and_open");
 	TCase* test_case = tcase_create("bind_and_open");
 	tcase_add_checked_fixture(test_case, setup, teardown);

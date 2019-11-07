@@ -3,7 +3,7 @@
 
 #include <check.h>
 
-Suite* arsc_asio_test_suite();
+Suite* arsc_asio_bind_suite();
 
 #endif
 
