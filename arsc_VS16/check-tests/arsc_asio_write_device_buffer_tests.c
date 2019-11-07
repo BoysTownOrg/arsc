@@ -106,12 +106,12 @@ static void assign_audio_size(ArAsioOutputAudio* s, int i, int32_t size) {
 	audio_at(s, i)->size = size;
 }
 
-static void assign_audio_size_(int i, int32_t size) {
+static void assign_output_audio_size_(int i, int32_t size) {
 	audio_at(audio, i)->size = size;
 }
 
 static void assign_first_audio_size(int32_t size) {
-	assign_audio_size_(0, size);
+	assign_output_audio_size_(0, size);
 }
 
 static void assign_audio_segment(ArAsioOutputAudio* s, int i, int32_t segment) {
@@ -134,7 +134,7 @@ static void setup(void) {
 	for (int i = 0; i < buffer_count; ++i) {
 		initialize_audio(audio, i);
 		assign_audio_data(audio, i, audio_buffers[i]);
-		assign_audio_size_(i, sizeof audio_buffers[i] / sizeof audio_buffers[i][0]);
+		assign_output_audio_size_(i, sizeof audio_buffers[i] / sizeof audio_buffers[i][0]);
 	}
 	allocate_device(device_index);
 	set_segments(1);
@@ -246,7 +246,7 @@ START_TEST(write_device_buffer_one_segment_wrap_second_channel) {
 	audio[0].channel = 0;
 	audio[1].channel = 1;
 
-	assign_audio_size_(1, 3);
+	assign_output_audio_size_(1, 3);
 	assign_second_audio_buffer(0, 11);
 	assign_second_audio_buffer(1, 12);
 	assign_second_audio_buffer(2, 13);
@@ -327,14 +327,14 @@ START_TEST(write_device_buffer_three_segments_two_channels) {
 
 	audio[5].channel = 1;
 	assign_audio_segment(audio, 5, 2);
-	assign_audio_size_(5, 4);
+	assign_output_audio_size_(5, 4);
 	assign_audio_buffer(5, 0, 11);
 	assign_audio_buffer(5, 1, 12);
 	assign_audio_buffer(5, 2, 13);
 	assign_audio_buffer(5, 3, 14);
 
 	audio[1].channel = 1;
-	assign_audio_size_(1, 3);
+	assign_output_audio_size_(1, 3);
 	assign_audio_buffer(1, 0, 15);
 	assign_audio_buffer(1, 1, 16);
 	assign_audio_buffer(1, 2, 17);
@@ -356,7 +356,7 @@ START_TEST(write_device_buffer_two_segments_three_channels) {
 
 	audio[2].channel = 2;
 	assign_audio_segment(audio, 2, 0);
-	assign_audio_size_(2, 4);
+	assign_output_audio_size_(2, 4);
 	assign_audio_buffer(2, 0, 11);
 	assign_audio_buffer(2, 1, 12);
 	assign_audio_buffer(2, 2, 13);
@@ -364,7 +364,7 @@ START_TEST(write_device_buffer_two_segments_three_channels) {
 
 	audio[5].channel = 2;
 	assign_audio_segment(audio, 5, 1);
-	assign_audio_size_(5, 3);
+	assign_output_audio_size_(5, 3);
 	assign_audio_buffer(5, 0, 15);
 	assign_audio_buffer(5, 1, 16);
 	assign_audio_buffer(5, 2, 17);
