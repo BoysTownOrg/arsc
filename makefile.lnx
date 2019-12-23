@@ -76,21 +76,21 @@ arscsc.zip: $(EFILES)
 	zip arscsc arsc_cs/*.* _*
 	zip arscsc arsc_mex/*.c arsc_mex/*.m arsc_mex/*.bat
 	zip arscsc arsc_mex/Makefile arsc_mex/_README.txt
-	zip arscsc arsc_VS9/*.sln arsc_VS9/*.vcproj arsc_VS9/*.txt
+	zip arscsc arsc_VS16/*.sln arsc_VS16/*.vcxproj 
 
 arscmex.zip: 
 	zip -j arscmex arsc_mex/*.c arsc_mex/*.m arsc_mex/README.txt
 	zip -j arscmex arsc_mex/arsc_mex.mexw32 arsc_mex/arsc_mex.mexglx
 
 arscdll.zip: 
-	zip -j arscdll arsc_VS9/Release/arsc_dll/arsc.dll
-	zip -j arscdll arsc_VS9/Release/arsc_dll/arsc.lib
+	zip -j arscdll arsc_VS16/Release/arsc_dll/arsc.dll
+	zip -j arscdll arsc_VS16/Release/arsc_dll/arsc.lib
 	zip -j arscdll arsclib.h
 
 sio_arsc.zip: 
 	zip -j sio_arsc tstsio.c
-	zip -j sio_arsc arsc_VS9/Release/tstsio.exe
-	zip -j sio_arsc arsc_VS9/Release/siodll/sio.dll
+	zip -j sio_arsc arsc_VS16/Release/tstsio.exe
+	zip -j sio_arsc arsc_VS16/Release/siodll/sio.dll
 	zip -j arscdll siodll.h
 
 dist: arscsc.zip arscmex.zip arscdll.zip sio_arsc.zip

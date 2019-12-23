@@ -351,7 +351,9 @@ main(int ac, char **av)
 	    printf("%6d %6.3f: %d\n", i, i * sc, cc[i]);
     }
     n = compute_std_dev(cc, nsmp, &mn, &sd);
-    if (sd < 0.01)
+    if (mn < 1)
+	q = "no latency!";
+    else if (sd < 0.01)
 	q = "outstanding";
     else if(sd < 0.1)
 	q = "excellent";

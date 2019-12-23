@@ -1,7 +1,15 @@
 /* arsclib.h */
 #ifndef ARSCLIB_H
 #define ARSCLIB_H
+
+#if !defined(_MSC_VER) || (_MSC_VER > 1500)
 #include <stdint.h>
+#else
+typedef short int16_t;
+typedef long int32_t;
+typedef unsigned short uint16_t;
+typedef unsigned long uint32_t;
+#endif
 
 #define ARSC_MSGLEN	    80
 #define ARSC_NAMLEN	    40
@@ -29,6 +37,10 @@
 
 #define ARSC_GET_LATENCY    9999
 
+// old typedefs for backward compatibility
+typedef int16_t  SINT2;
+typedef int32_t  SINT4;
+typedef uint32_t UINT4;
 
 #ifdef WIN32
 #define WM_ARSC		    (WM_USER+555)
