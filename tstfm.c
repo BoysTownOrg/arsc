@@ -265,7 +265,7 @@ win_init(HINSTANCE inst)
     if (hInst == 0) {
         hInst = inst;
         OutClass.lpszClassName = cn;
-        OutClass.lpfnWndProc   = wind_proc;
+        OutClass.lpfnWndProc   = (WNDPROC)wind_proc;
         OutClass.style         = 0;
         OutClass.hInstance     = hInst;
         OutClass.hIcon         = LoadIcon(NULL, IDI_APPLICATION);
