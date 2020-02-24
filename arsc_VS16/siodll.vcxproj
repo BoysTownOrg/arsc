@@ -68,9 +68,7 @@
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SIODLL_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeaderOutputFile>.\Release/siodll.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)%(Filename).obj</ObjectFileName>
@@ -78,6 +76,7 @@
       <XMLDocumentationFileName>$(IntDir)%(Filename).xml</XMLDocumentationFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>None</DebugInformationFormat>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -121,9 +120,8 @@ copy ..\siodll.h ..\..\include
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SIODLL_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MinimalRebuild>true</MinimalRebuild>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <MinimalRebuild>false</MinimalRebuild>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeaderOutputFile>.\Debug/sio.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)%(Filename).obj</ObjectFileName>
@@ -155,6 +153,15 @@ copy ..\siodll.h ..\..\include
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\arsc_api.c" />
+    <ClCompile Include="..\arsc_asio\arsc_asio.c" />
+    <ClCompile Include="..\arsc_asio\arsc_asio_wrappers.cpp" />
+    <ClCompile Include="..\arsc_asio\asio.cpp" />
+    <ClCompile Include="..\arsc_asio\asiodrivers.cpp" />
+    <ClCompile Include="..\arsc_asio\asiolist.cpp" />
+    <ClCompile Include="..\arsc_helper.c" />
+    <ClCompile Include="..\arsc_win.c" />
+    <ClCompile Include="..\arsc_xfer.c" />
     <ClCompile Include="..\siodll.c" />
     <ClCompile Include="..\sio_arsc.c" />
   </ItemGroup>
@@ -164,12 +171,6 @@ copy ..\siodll.h ..\..\include
   </ItemGroup>
   <ItemGroup>
     <None Include="..\sio.def" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="arsc_lib.vcxproj">
-      <Project>{f5d1a442-9570-4565-a61d-412d3d947f78}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

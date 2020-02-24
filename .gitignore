@@ -7,4 +7,5 @@ arsc_asio/asiolist.h
 arsc_asio/asiosys.h
 arsc_asio/ginclude.h
 arsc_asio/iasiodrv.h
-
+.vs/
+out/

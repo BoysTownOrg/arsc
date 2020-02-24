@@ -7,13 +7,14 @@
 
 #define SRLSTSZ	    27		/* sample rate list size */
 
-#ifndef ARSC_LPTR
-#define ARSC_LPTR
+#if !defined(_MSC_VER) || (_MSC_VER > 1500)
 #include <stdint.h>
-typedef int16_t     int16_t;
-typedef int32_t     int32_t;
-typedef uint32_t    uint32_t;
-#endif /* ARSC_LPTR */
+#else
+typedef short int16_t;
+typedef long int32_t;
+typedef unsigned short uint16_t;
+typedef unsigned long uint32_t;
+#endif
 
 typedef struct{
     double a_rate;		/* desired sampling rate */

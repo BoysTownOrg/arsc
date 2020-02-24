@@ -69,9 +69,8 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;_DEBUG;_WINDOWS;_USRDLL;ARSC_DLL_EXPORTS;WIND;ASIO;WRAP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MinimalRebuild>true</MinimalRebuild>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <MinimalRebuild>false</MinimalRebuild>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeaderOutputFile>.\Debug/arsc_dll.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)%(Filename).obj</ObjectFileName>
@@ -116,7 +115,7 @@
     </Midl>
     <ClCompile>
       <PreprocessorDefinitions>_USRDLL;ARSC_DLL_EXPORTS;WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;WIND;ASIO;WRAP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeaderOutputFile>.\Release/arsc_dll.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)%(Filename).obj</ObjectFileName>
@@ -124,6 +123,7 @@
       <XMLDocumentationFileName>$(IntDir)%(Filename).xml</XMLDocumentationFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>None</DebugInformationFormat>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -149,7 +149,8 @@
     </Bscmake>
     <PostBuildEvent>
       <Message>Install arsc.dll</Message>
-      <Command>copy $(IntDir)arsc.dll ..\..\lib</Command>
+      <Command>copy $(IntDir)arsc.dll .\Release
+copy $(IntDir)arsc.dll ..\..\lib</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
