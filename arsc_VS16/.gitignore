@@ -1,7 +1,4 @@
-.vs
-Debug
-Release
-*.user
+.vs/
+Debug/
+Release/
 .clang-format
-
-
