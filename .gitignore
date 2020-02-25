@@ -1,0 +1,11 @@
+arsc_asio/asio.cpp
+arsc_asio/asio.h
+arsc_asio/asiodrivers.cpp
+arsc_asio/asiodrivers.h
+arsc_asio/asiolist.cpp
+arsc_asio/asiolist.h
+arsc_asio/asiosys.h
+arsc_asio/ginclude.h
+arsc_asio/iasiodrv.h
+.vs/
+out/
