@@ -362,7 +362,7 @@ int32_t _ar_asio_io_prepare(int32_t di) {
 
     ArAsioOutputAudio *output_audio = global_ar_asio_output_audio;
     first_output_audio_of_current_segment = global_ar_asio_output_audio;
-    for (int32_t i = 0; i < global_ar_asio_current_device->ncda * segments;
+    for (int32_t i = 0; i < (int32_t)(global_ar_asio_current_device->ncda * segments);
          i++) {
         output_audio->channel = i % global_ar_asio_current_device->ncda;
         output_audio->segment = i / global_ar_asio_current_device->ncda;
@@ -376,7 +376,7 @@ int32_t _ar_asio_io_prepare(int32_t di) {
 
     ArAsioInputAudio *ptrResponseData = global_ar_asio_input_audio;
     first_input_audio_of_current_segment = global_ar_asio_input_audio;
-    for (int32_t i = 0; i < global_ar_asio_current_device->ncad * segments;
+    for (int32_t i = 0; i < (int32_t)(global_ar_asio_current_device->ncad * segments);
          i++) {
         ptrResponseData->channel = i % global_ar_asio_current_device->ncad;
         ptrResponseData->segment = i / global_ar_asio_current_device->ncad;
