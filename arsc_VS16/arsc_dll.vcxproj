@@ -123,7 +123,6 @@
       <XMLDocumentationFileName>$(IntDir)%(Filename).xml</XMLDocumentationFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <DebugInformationFormat>None</DebugInformationFormat>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -142,6 +141,7 @@
       <DataExecutionPrevention />
       <ImportLibrary>$(IntDir)arsc.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -149,8 +149,7 @@
     </Bscmake>
     <PostBuildEvent>
       <Message>Install arsc.dll</Message>
-      <Command>copy $(IntDir)arsc.dll .\Release
-copy $(IntDir)arsc.dll ..\..\lib</Command>
+      <Command>copy $(IntDir)arsc.dll ..\..\lib</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
