@@ -510,7 +510,7 @@ subdevice_count(snd_ctl_t *h, int dev, int io, char *s)
 static long
 init_dev()
 {
-    char ctl_name[64], crd_name[64], dev_name[64], name[64];
+    char ctl_name[64], crd_name[64], dev_name[64], name[256];
     int c0, c1, crd, dev, err, nd = 0;
     snd_ctl_t *h;
 
