@@ -2,7 +2,7 @@
 # Download source code: wget http://audres.org/downloads/arscsc.zip
 # Requires alsa-lib cross-compiled for ARM
 
-CC=arm-linux-gnueabihf-gcc
+CC=arm-linux-gnueabihf-gcc-7
 AR=arm-linux-gnueabihf-ar
 CFLAGS = -O2 -Wall -DALSA -DANSI_C -DKB 
 LIBS = -lasound -lm 
