@@ -57,11 +57,11 @@ www:
 	make clean
 
 install: arsc_chk tstlat libarsc.a libsio.a 
-	mkdir -p $(LIBDIR) $(INCDIR) arm
+	mkdir -p $(LIBDIR) $(INCDIR) arsc_arm
 	install libarsc.a $(LIBDIR)
 	install libsio.a  $(LIBDIR)
 	install arsclib.h $(INCDIR)
-	cp -f arsc_chk tstlat arm
+	cp -f arsc_chk tstlat arsc_arm
 
 arscsc.zip: $(EFILES)
 	zip arscsc *.mgw *.lnx *.mac *.arm
