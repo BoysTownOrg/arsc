@@ -36,9 +36,9 @@ open FILE, ">".$n;
 print FILE @infile;
 close FILE;
 
-# update version in arsc_VS9/_README.txt
+# update version in arsc_VS16/_README.txt
 #
-$n = "arsc_VS9/_README.txt";
+$n = "arsc_VS16/_README.txt";
 open FILE,$n or die "can't open ".$n;
 @infile = <FILE>;
 $i = 0;

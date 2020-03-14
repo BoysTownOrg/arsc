@@ -1,6 +1,6 @@
 [Setup]
 AppName=ARSC
-AppVerName=BTNRH ARSC_CHK 0.56
+AppVerName=BTNRH ARSC_CHK 0.57
 AppPublisher=Boys Town Nationial Research Hospital
 AppPublisherURL=http://www.boystownhospital.org
 AppSupportURL=http://audres.org/rc/arsc/
@@ -12,7 +12,7 @@ DefaultGroupName=BTNRH
 Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "Additional icons:"; Flags: unchecked
 
 [Files]
-Source: "arsc_VS9\Release\arsc_chk.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "arsc_VS16\Release\arsc_chk.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "no_arsc.reg"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
