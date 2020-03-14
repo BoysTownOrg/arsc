@@ -187,17 +187,12 @@
     </Bscmake>
     <PostBuildEvent>
       <Message>Install arsc.lib</Message>
-      <Command>copy $(IntDir)arsc.lib ..\..\lib
-
-copy ..\sio.h ..\..\include
-
-copy ..\arsclib.h ..\..\include
-
-copy $(IntDir)arsc.lib c:\usr\lib
+      <Command>copy $(IntDir)arsc.lib c:\usr\lib
 
 copy ..\sio.h c:\usr\include
 
 copy ..\arsclib.h c:\usr\include
+
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>

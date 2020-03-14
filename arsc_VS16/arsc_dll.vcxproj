@@ -148,7 +148,7 @@
     </Bscmake>
     <PostBuildEvent>
       <Message>Install arsc.dll</Message>
-      <Command>copy $(IntDir)arsc.dll ..\..\lib</Command>
+      <Command>copy $(IntDir)arsc.dll Release</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

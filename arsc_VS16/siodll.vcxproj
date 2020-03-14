@@ -98,9 +98,11 @@
     </Bscmake>
     <PostBuildEvent>
       <Message>Install sio.dll</Message>
-      <Command>copy $(IntDir)sio.dll ..\..\lib
-copy $(IntDir)sio.lib ..\..\lib
-copy ..\siodll.h ..\..\include
+      <Command>copy $(IntDir)sio.dll Release
+
+copy $(IntDir)sio.lib c:\usr\lib
+
+copy ..\siodll.h c:\usr\include
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
