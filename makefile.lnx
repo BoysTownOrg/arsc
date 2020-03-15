@@ -12,9 +12,9 @@ EFILES = tstfm tstlat tstout tstsio wrtnfo arsc_chk
 OFILES = arsc_api.o arsc_xfer.o arsc_alsa.o kb.c sio_arsc.o
 AFILES = libarsc.a libsio.a 
 
-LIBDIR=/usr/local/arm/lib
-INCDIR=/usr/local/arm/include
-BINDIR=/usr/local/arm/bin
+LIBDIR=/usr/local/lib
+INCDIR=/usr/local/include
+BINDIR=/usr/local/bin
 
 all: $(EFILES) $(AFILES)
 

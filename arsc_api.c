@@ -37,7 +37,7 @@ static CARDINFO card_info[MAXNCT] = {
     { "LynxTWO-B",           24, 8, 4, 2, 6, 0, {11.060}, {11.009} },
     { "MOTU UltraLite mk3",  24, 8, 4, 6, 8, 0, {10.000}, {10.000} },
     { "Analog 1 (1) ASIO",   24, 8, 4, 2, 2, 0, {12.734}, { 4.454} },
-    { "5-Waveterminal",      24, 8, 4, 2, 6, 0, { 9.655}, { 4.351} },
+    { "Babyface",            24, 8, 4, 2, 2, 0, {12.734}, { 4.454} },
 };
 static int nct = MAXNCT;        // number of card_types with info
 static int ndt = 0;		// number of device types

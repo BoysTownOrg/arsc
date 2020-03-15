@@ -481,7 +481,7 @@ int sio_open(	// returns non-zero if successful
 )
 {
     if (iodev < 0) {
-        iodev = ar_find_dev(ARSC_PREF_ASIO);
+        iodev = ar_find_dev(ARSC_PREF_SYNC);
     }
     if (ar_io_open_off(iodev, rate_set, ndc[0], ndc[1], cho[0], cho[1]))
 	return (0);
@@ -560,7 +560,7 @@ int sio_set_device(
         iodev = n - 1;
     }
     if (iodev < 0) {
-        iodev = ar_find_dev(ARSC_PREF_ASIO);
+        iodev = ar_find_dev(ARSC_PREF_SYNC);
     }
 
     return (iodev + 1);
