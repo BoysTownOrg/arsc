@@ -247,10 +247,11 @@ usage()
     printf("-nN  set number of clicks to N\n");
     printf("-p   pause before exiting\n");
     printf("-q   check click response quality\n");
-    printf("-sN  set sampling rate to N\n");
+    printf("-rN  set sampling rate to N\n");
+    printf("-v   version\n");
     printf("-z   zero click\n");
     printf("\n");
-    printf("Soundcard should be in loopback configuration.\n");
+    printf("Note: soundcard should be in loopback configuration.\n");
     done(0);
 }
 
@@ -283,9 +284,12 @@ main(int ac, char **av)
 		enter++;
 	    } else if (av[1][1] == 'q') {
 		qflag++;
-	    } else if (av[1][1] == 's') {
-		sr = atof(&av[1][2]);
-	    } else if (av[1][1] == 'z') {
+            } else if (av[1][1] == 'r') {
+                sr = atof(&av[1][2]);
+            } else if (av[1][1] == 'v') {
+                printf("%s\n", ar_version());
+                exit(0);
+            } else if (av[1][1] == 'z') {
 		zflag++;
 	    }
 	} else {
