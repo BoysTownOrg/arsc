@@ -61,7 +61,7 @@ arscsc.zip: $(EFILES)
 	zip arscsc arsc_cpp/*.cc arsc_cpp/Makefile
 	zip arscsc arsc_mex/*.c arsc_mex/*.m arsc_mex/*.bat
 	zip arscsc arsc_mex/Makefile arsc_mex/_README.txt
-	zip arscsc arsc_VS16/*.sln arsc_VS16/*.vcxproj 
+	zip arscsc arsc_VS16/*.sln arsc_VS16/*.vcxproj arsc_VS16/*.filters 
 
 arscmex.zip: 
 	rm -f $@

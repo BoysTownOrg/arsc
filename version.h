@@ -1,10 +1,12 @@
 /* version.h */
 
-#define VER     "ARSC version 0.58, 15-Mar-20"
+#define VER     "ARSC version 0.59, 16-Mar-20"
 #define NOTICE	"Copyright 2005-2020 Boys Town National Research Hospital"
 #define RIGHTS	"Redistribution permitted under General Public License v2.0."
 
 /**************************** change log **********************************
+0.59 - 16-Mar-20
+> Modified options in tstlat.c & tstsio.c
 0.58 - 15-Mar-20
 > Added "Babyface" to list of known device in arsc_api.c
 > Changed ARSC_PREF_ASIO to ARSC_PREF_SYNC in sio_arsc.c

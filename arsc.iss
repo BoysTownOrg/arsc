@@ -1,6 +1,6 @@
 [Setup]
 AppName=ARSC
-AppVerName=BTNRH ARSC_CHK 0.58
+AppVerName=BTNRH ARSC_CHK 0.59
 AppPublisher=Boys Town Nationial Research Hospital
 AppPublisherURL=http://www.boystownhospital.org
 AppSupportURL=http://audres.org/rc/arsc/

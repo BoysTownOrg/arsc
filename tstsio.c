@@ -1,10 +1,12 @@
-/* tstsio.c - test synchronous i/o DLL  */
+/* tstsio.c - test synchronous i/o */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include "sio.h"
+
+double rate = 48000;            // sampling rate
 
 void
 save_result(float *a, int ns, int cnt, double sr, char *dn)
@@ -62,12 +64,25 @@ device_list()
     }
 }
 
-int 
+void
+usage()
+{
+    printf("usage: tstio [-option] [device_number]\n");
+    printf("options:\n");
+    printf("-h   print usage\n");
+    printf("-l   list devices\n");
+    printf("-rN  set sampling rate to N\n");
+    printf("-v   version\n");
+    printf("\n");
+    printf("Note: soundcard should be in loopback configuration.\n");
+    exit(0);
+}
+
+int
 tstsio(int ac, char **av)
 {
     char devnam[40];
     float *inn[2], *out[2], *avg[2];
-    double rate = 48000;            // sampling rate
     int devnum, cnt, inc[2];
     int nsk = 0;                    // number of samples skipped
     int nsw = 100;                  // number of averages
@@ -78,11 +93,18 @@ tstsio(int ac, char **av)
     int nsm = 4800;                 // number of samples in buffers
 
     if (ac > 1) {
-	if (av[1][0] == '-') {
-	    if (av[1][1] == 'l') {
+        if (av[1][0] == '-') {
+            if (av[1][1] == 'h') {
+                usage();
+            } else if (av[1][1] == 'l') {
 		device_list();
 		return (0);
-	    }
+            } else if (av[1][1] == 'r') {
+                rate = atof(&av[1][2]);
+            } else if (av[1][1] == 'v') {
+                printf("%s\n", sio_version());
+                exit(0);
+            }
 	} else {
 	    devnum = atoi(av[1]);
 	    sio_set_device(devnum);
