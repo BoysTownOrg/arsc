@@ -145,9 +145,6 @@
     <ClCompile Include="..\tstout.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\arsclib.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="arsc_lib.vcxproj">
       <Project>{f5d1a442-9570-4565-a61d-412d3d947f78}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

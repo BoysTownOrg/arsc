@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\arsc_api.c">
+      <Filter>Source FIles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\arsc_asio\arsc_asio.c">
+      <Filter>Source FIles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\arsc_asio\arsc_asio_wrappers.cpp">
+      <Filter>Source FIles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\arsc_dll.c">
+      <Filter>Source FIles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\arsc_helper.c">
+      <Filter>Source FIles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\arsc_win.c">
+      <Filter>Source FIles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\arsc_xfer.c">
+      <Filter>Source FIles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\arsc_asio\asio.cpp">
+      <Filter>Source FIles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\arsc_asio\asiodrivers.cpp">
+      <Filter>Source FIles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\arsc_asio\asiolist.cpp">
+      <Filter>Source FIles</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source FIles">
+      <UniqueIdentifier>{81225bdc-b446-4d77-bbe2-401f12b4d311}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{ef825d96-69e6-46b2-b2fc-b43db3c87028}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{44f8877c-a470-4f80-b128-43015a95cc34}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\arsc.def">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\arsc_dll.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
