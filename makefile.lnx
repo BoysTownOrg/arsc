@@ -60,13 +60,11 @@ www:
 	make install
 	make clean
 
-install: arsc_chk tstlat libarsc.a libsio.a 
+install: arsc_chk tstlat tstsio libarsc.a libsio.a 
 	mkdir -p $(BINDIR) $(LIBDIR) $(INCDIR)
-	install arsc_chk  $(BINDIR)
-	install tstlat    $(BINDIR)
+	install arsc_chk tstlat tstsio $(BINDIR)
+	install libarsc.a libsio.a $(LIBDIR)
 	install arsclib.h $(INCDIR)
-	install libarsc.a $(LIBDIR)
-	install libsio.a  $(LIBDIR)
 
 arscsc.zip: $(EFILES)
 	zip arscsc *.mgw *.lnx *.mac *.arm
