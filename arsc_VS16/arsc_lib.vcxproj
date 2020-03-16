@@ -187,7 +187,9 @@
     </Bscmake>
     <PostBuildEvent>
       <Message>Install arsc.lib</Message>
-      <Command>copy $(IntDir)arsc.lib c:\usr\lib
+      <Command>mkdir c:\usr\lib
+mkdir c:\usr\include
+copy $(IntDir)arsc.lib c:\usr\lib
 
 copy ..\sio.h c:\usr\include
 

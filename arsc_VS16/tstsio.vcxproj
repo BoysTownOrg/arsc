@@ -97,6 +97,12 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <OutputFile>.\Release/tstsio.bsc</OutputFile>
     </Bscmake>
+    <PostBuildEvent>
+      <Command>copy $(TargetPath) c:\usr\bin</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Install tstsio</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <BuildLog>

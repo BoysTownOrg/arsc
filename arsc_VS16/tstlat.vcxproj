@@ -126,10 +126,8 @@
       <OutputFile>.\Release/tstlat.bsc</OutputFile>
     </Bscmake>
     <PostBuildEvent>
-      <Message>
-      </Message>
-      <Command>
-      </Command>
+      <Message>Install tstlat</Message>
+      <Command>copy $(TargetPath) c:\usr\bin</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

@@ -87,7 +87,8 @@
     </Link>
     <PostBuildEvent>
       <Message>Install arsc_chk</Message>
-      <Command>copy $(TargetPath) c:\usr\bin</Command>
+      <Command>mkdir c:\usr\bin
+copy $(TargetPath) c:\usr\bin</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
