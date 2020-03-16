@@ -9,10 +9,20 @@
 void
 save_result(float *a, int ns, int cnt, double sr, char *dn)
 {
-    int i;
+    float  aab, apk = 0, tpk;
+    int i, ipk = 0;
     FILE *fp;
     static char *fn = "tstsio.txt";
 
+    for (i = 0; i < ns; i++) {
+        aab = (float)fabs(a[i]);
+        if (apk < aab) {
+            apk = aab;
+            ipk = i;
+        }
+    }
+    tpk = ipk * 1000 / (float) sr;
+    printf("impulse response peak at %.2f ms\n", tpk);
     fp = fopen(fn, "wt");
     if (fp) {
         fprintf(fp, "; %s\n", fn);
@@ -21,6 +31,7 @@ save_result(float *a, int ns, int cnt, double sr, char *dn)
 	fprintf(fp, "size=%d\n", ns);
 	fprintf(fp, "count=%d\n", cnt);
 	fprintf(fp, "rate=%.0f\n", sr);
+	fprintf(fp, "tpk=%.3f\n", tpk);
         fprintf(fp, ";\n");
 	for (i = 0; i < ns; i++) {
 	    fprintf(fp, "%9.3f\n", a[i] * 1000);
@@ -102,20 +113,6 @@ tstsio(int ac, char **av)
     return (0);
 }
 
-#ifdef WIN32
-
-#include <windows.h>
-#include <mmsystem.h>
-
-int WINAPI 
-WinMain (HINSTANCE hIn, HINSTANCE hPr, char *C, int S)
-{
-    tstsio(__argc, __argv);
-    return (0);
-}
-
-#else // WIN32
-
 int 
 main(int ac, char **av)
 {
@@ -123,4 +120,3 @@ main(int ac, char **av)
     return (0);
 }
 
-#endif // WIN32
