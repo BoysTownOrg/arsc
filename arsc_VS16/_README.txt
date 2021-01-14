@@ -1,4 +1,4 @@
-ARSC_CHK for Windows version 0.57
+ARSC_CHK for Windows version 0.59
 Copyright 1988-2019 Boys Town National Research Hospital
 Non-profit redistribution permitted.
 

@@ -127,7 +127,8 @@
     </Bscmake>
     <PostBuildEvent>
       <Message>Install tstsio</Message>
-      <Command>copy $(TargetPath) c:\usr\bin</Command>
+      <Command>mkdir c:\usr\bin
+copy $(TargetPath) c:\usr\bin</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
