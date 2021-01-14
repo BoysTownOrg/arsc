@@ -1,23 +1,13 @@
-							16-Nov-2015:STN
+							Aug-2009:STN
 
-The ARSC_ASIO distribution files are:
+These following header files are needed to support soundcard drivers that use WAVE_FORMAT_EXTENSIBLE
+and are not included in VS6. Copy these two files to ...\VC98\include.
 
-	_README.txt
-		This file.
+	ksmedia.h
+	ksguid.h
 
-	arsc_asio.c
-		Contains the ASIO specific code to integrate into the
-		ARSC API.  It also includes bufferSwitchTimeInfo().
-
-	arsc_asio_wrappers.cpp
-		Wrapper calls to Steinberg's ASIO SDK.  These were
-		necessary in order to maintain ANSI C implementation because
-		the SDK uses C++ for interfaces, i.e. CLSIDs, etc.
-
-	arsc_asio.vcproj
-		Project file for Visual Studio.net.
-
-The following files must be copied to this directory from Steinberg's ASIO SDK 2.3.
+The following files are part of Steinberg's ASIO SDK and  
+should all be copied to the .../arsc/arsc_asio directory.
 	
 	asio.cpp
 	asio.h
